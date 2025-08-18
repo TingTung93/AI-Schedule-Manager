@@ -15,7 +15,7 @@ class TestRuleParser:
     """Test suite for RuleParser class."""
     
     @pytest.fixture
-    async def parser(self):
+    def parser(self):
         """Create a RuleParser instance for testing."""
         parser = RuleParser()
         # Mock the spaCy model to avoid downloading in tests
