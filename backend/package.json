@@ -1,0 +1,14 @@
+{
+  "name": "ai-schedule-manager-backend",
+  "version": "0.1.0",
+  "description": "Backend API for AI Schedule Manager",
+  "scripts": {
+    "start": "python src/main.py",
+    "dev": "python src/main.py",
+    "test": "python -m pytest tests/",
+    "test:unit": "python -m pytest tests/unit/",
+    "test:integration": "python -m pytest tests/integration/",
+    "install": "pip install -r requirements.txt",
+    "venv": "python -m venv venv && . venv/bin/activate && pip install -r requirements.txt"
+  }
+}
