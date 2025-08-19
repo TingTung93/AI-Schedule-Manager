@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -33,6 +33,8 @@ import {
   Schedule as ScheduleIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
+import { ruleService } from '../services/api';
+import { useApi, useApiMutation } from '../hooks/useApi';
 
 const RuleInput = () => {
   const [ruleText, setRuleText] = useState('');
@@ -41,6 +43,59 @@ const RuleInput = () => {
   const [parsedResult, setParsedResult] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  // Fetch existing rules on mount
+  const { data: rulesData, loading: loadingRules, refetch: refetchRules } = useApi(
+    () => ruleService.getRules(),
+    [],
+    {
+      onSuccess: (data) => {
+        setRules(data.rules || []);
+      },
+      onError: (error) => {
+        setNotification({ type: 'error', message: 'Failed to load rules' });
+      }
+    }
+  );
+
+  // Setup mutations for API calls
+  const { mutate: parseRuleMutation, loading: parsingApi } = useApiMutation(
+    ruleService.parseRule,
+    {
+      onSuccess: (result) => {
+        setParsedResult(result);
+        setShowPreview(true);
+      },
+      onError: (error) => {
+        setNotification({ type: 'error', message: error.message || 'Failed to parse rule' });
+      }
+    }
+  );
+
+  const { mutate: deleteRuleMutation } = useApiMutation(
+    ruleService.deleteRule,
+    {
+      onSuccess: () => {
+        refetchRules();
+        setNotification({ type: 'info', message: 'Rule removed' });
+      },
+      onError: (error) => {
+        setNotification({ type: 'error', message: 'Failed to delete rule' });
+      }
+    }
+  );
+
+  const { mutate: updateRuleMutation } = useApiMutation(
+    ruleService.updateRule,
+    {
+      onSuccess: () => {
+        refetchRules();
+      },
+      onError: (error) => {
+        setNotification({ type: 'error', message: 'Failed to update rule' });
+      }
+    }
+  );
 
   // Example rules for demonstration
   const exampleRules = [
@@ -54,20 +109,8 @@ const RuleInput = () => {
 
   const parseRule = async () => {
     setParsing(true);
-    
     try {
-      // Simulate API call to parse natural language
-      const response = await fetch('/api/rules/parse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rule_text: ruleText }),
-      });
-      
-      const result = await response.json();
-      setParsedResult(result);
-      setShowPreview(true);
-    } catch (error) {
-      setNotification({ type: 'error', message: 'Failed to parse rule' });
+      await parseRuleMutation(ruleText);
     } finally {
       setParsing(false);
     }
@@ -76,11 +119,11 @@ const RuleInput = () => {
   const confirmRule = () => {
     if (parsedResult) {
       const newRule = {
-        id: Date.now(),
+        id: parsedResult.id || Date.now(),
         text: ruleText,
         ...parsedResult,
         active: true,
-        createdAt: new Date().toISOString(),
+        createdAt: parsedResult.created_at || new Date().toISOString(),
       };
       
       setRules([...rules, newRule]);
@@ -88,18 +131,21 @@ const RuleInput = () => {
       setParsedResult(null);
       setShowPreview(false);
       setNotification({ type: 'success', message: 'Rule added successfully' });
+      
+      // Refresh rules from backend to ensure sync
+      refetchRules();
     }
   };
 
-  const deleteRule = (ruleId) => {
-    setRules(rules.filter(r => r.id !== ruleId));
-    setNotification({ type: 'info', message: 'Rule removed' });
+  const deleteRule = async (ruleId) => {
+    await deleteRuleMutation(ruleId);
   };
 
-  const toggleRuleActive = (ruleId) => {
-    setRules(rules.map(r => 
-      r.id === ruleId ? { ...r, active: !r.active } : r
-    ));
+  const toggleRuleActive = async (ruleId) => {
+    const rule = rules.find(r => r.id === ruleId);
+    if (rule) {
+      await updateRuleMutation(ruleId, { active: !rule.active });
+    }
   };
 
   const getRuleTypeColor = (type) => {
@@ -154,12 +200,12 @@ const RuleInput = () => {
                   color="primary"
                   startIcon={<AddIcon />}
                   onClick={parseRule}
-                  disabled={!ruleText.trim() || parsing}
+                  disabled={!ruleText.trim() || parsing || parsingApi}
                 >
                   Parse Rule
                 </Button>
                 
-                {parsing && (
+                {(parsing || parsingApi) && (
                   <Box sx={{ flexGrow: 1 }}>
                     <LinearProgress />
                   </Box>
@@ -190,10 +236,12 @@ const RuleInput = () => {
           <Card elevation={3} sx={{ mt: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Active Rules ({rules.length})
+                Active Rules ({loadingRules ? '...' : rules.length})
               </Typography>
 
-              {rules.length === 0 ? (
+              {loadingRules ? (
+                <LinearProgress />
+              ) : rules.length === 0 ? (
                 <Alert severity="info">
                   No rules created yet. Add your first rule above!
                 </Alert>

@@ -1,0 +1,38 @@
+{
+  "name": "ai-schedule-manager",
+  "version": "1.0.0",
+  "description": "> Neural-powered scheduling application for small businesses - Simple to use, powerful to deploy",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:chrome": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'",
+    "test:report": "playwright show-report",
+    "playwright:install": "playwright install",
+    "test:e2e": "playwright test --reporter=html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TingTung93/AI-Schedule-Manager.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/TingTung93/AI-Schedule-Manager/issues"
+  },
+  "homepage": "https://github.com/TingTung93/AI-Schedule-Manager#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "playwright": "^1.54.2"
+  }
+}
