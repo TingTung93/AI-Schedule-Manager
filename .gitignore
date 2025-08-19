@@ -131,3 +131,6 @@ claude-flow.ps1
 claude-flow.config.json
 hive-mind-prompt-*.txt
 !CLAUDE.md
+
+# Duplicate/redundant directories
+AI-Schedule-Manager/
