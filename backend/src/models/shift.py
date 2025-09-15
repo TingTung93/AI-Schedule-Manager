@@ -1,7 +1,7 @@
 """
 Shift model for defining work periods and requirements
 """
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from typing import List, Optional
 from sqlalchemy import String, Date, Time, Integer, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship

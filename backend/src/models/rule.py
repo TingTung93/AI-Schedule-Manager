@@ -1,7 +1,7 @@
 """
 Rule model for defining scheduling constraints and business rules
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List
 from sqlalchemy import String, Integer, Boolean, ForeignKey, CheckConstraint, Index, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
