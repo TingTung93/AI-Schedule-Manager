@@ -6,15 +6,21 @@ import '@testing-library/jest-dom';
 import ScheduleDisplay from './ScheduleDisplay';
 import { scheduleService, employeeService } from '../services/api';
 
+// Create mock functions
+const mockGetSchedules = jest.fn();
+const mockUpdateShift = jest.fn();
+const mockGenerateSchedule = jest.fn();
+const mockGetEmployees = jest.fn();
+
 // Mock the API services
 jest.mock('../services/api', () => ({
   scheduleService: {
-    getSchedules: jest.fn(),
-    updateShift: jest.fn(),
-    generateSchedule: jest.fn(),
+    getSchedules: mockGetSchedules,
+    updateShift: mockUpdateShift,
+    generateSchedule: mockGenerateSchedule,
   },
   employeeService: {
-    getEmployees: jest.fn(),
+    getEmployees: mockGetEmployees,
   },
 }));
 
@@ -191,8 +197,8 @@ const mockEmployees = {
 describe('ScheduleDisplay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    scheduleService.getSchedules.mockResolvedValue(mockSchedules);
-    employeeService.getEmployees.mockResolvedValue(mockEmployees);
+    mockGetSchedules.mockResolvedValue(mockSchedules);
+    mockGetEmployees.mockResolvedValue(mockEmployees);
   });
 
   it('renders the schedule display interface', async () => {
@@ -266,7 +272,7 @@ describe('ScheduleDisplay', () => {
 
   it('allows editing shift details', async () => {
     const user = userEvent.setup();
-    scheduleService.updateShift.mockResolvedValue({});
+    mockUpdateShift.mockResolvedValue({});
 
     render(<ScheduleDisplay />);
 
@@ -292,7 +298,7 @@ describe('ScheduleDisplay', () => {
     await user.click(updateButton);
 
     await waitFor(() => {
-      expect(scheduleService.updateShift).toHaveBeenCalledWith(
+      expect(mockUpdateShift).toHaveBeenCalledWith(
         expect.objectContaining({
           scheduleId: '1',
           shiftId: 'shift1',
@@ -328,7 +334,7 @@ describe('ScheduleDisplay', () => {
 
   it('generates new schedule', async () => {
     const user = userEvent.setup();
-    scheduleService.generateSchedule.mockResolvedValue({
+    mockGenerateSchedule.mockResolvedValue({
       id: '2',
       name: 'Generated Schedule',
       shifts: [],
@@ -340,7 +346,7 @@ describe('ScheduleDisplay', () => {
     await user.click(generateButton);
 
     await waitFor(() => {
-      expect(scheduleService.generateSchedule).toHaveBeenCalledWith({
+      expect(mockGenerateSchedule).toHaveBeenCalledWith({
         startDate: '2024-01-15',
         endDate: '2024-01-15',
       });
@@ -376,7 +382,7 @@ describe('ScheduleDisplay', () => {
       ],
     };
 
-    scheduleService.getSchedules.mockResolvedValue(conflictSchedules);
+    mockGetSchedules.mockResolvedValue(conflictSchedules);
 
     render(<ScheduleDisplay />);
 
@@ -408,7 +414,7 @@ describe('ScheduleDisplay', () => {
       ],
     };
 
-    scheduleService.getSchedules.mockResolvedValue(unavailableSchedule);
+    mockGetSchedules.mockResolvedValue(unavailableSchedule);
 
     render(<ScheduleDisplay />);
 
@@ -419,7 +425,7 @@ describe('ScheduleDisplay', () => {
 
   it('supports drag and drop for shifts', async () => {
     const user = userEvent.setup();
-    scheduleService.updateShift.mockResolvedValue({});
+    mockUpdateShift.mockResolvedValue({});
 
     render(<ScheduleDisplay />);
 
@@ -450,12 +456,12 @@ describe('ScheduleDisplay', () => {
     fireEvent.drop(dropTarget);
 
     await waitFor(() => {
-      expect(scheduleService.updateShift).toHaveBeenCalled();
+      expect(mockUpdateShift).toHaveBeenCalled();
     });
   });
 
   it('shows loading state while fetching data', () => {
-    scheduleService.getSchedules.mockImplementation(() => new Promise(() => {}));
+    mockGetSchedules.mockImplementation(() => new Promise(() => {}));
 
     render(<ScheduleDisplay />);
 
@@ -495,7 +501,7 @@ describe('ScheduleDisplay', () => {
       ],
     };
 
-    scheduleService.getSchedules.mockResolvedValue(multipleSchedules);
+    mockGetSchedules.mockResolvedValue(multipleSchedules);
 
     render(<ScheduleDisplay />);
 
