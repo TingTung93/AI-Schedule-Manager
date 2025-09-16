@@ -1,0 +1,391 @@
+# Optimized CI/CD Pipeline for AI Schedule Manager
+# GitHub Actions workflow with performance optimizations
+
+name: Optimized CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Parallel job for dependency caching and installation
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend-cache-key: ${{ steps.frontend-cache.outputs.cache-hit }}
+      backend-cache-key: ${{ steps.backend-cache.outputs.cache-hit }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Frontend dependencies cache
+      - name: Cache Frontend Dependencies
+        id: frontend-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            frontend/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
+      
+      # Backend dependencies cache
+      - name: Cache Backend Dependencies
+        id: backend-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            backend/.venv
+          key: ${{ runner.os }}-backend-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-backend-
+      
+      # Install frontend dependencies
+      - name: Setup Node.js
+        if: steps.frontend-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install Frontend Dependencies
+        if: steps.frontend-cache.outputs.cache-hit != 'true'
+        run: |
+          cd frontend
+          npm ci --prefer-offline --no-audit
+      
+      # Install backend dependencies
+      - name: Setup Python
+        if: steps.backend-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install Backend Dependencies
+        if: steps.backend-cache.outputs.cache-hit != 'true'
+        run: |
+          cd backend
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+  # Frontend testing and building
+  frontend:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: [lint, test, build, audit]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Restore Frontend Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            frontend/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/package-lock.json') }}
+      
+      - name: Install Dependencies (if cache miss)
+        run: |
+          cd frontend
+          npm ci --prefer-offline --no-audit
+      
+      # Parallel execution of different tasks
+      - name: Frontend Lint
+        if: matrix.task == 'lint'
+        run: |
+          cd frontend
+          npm run lint
+      
+      - name: Frontend Tests
+        if: matrix.task == 'test'
+        run: |
+          cd frontend
+          npm test -- --coverage --watchAll=false --maxWorkers=2
+      
+      - name: Frontend Build
+        if: matrix.task == 'build'
+        run: |
+          cd frontend
+          npm run build
+          
+          # Analyze bundle size
+          npx bundlesize
+          
+          # Generate bundle report
+          ANALYZE=true npm run build
+      
+      - name: Security Audit
+        if: matrix.task == 'audit'
+        run: |
+          cd frontend
+          npm audit --audit-level=high
+      
+      # Upload build artifacts
+      - name: Upload Build Artifacts
+        if: matrix.task == 'build'
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build/
+          retention-days: 7
+      
+      # Upload coverage reports
+      - name: Upload Coverage
+        if: matrix.task == 'test'
+        uses: codecov/codecov-action@v3
+        with:
+          file: frontend/coverage/lcov.info
+          flags: frontend
+
+  # Backend testing
+  backend:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: [lint, test, security]
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Restore Backend Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            backend/.venv
+          key: ${{ runner.os }}-backend-${{ hashFiles('backend/requirements.txt') }}
+      
+      - name: Install Dependencies
+        run: |
+          cd backend
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Backend Lint
+        if: matrix.task == 'lint'
+        run: |
+          cd backend
+          source .venv/bin/activate
+          flake8 src/
+          black --check src/
+          isort --check-only src/
+      
+      - name: Backend Tests
+        if: matrix.task == 'test'
+        env:
+          DATABASE_URL: postgresql://postgres:test@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379/1
+        run: |
+          cd backend
+          source .venv/bin/activate
+          pytest tests/ --cov=src --cov-report=xml --maxfail=5 -x
+      
+      - name: Security Scan
+        if: matrix.task == 'security'
+        run: |
+          cd backend
+          source .venv/bin/activate
+          safety check
+          bandit -r src/
+      
+      - name: Upload Coverage
+        if: matrix.task == 'test'
+        uses: codecov/codecov-action@v3
+        with:
+          file: backend/coverage.xml
+          flags: backend
+
+  # E2E tests
+  e2e:
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Download Frontend Build
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build/
+      
+      - name: Install Playwright
+        run: |
+          npm install -g @playwright/test
+          playwright install --with-deps
+      
+      - name: Run E2E Tests
+        run: |
+          npm run test:e2e
+      
+      - name: Upload E2E Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-results
+          path: |
+            test-results/
+            playwright-report/
+
+  # Performance testing
+  performance:
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Download Frontend Build
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build/
+      
+      - name: Performance Testing
+        run: |
+          # Lighthouse CI for performance testing
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+          
+          # Load testing with Artillery
+          npm install -g artillery
+          artillery run tests/load-test.yml
+      
+      - name: Upload Performance Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: |
+            .lighthouseci/
+            artillery-report.json
+
+  # Docker build and push
+  docker:
+    needs: [frontend, backend, e2e]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download Frontend Build
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build/
+      
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: config/docker/Dockerfile.optimized
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  # Deployment (if tests pass)
+  deploy:
+    needs: [docker, performance]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Deploy to Production
+        run: |
+          echo "Deploying to production..."
+          # Add your deployment commands here
+          # e.g., kubectl apply, terraform apply, etc.
+
+  # Cleanup
+  cleanup:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Cleanup old artifacts
+        run: |
+          # Cleanup old Docker images, artifacts, etc.
+          echo "Cleanup completed"

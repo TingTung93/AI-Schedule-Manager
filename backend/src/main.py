@@ -18,6 +18,7 @@ from .schemas import (
 )
 from .services.crud import crud_employee, crud_rule, crud_schedule, crud_notification
 from .nlp.rule_parser import RuleParser
+from .api.data_io import router as data_io_router
 from .api_docs import setup_docs
 import random
 import logging
@@ -43,6 +44,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include data import/export router
+app.include_router(data_io_router)
 
 # Initialize rule parser
 rule_parser = RuleParser()

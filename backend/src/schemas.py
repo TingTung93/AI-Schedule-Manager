@@ -1,11 +1,23 @@
 """
-Pydantic schemas for request/response models.
+Pydantic schemas for request/response models with enhanced validation.
 """
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date, time
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, validator, root_validator
 from enum import Enum
+from .validators import (
+    validate_phone_number,
+    validate_employee_name,
+    validate_hourly_rate,
+    validate_max_hours_per_week,
+    validate_availability_pattern,
+    validate_qualifications,
+    validate_constraints,
+    validate_time_format,
+    validate_time_range,
+    validate_password_strength
+)
 
 
 class EmployeeRole(str, Enum):

@@ -1,0 +1,273 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - dev
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'staging' }}
+      url: https://staging.yourdomain.com
+
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubectl for EKS
+        run: |
+          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get image tags
+        id: get-tags
+        run: |
+          BACKEND_TAG=$(docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:develop | jq -r '.schemaVersion')
+          FRONTEND_TAG=$(docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:develop | jq -r '.schemaVersion')
+          echo "backend-image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:develop" >> $GITHUB_OUTPUT
+          echo "frontend-image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:develop" >> $GITHUB_OUTPUT
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ai-schedule-manager-staging --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy secrets
+        run: |
+          # Create secrets from GitHub secrets
+          kubectl create secret generic database-secret \
+            --namespace=ai-schedule-manager-staging \
+            --from-literal=postgres-user="${{ secrets.STAGING_DB_USER }}" \
+            --from-literal=postgres-password="${{ secrets.STAGING_DB_PASSWORD }}" \
+            --from-literal=database-url="${{ secrets.STAGING_DATABASE_URL }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret generic redis-secret \
+            --namespace=ai-schedule-manager-staging \
+            --from-literal=redis-password="${{ secrets.STAGING_REDIS_PASSWORD }}" \
+            --from-literal=redis-url="${{ secrets.STAGING_REDIS_URL }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret generic app-secrets \
+            --namespace=ai-schedule-manager-staging \
+            --from-literal=jwt-secret-key="${{ secrets.STAGING_JWT_SECRET_KEY }}" \
+            --from-literal=sentry-dsn="${{ secrets.STAGING_SENTRY_DSN }}" \
+            --from-literal=frontend-sentry-dsn="${{ secrets.STAGING_FRONTEND_SENTRY_DSN }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy ConfigMaps
+        run: |
+          kubectl create configmap app-config \
+            --namespace=ai-schedule-manager-staging \
+            --from-literal=log-level="DEBUG" \
+            --from-literal=allowed-hosts="staging.yourdomain.com" \
+            --from-literal=cors-origins="https://staging.yourdomain.com" \
+            --from-literal=api-url="https://api-staging.yourdomain.com" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Update deployment manifests
+        run: |
+          # Update image tags in deployment files
+          sed -i "s|image: ai-schedule-manager-backend:latest|image: ${{ steps.get-tags.outputs.backend-image }}|g" k8s/deployments/backend-deployment.yaml
+          sed -i "s|image: ai-schedule-manager-frontend:latest|image: ${{ steps.get-tags.outputs.frontend-image }}|g" k8s/deployments/frontend-deployment.yaml
+
+          # Update namespace
+          sed -i "s|namespace: ai-schedule-manager|namespace: ai-schedule-manager-staging|g" k8s/deployments/*.yaml
+          sed -i "s|namespace: ai-schedule-manager|namespace: ai-schedule-manager-staging|g" k8s/services/*.yaml
+
+      - name: Deploy database
+        run: |
+          kubectl apply -f k8s/storage/storage.yaml -n ai-schedule-manager-staging
+          kubectl apply -f k8s/deployments/database-deployment.yaml -n ai-schedule-manager-staging
+          kubectl apply -f k8s/services/services.yaml -n ai-schedule-manager-staging
+
+      - name: Wait for database to be ready
+        run: |
+          kubectl wait --for=condition=ready pod -l app=postgres -n ai-schedule-manager-staging --timeout=300s
+
+      - name: Run database migrations
+        run: |
+          kubectl run db-migration-job-$(date +%s) \
+            --image=${{ steps.get-tags.outputs.backend-image }} \
+            --namespace=ai-schedule-manager-staging \
+            --restart=Never \
+            --rm -i --tty \
+            --env="DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }}" \
+            -- alembic upgrade head
+
+      - name: Deploy application
+        run: |
+          kubectl apply -f k8s/deployments/backend-deployment.yaml -n ai-schedule-manager-staging
+          kubectl apply -f k8s/deployments/frontend-deployment.yaml -n ai-schedule-manager-staging
+
+      - name: Wait for deployments to be ready
+        run: |
+          kubectl rollout status deployment/ai-schedule-backend -n ai-schedule-manager-staging --timeout=600s
+          kubectl rollout status deployment/ai-schedule-frontend -n ai-schedule-manager-staging --timeout=600s
+
+      - name: Update ingress for staging
+        run: |
+          cat << EOF | kubectl apply -f -
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: ai-schedule-manager-ingress
+            namespace: ai-schedule-manager-staging
+            annotations:
+              kubernetes.io/ingress.class: "nginx"
+              cert-manager.io/cluster-issuer: "letsencrypt-staging"
+          spec:
+            tls:
+            - hosts:
+              - staging.yourdomain.com
+              - api-staging.yourdomain.com
+              secretName: staging-tls
+            rules:
+            - host: staging.yourdomain.com
+              http:
+                paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: ai-schedule-frontend-service
+                      port:
+                        number: 80
+            - host: api-staging.yourdomain.com
+              http:
+                paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: ai-schedule-backend-service
+                      port:
+                        number: 8000
+          EOF
+
+      - name: Run health checks
+        run: |
+          # Wait for ingress to be ready
+          sleep 30
+
+          # Check backend health
+          kubectl run health-check-backend-$(date +%s) \
+            --image=curlimages/curl \
+            --namespace=ai-schedule-manager-staging \
+            --restart=Never \
+            --rm -i --tty \
+            -- curl -f http://ai-schedule-backend-service:8000/health
+
+          # Check frontend health
+          kubectl run health-check-frontend-$(date +%s) \
+            --image=curlimages/curl \
+            --namespace=ai-schedule-manager-staging \
+            --restart=Never \
+            --rm -i --tty \
+            -- curl -f http://ai-schedule-frontend-service/health
+
+      - name: Run smoke tests
+        run: |
+          # Basic API tests
+          kubectl run smoke-test-$(date +%s) \
+            --image=curlimages/curl \
+            --namespace=ai-schedule-manager-staging \
+            --restart=Never \
+            --rm -i --tty \
+            -- sh -c '
+              echo "Testing API endpoints..."
+              curl -f http://ai-schedule-backend-service:8000/health || exit 1
+              curl -f http://ai-schedule-backend-service:8000/api/v1/health || exit 1
+              echo "All smoke tests passed!"
+            '
+
+      - name: Send deployment notification
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,took
+          custom_payload: |
+            {
+              text: "🚀 Staging Deployment Successful",
+              attachments: [{
+                color: "good",
+                fields: [{
+                  title: "Environment",
+                  value: "Staging",
+                  short: true
+                }, {
+                  title: "URL",
+                  value: "https://staging.yourdomain.com",
+                  short: true
+                }, {
+                  title: "Commit",
+                  value: "${{ github.sha }}",
+                  short: true
+                }, {
+                  title: "Author",
+                  value: "${{ github.actor }}",
+                  short: true
+                }]
+              }]
+            }
+
+      - name: Send failure notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+
+      - name: Cleanup on failure
+        if: failure()
+        run: |
+          echo "Deployment failed, checking logs..."
+          kubectl get pods -n ai-schedule-manager-staging
+          kubectl describe pods -l app=ai-schedule-backend -n ai-schedule-manager-staging
+          kubectl logs -l app=ai-schedule-backend -n ai-schedule-manager-staging --tail=50

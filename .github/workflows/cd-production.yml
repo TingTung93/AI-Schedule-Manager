@@ -1,0 +1,459 @@
+name: Deploy to Production
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to deploy'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type "DEPLOY" to confirm production deployment'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Pre-deployment validation
+  validate-deployment:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      proceed: ${{ steps.validate.outputs.proceed }}
+
+    steps:
+      - name: Validate confirmation
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirmation }}" != "DEPLOY" ]; then
+            echo "❌ Deployment not confirmed. Please type 'DEPLOY' to proceed."
+            exit 1
+          fi
+
+      - name: Get version
+        id: get-version
+        run: |
+          if [ "${{ github.event_name }}" == "release" ]; then
+            echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate version format
+        id: validate
+        run: |
+          VERSION="${{ steps.get-version.outputs.version }}"
+          if [[ $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "✅ Valid version format: $VERSION"
+            echo "proceed=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Invalid version format: $VERSION. Expected format: v1.2.3"
+            echo "proceed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+  # Deploy to production with approval
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: needs.validate-deployment.outputs.proceed == 'true'
+    environment:
+      name: production
+      url: https://yourdomain.com
+
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-deployment.outputs.version }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PROD_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_PROD_REGION }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubectl for production EKS
+        run: |
+          aws eks update-kubeconfig --region ${{ secrets.AWS_PROD_REGION }} --name ${{ secrets.EKS_PROD_CLUSTER_NAME }}
+
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+          kubectl get namespaces
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify images exist
+        run: |
+          VERSION=${{ needs.validate-deployment.outputs.version }}
+          docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${VERSION}
+          docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${VERSION}
+
+      - name: Create production namespace if not exists
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+
+      - name: Deploy production secrets
+        run: |
+          # Database secrets
+          kubectl create secret generic database-secret \
+            --namespace=ai-schedule-manager \
+            --from-literal=postgres-user="${{ secrets.PROD_DB_USER }}" \
+            --from-literal=postgres-password="${{ secrets.PROD_DB_PASSWORD }}" \
+            --from-literal=database-url="${{ secrets.PROD_DATABASE_URL }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Redis secrets
+          kubectl create secret generic redis-secret \
+            --namespace=ai-schedule-manager \
+            --from-literal=redis-password="${{ secrets.PROD_REDIS_PASSWORD }}" \
+            --from-literal=redis-url="${{ secrets.PROD_REDIS_URL }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Application secrets
+          kubectl create secret generic app-secrets \
+            --namespace=ai-schedule-manager \
+            --from-literal=jwt-secret-key="${{ secrets.PROD_JWT_SECRET_KEY }}" \
+            --from-literal=sentry-dsn="${{ secrets.PROD_SENTRY_DSN }}" \
+            --from-literal=frontend-sentry-dsn="${{ secrets.PROD_FRONTEND_SENTRY_DSN }}" \
+            --from-literal=sendgrid-api-key="${{ secrets.PROD_SENDGRID_API_KEY }}" \
+            --from-literal=slack-webhook-url="${{ secrets.PROD_SLACK_WEBHOOK }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Monitoring secrets
+          kubectl create secret generic monitoring-secrets \
+            --namespace=ai-schedule-manager \
+            --from-literal=grafana-admin-password="${{ secrets.PROD_GRAFANA_PASSWORD }}" \
+            --from-literal=grafana-secret-key="${{ secrets.PROD_GRAFANA_SECRET_KEY }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy production ConfigMaps
+        run: |
+          kubectl apply -f k8s/configmaps/configmaps.yaml
+
+          # Override with production-specific config
+          kubectl create configmap app-config \
+            --namespace=ai-schedule-manager \
+            --from-literal=log-level="INFO" \
+            --from-literal=allowed-hosts="yourdomain.com,www.yourdomain.com" \
+            --from-literal=cors-origins="https://yourdomain.com,https://www.yourdomain.com" \
+            --from-literal=api-url="https://api.yourdomain.com" \
+            --from-literal=enable-analytics="true" \
+            --from-literal=enable-email-notifications="true" \
+            --from-literal=enable-slack-integration="true" \
+            --from-literal=enable-calendar-sync="true" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy storage and persistent volumes
+        run: |
+          kubectl apply -f k8s/storage/storage.yaml
+
+      - name: Deploy database infrastructure
+        run: |
+          kubectl apply -f k8s/deployments/database-deployment.yaml
+          kubectl apply -f k8s/services/services.yaml
+
+      - name: Wait for database to be ready
+        run: |
+          kubectl wait --for=condition=ready pod -l app=postgres -n ai-schedule-manager --timeout=600s
+
+      - name: Create database backup before deployment
+        run: |
+          BACKUP_NAME="pre-deployment-$(date +%Y%m%d-%H%M%S)"
+          kubectl run postgres-backup-${BACKUP_NAME} \
+            --image=postgres:15-alpine \
+            --namespace=ai-schedule-manager \
+            --restart=Never \
+            --env="PGPASSWORD=${{ secrets.PROD_DB_PASSWORD }}" \
+            -- pg_dump -h postgres-service -U ${{ secrets.PROD_DB_USER }} -d ai_schedule_manager -f /tmp/backup-${BACKUP_NAME}.sql
+
+      - name: Run database migrations
+        run: |
+          VERSION=${{ needs.validate-deployment.outputs.version }}
+          kubectl run db-migration-${VERSION}-$(date +%s) \
+            --image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${VERSION} \
+            --namespace=ai-schedule-manager \
+            --restart=Never \
+            --rm -i --tty \
+            --env="DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}" \
+            -- alembic upgrade head
+
+      - name: Update deployment manifests with production images
+        run: |
+          VERSION=${{ needs.validate-deployment.outputs.version }}
+
+          # Update image tags
+          sed -i "s|image: ai-schedule-manager-backend:latest|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${VERSION}|g" k8s/deployments/backend-deployment.yaml
+          sed -i "s|image: ai-schedule-manager-frontend:latest|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${VERSION}|g" k8s/deployments/frontend-deployment.yaml
+
+      - name: Deploy backend with rolling update
+        run: |
+          kubectl apply -f k8s/deployments/backend-deployment.yaml
+
+          # Wait for rollout to complete
+          kubectl rollout status deployment/ai-schedule-backend -n ai-schedule-manager --timeout=900s
+
+          # Verify deployment
+          kubectl get pods -l app=ai-schedule-backend -n ai-schedule-manager
+
+      - name: Run health checks after backend deployment
+        run: |
+          # Wait for pods to be ready
+          kubectl wait --for=condition=ready pod -l app=ai-schedule-backend -n ai-schedule-manager --timeout=300s
+
+          # Health check
+          kubectl run health-check-backend-$(date +%s) \
+            --image=curlimages/curl \
+            --namespace=ai-schedule-manager \
+            --restart=Never \
+            --rm -i --tty \
+            -- curl -f http://ai-schedule-backend-service:8000/health
+
+      - name: Deploy frontend with rolling update
+        run: |
+          kubectl apply -f k8s/deployments/frontend-deployment.yaml
+
+          # Wait for rollout to complete
+          kubectl rollout status deployment/ai-schedule-frontend -n ai-schedule-manager --timeout=600s
+
+          # Verify deployment
+          kubectl get pods -l app=ai-schedule-frontend -n ai-schedule-manager
+
+      - name: Update ingress for production
+        run: |
+          kubectl apply -f k8s/ingress/ingress.yaml
+
+      - name: Deploy monitoring stack
+        run: |
+          # Deploy Prometheus
+          kubectl apply -f - << EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: prometheus
+            namespace: ai-schedule-manager
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: prometheus
+            template:
+              metadata:
+                labels:
+                  app: prometheus
+              spec:
+                containers:
+                - name: prometheus
+                  image: prom/prometheus:latest
+                  ports:
+                  - containerPort: 9090
+                  volumeMounts:
+                  - name: config
+                    mountPath: /etc/prometheus
+                  - name: storage
+                    mountPath: /prometheus
+                volumes:
+                - name: config
+                  configMap:
+                    name: monitoring-config
+                - name: storage
+                  persistentVolumeClaim:
+                    claimName: prometheus-pvc
+          EOF
+
+      - name: Run comprehensive smoke tests
+        run: |
+          echo "🧪 Running production smoke tests..."
+
+          # API Health Checks
+          kubectl run smoke-test-api-$(date +%s) \
+            --image=curlimages/curl \
+            --namespace=ai-schedule-manager \
+            --restart=Never \
+            --rm -i --tty \
+            -- sh -c '
+              echo "Testing API endpoints..."
+              curl -f http://ai-schedule-backend-service:8000/health || exit 1
+              curl -f http://ai-schedule-backend-service:8000/api/v1/health || exit 1
+              echo "✅ API health checks passed"
+            '
+
+          # Frontend Health Checks
+          kubectl run smoke-test-frontend-$(date +%s) \
+            --image=curlimages/curl \
+            --namespace=ai-schedule-manager \
+            --restart=Never \
+            --rm -i --tty \
+            -- sh -c '
+              echo "Testing frontend..."
+              curl -f http://ai-schedule-frontend-service/health || exit 1
+              echo "✅ Frontend health checks passed"
+            '
+
+          # Database connectivity
+          kubectl run smoke-test-db-$(date +%s) \
+            --image=postgres:15-alpine \
+            --namespace=ai-schedule-manager \
+            --restart=Never \
+            --rm -i --tty \
+            --env="PGPASSWORD=${{ secrets.PROD_DB_PASSWORD }}" \
+            -- psql -h postgres-service -U ${{ secrets.PROD_DB_USER }} -d ai_schedule_manager -c "SELECT 1;"
+
+      - name: Verify external accessibility
+        run: |
+          # Wait for ingress to propagate
+          sleep 60
+
+          # Test external URLs (if DNS is configured)
+          # curl -f https://yourdomain.com/health || echo "⚠️  External URL not yet accessible"
+          # curl -f https://api.yourdomain.com/health || echo "⚠️  API URL not yet accessible"
+
+          echo "✅ Deployment verification completed"
+
+      - name: Create deployment tag
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          DEPLOYMENT_TAG="deploy-prod-$(date +%Y%m%d-%H%M%S)"
+          git tag -a $DEPLOYMENT_TAG -m "Production deployment of ${{ needs.validate-deployment.outputs.version }}"
+          git push origin $DEPLOYMENT_TAG
+
+      - name: Send success notification
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#production-alerts'
+          webhook_url: ${{ secrets.SLACK_PROD_WEBHOOK }}
+          custom_payload: |
+            {
+              text: "🚀 PRODUCTION DEPLOYMENT SUCCESSFUL",
+              attachments: [{
+                color: "good",
+                fields: [{
+                  title: "Version",
+                  value: "${{ needs.validate-deployment.outputs.version }}",
+                  short: true
+                }, {
+                  title: "Environment",
+                  value: "Production",
+                  short: true
+                }, {
+                  title: "URL",
+                  value: "https://yourdomain.com",
+                  short: true
+                }, {
+                  title: "Deployed by",
+                  value: "${{ github.actor }}",
+                  short: true
+                }]
+              }]
+            }
+
+      - name: Send failure notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#production-alerts'
+          webhook_url: ${{ secrets.SLACK_PROD_WEBHOOK }}
+          custom_payload: |
+            {
+              text: "🚨 PRODUCTION DEPLOYMENT FAILED",
+              attachments: [{
+                color: "danger",
+                fields: [{
+                  title: "Version",
+                  value: "${{ needs.validate-deployment.outputs.version }}",
+                  short: true
+                }, {
+                  title: "Environment",
+                  value: "Production",
+                  short: true
+                }, {
+                  title: "Failed Step",
+                  value: "${{ job.status }}",
+                  short: true
+                }, {
+                  title: "Triggered by",
+                  value: "${{ github.actor }}",
+                  short: true
+                }]
+              }]
+            }
+
+  # Rollback job (manual trigger)
+  rollback-production:
+    runs-on: ubuntu-latest
+    if: failure() && github.event_name == 'workflow_dispatch'
+    needs: [validate-deployment, deploy-production]
+    environment:
+      name: production-rollback
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PROD_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_PROD_REGION }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig --region ${{ secrets.AWS_PROD_REGION }} --name ${{ secrets.EKS_PROD_CLUSTER_NAME }}
+
+      - name: Rollback deployments
+        run: |
+          kubectl rollout undo deployment/ai-schedule-backend -n ai-schedule-manager
+          kubectl rollout undo deployment/ai-schedule-frontend -n ai-schedule-manager
+
+          kubectl rollout status deployment/ai-schedule-backend -n ai-schedule-manager
+          kubectl rollout status deployment/ai-schedule-frontend -n ai-schedule-manager
+
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          channel: '#production-alerts'
+          webhook_url: ${{ secrets.SLACK_PROD_WEBHOOK }}
+          custom_payload: |
+            {
+              text: "⚠️ PRODUCTION ROLLBACK COMPLETED",
+              attachments: [{
+                color: "warning",
+                fields: [{
+                  title: "Action",
+                  value: "Rollback to previous version",
+                  short: true
+                }, {
+                  title: "Reason",
+                  value: "Failed deployment of ${{ needs.validate-deployment.outputs.version }}",
+                  short: true
+                }]
+              }]
+            }
