@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  ai-schedule-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.all-in-one
+    container_name: ai-schedule-manager
+    restart: unless-stopped
+    environment:
+      # Database Configuration
+      DATABASE_URL: "postgresql://scheduler:scheduler_pass@localhost/ai_schedule_manager"
+      REDIS_URL: "redis://localhost:6379"
+
+      # Security
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-key-in-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-this-refresh-secret-key}
+
+      # Cloudflare Tunnel Configuration
+      # Option 1: Use Quick Tunnel (no authentication required, temporary URL)
+      USE_QUICK_TUNNEL: ${USE_QUICK_TUNNEL:-true}
+
+      # Option 2: Use Tunnel Token (recommended for production)
+      CLOUDFLARE_TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+
+      # Option 3: Use Named Tunnel (requires Cloudflare account)
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      TUNNEL_NAME: ${TUNNEL_NAME:-ai-schedule-manager}
+      TUNNEL_HOSTNAME: ${TUNNEL_HOSTNAME:-}
+
+      # Application Settings
+      NODE_ENV: production
+      REACT_APP_API_URL: /api
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-["http://localhost","https://localhost"]}
+
+      # Email Settings (optional)
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-smtp}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@ai-scheduler.local}
+
+      # Feature Flags
+      ENABLE_WEBSOCKET: ${ENABLE_WEBSOCKET:-true}
+      ENABLE_EMAIL_NOTIFICATIONS: ${ENABLE_EMAIL_NOTIFICATIONS:-false}
+      ENABLE_BACKUP: ${ENABLE_BACKUP:-true}
+
+    ports:
+      # Local access ports
+      - "80:80"       # HTTP Web Interface
+      - "8080:8080"   # Alternative HTTP port
+
+    volumes:
+      # Persistent data volumes
+      - postgres_data:/var/lib/postgresql
+      - app_data:/app/data
+      - app_logs:/app/logs
+      - tunnel_config:/app/config/cloudflared
+
+      # Optional: Mount local config files
+      # - ./config/custom-nginx.conf:/etc/nginx/sites-available/ai-schedule-manager
+      # - ./config/env.production:/app/backend/.env
+
+    healthcheck:
+      test: ["CMD", "/app/scripts/health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    networks:
+      - ai-scheduler-network
+
+    # Resource limits (adjust based on your system)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # Optional: Separate QR Code Display Service
+  qr-display:
+    image: nginx:alpine
+    container_name: ai-scheduler-qr
+    restart: unless-stopped
+    volumes:
+      - app_data:/usr/share/nginx/html/data:ro
+    ports:
+      - "8081:80"  # Access QR code display on port 8081
+    depends_on:
+      - ai-schedule-manager
+    networks:
+      - ai-scheduler-network
+
+volumes:
+  postgres_data:
+    driver: local
+  app_data:
+    driver: local
+  app_logs:
+    driver: local
+  tunnel_config:
+    driver: local
+
+networks:
+  ai-scheduler-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

@@ -1,0 +1,288 @@
+# All-in-One AI Schedule Manager Container
+# This container includes all services: Frontend, Backend, PostgreSQL, Redis, and Cloudflare Tunnel
+
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV NODE_VERSION=18
+ENV PYTHON_VERSION=3.11
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    # Basic utilities
+    curl \
+    wget \
+    gnupg \
+    lsb-release \
+    software-properties-common \
+    supervisor \
+    nginx \
+    # Python dependencies
+    python3.11 \
+    python3.11-venv \
+    python3-pip \
+    python3.11-dev \
+    # PostgreSQL
+    postgresql-14 \
+    postgresql-client-14 \
+    postgresql-contrib-14 \
+    # Redis
+    redis-server \
+    # Build tools
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    # QR code dependencies
+    qrencode \
+    imagemagick \
+    # Network tools
+    net-tools \
+    iputils-ping \
+    dnsutils \
+    # Git for version control
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g npm@latest
+
+# Install Cloudflare Tunnel (cloudflared)
+RUN wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb \
+    && dpkg -i cloudflared-linux-amd64.deb \
+    && rm cloudflared-linux-amd64.deb
+
+# Create application directory
+WORKDIR /app
+
+# Copy application files
+COPY . /app/
+
+# Setup PostgreSQL
+USER postgres
+RUN /etc/init.d/postgresql start && \
+    psql -c "CREATE USER scheduler WITH PASSWORD 'scheduler_pass';" && \
+    psql -c "CREATE DATABASE ai_schedule_manager OWNER scheduler;" && \
+    psql -c "GRANT ALL PRIVILEGES ON DATABASE ai_schedule_manager TO scheduler;"
+USER root
+
+# Configure PostgreSQL to allow connections
+RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/14/main/pg_hba.conf && \
+    echo "listen_addresses='*'" >> /etc/postgresql/14/main/postgresql.conf
+
+# Setup Python virtual environment and install backend dependencies
+RUN python3.11 -m venv /app/backend/venv
+ENV PATH="/app/backend/venv/bin:$PATH"
+
+# Install Python dependencies
+WORKDIR /app/backend
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt && \
+    pip install gunicorn uvicorn[standard]
+
+# Install additional Python packages for monitoring
+RUN pip install prometheus-client python-json-logger
+
+# Build frontend
+WORKDIR /app/frontend
+RUN npm ci --legacy-peer-deps && \
+    npm run build
+
+# Configure Nginx for frontend
+RUN rm -rf /var/www/html/* && \
+    cp -r build/* /var/www/html/ && \
+    rm /etc/nginx/sites-enabled/default
+
+# Create Nginx configuration
+COPY <<'EOF' /etc/nginx/sites-available/ai-schedule-manager
+server {
+    listen 80;
+    server_name localhost;
+
+    # Frontend
+    location / {
+        root /var/www/html;
+        try_files $uri $uri/ /index.html;
+
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+    }
+
+    # Backend API proxy
+    location /api {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket support
+        proxy_read_timeout 86400;
+    }
+
+    # WebSocket endpoint
+    location /ws {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # Health check endpoint
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+}
+EOF
+
+RUN ln -s /etc/nginx/sites-available/ai-schedule-manager /etc/nginx/sites-enabled/
+
+# Create supervisor configuration
+COPY <<'EOF' /etc/supervisor/conf.d/supervisord.conf
+[supervisord]
+nodaemon=true
+user=root
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:postgresql]
+command=/usr/lib/postgresql/14/bin/postgres -D /var/lib/postgresql/14/main -c config_file=/etc/postgresql/14/main/postgresql.conf
+user=postgres
+autostart=true
+autorestart=true
+priority=1
+stdout_logfile=/var/log/postgresql.log
+stderr_logfile=/var/log/postgresql_error.log
+
+[program:redis]
+command=/usr/bin/redis-server --bind 127.0.0.1 --protected-mode no
+autostart=true
+autorestart=true
+priority=2
+stdout_logfile=/var/log/redis.log
+stderr_logfile=/var/log/redis_error.log
+
+[program:backend]
+command=/app/backend/venv/bin/uvicorn src.main:app --host 127.0.0.1 --port 8000 --workers 4
+directory=/app/backend
+autostart=true
+autorestart=true
+priority=3
+environment=PATH="/app/backend/venv/bin:%(ENV_PATH)s",DATABASE_URL="postgresql://scheduler:scheduler_pass@localhost/ai_schedule_manager",REDIS_URL="redis://localhost:6379",JWT_SECRET="your-secret-key-change-this"
+stdout_logfile=/var/log/backend.log
+stderr_logfile=/var/log/backend_error.log
+
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+autostart=true
+autorestart=true
+priority=4
+stdout_logfile=/var/log/nginx_supervisor.log
+stderr_logfile=/var/log/nginx_supervisor_error.log
+
+[program:cloudflared]
+command=/app/scripts/start-tunnel.sh
+autostart=true
+autorestart=true
+priority=5
+stdout_logfile=/var/log/cloudflared.log
+stderr_logfile=/var/log/cloudflared_error.log
+
+[program:qr-display]
+command=/app/scripts/display-qr.sh
+autostart=true
+autorestart=true
+priority=6
+startsecs=10
+stdout_logfile=/var/log/qr-display.log
+stderr_logfile=/var/log/qr-display_error.log
+EOF
+
+# Create startup scripts directory
+RUN mkdir -p /app/scripts
+
+WORKDIR /app
+
+# Create health check script
+COPY <<'EOF' /app/scripts/health-check.sh
+#!/bin/bash
+# Health check for all services
+
+check_service() {
+    if pgrep -x "$1" > /dev/null; then
+        echo "✓ $1 is running"
+        return 0
+    else
+        echo "✗ $1 is not running"
+        return 1
+    fi
+}
+
+# Check all services
+check_service "postgres"
+check_service "redis-server"
+check_service "nginx"
+check_service "uvicorn"
+
+# Check if backend API is responding
+if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+    echo "✓ Backend API is responding"
+else
+    echo "✗ Backend API is not responding"
+fi
+
+# Check if frontend is accessible
+if curl -f http://localhost/ > /dev/null 2>&1; then
+    echo "✓ Frontend is accessible"
+else
+    echo "✗ Frontend is not accessible"
+fi
+EOF
+
+RUN chmod +x /app/scripts/health-check.sh
+
+# Expose ports
+EXPOSE 80 443
+
+# Set up volumes for persistent data
+VOLUME ["/var/lib/postgresql", "/app/data", "/app/logs"]
+
+# Create entrypoint script
+COPY <<'EOF' /app/scripts/entrypoint.sh
+#!/bin/bash
+set -e
+
+echo "Starting AI Schedule Manager..."
+echo "================================"
+
+# Initialize PostgreSQL if needed
+if [ ! -d "/var/lib/postgresql/14/main" ]; then
+    echo "Initializing PostgreSQL..."
+    su - postgres -c "/usr/lib/postgresql/14/bin/initdb -D /var/lib/postgresql/14/main"
+fi
+
+# Start supervisor to manage all services
+echo "Starting all services..."
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+EOF
+
+RUN chmod +x /app/scripts/entrypoint.sh
+
+# Set the entrypoint
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]
