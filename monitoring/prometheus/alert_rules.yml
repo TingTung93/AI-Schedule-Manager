@@ -1,0 +1,346 @@
+# Prometheus Alert Rules for AI Schedule Manager
+
+groups:
+  # Application Health Alerts
+  - name: application.rules
+    rules:
+      - alert: HighErrorRate
+        expr: (rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for service {{ $labels.job }}"
+
+      - alert: CriticalErrorRate
+        expr: (rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])) > 0.10
+        for: 2m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for service {{ $labels.job }}"
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High latency detected"
+          description: "95th percentile latency is {{ $value }}s for service {{ $labels.job }}"
+
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Service is down"
+          description: "Service {{ $labels.job }} has been down for more than 2 minutes"
+
+  # Database Alerts
+  - name: database.rules
+    rules:
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database has been down for more than 5 minutes"
+
+      - alert: PostgreSQLHighConnections
+        expr: postgres_stat_database_numbackends / postgres_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL high connection usage"
+          description: "PostgreSQL connection usage is {{ $value | humanizePercentage }}"
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(postgres_stat_database_tup_fetched[5m]) / rate(postgres_stat_database_tup_returned[5m]) < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "PostgreSQL query efficiency is {{ $value | humanizePercentage }}"
+
+      - alert: PostgreSQLReplicationLag
+        expr: postgres_replication_lag_seconds > 60
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL replication lag"
+          description: "PostgreSQL replication lag is {{ $value }}s"
+
+  # Cache Alerts
+  - name: cache.rules
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache has been down for more than 2 minutes"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: RedisHighConnections
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis high connection count"
+          description: "Redis has {{ $value }} connected clients"
+
+      - alert: RedisSlowlog
+        expr: increase(redis_slowlog_length[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis slow queries"
+          description: "Redis has {{ $value }} slow queries in the last 5 minutes"
+
+  # Infrastructure Alerts
+  - name: infrastructure.rules
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: cpu
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: cpu
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: memory
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      - alert: CriticalMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          component: memory
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: disk
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }} mount {{ $labels.mountpoint }}"
+
+      - alert: CriticalDiskUsage
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          component: disk
+        annotations:
+          summary: "Critical disk usage"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }} mount {{ $labels.mountpoint }}"
+
+  # Kubernetes Alerts
+  - name: kubernetes.rules
+    rules:
+      - alert: KubernetesPodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "Pod is crash looping"
+          description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+
+      - alert: KubernetesPodNotReady
+        expr: kube_pod_status_ready{condition="false"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "Pod not ready"
+          description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been not ready for more than 5 minutes"
+
+      - alert: KubernetesNodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: kubernetes
+        annotations:
+          summary: "Node not ready"
+          description: "Node {{ $labels.node }} has been not ready for more than 5 minutes"
+
+      - alert: KubernetesOutOfCapacity
+        expr: 100 * (kube_node_status_allocatable_cpu_cores - kube_node_status_allocatable_cpu_cores) / kube_node_status_allocatable_cpu_cores > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "Node out of capacity"
+          description: "Node {{ $labels.node }} is out of capacity"
+
+  # Application-specific Alerts
+  - name: ai-schedule-manager.rules
+    rules:
+      - alert: HighUserRegistrationFailures
+        expr: rate(user_registration_failures_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          feature: user_registration
+        annotations:
+          summary: "High user registration failures"
+          description: "User registration failure rate is {{ $value }} per second"
+
+      - alert: AIServiceUnavailable
+        expr: ai_service_available == 0
+        for: 2m
+        labels:
+          severity: critical
+          feature: ai_scheduling
+        annotations:
+          summary: "AI service unavailable"
+          description: "AI scheduling service has been unavailable for more than 2 minutes"
+
+      - alert: HighSchedulingLatency
+        expr: histogram_quantile(0.95, rate(schedule_creation_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          feature: scheduling
+        annotations:
+          summary: "High scheduling latency"
+          description: "95th percentile scheduling latency is {{ $value }}s"
+
+      - alert: CalendarSyncFailures
+        expr: rate(calendar_sync_failures_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          feature: calendar_sync
+        annotations:
+          summary: "Calendar sync failures"
+          description: "Calendar sync failure rate is {{ $value }} per second"
+
+  # Business Logic Alerts
+  - name: business.rules
+    rules:
+      - alert: LowActiveUsers
+        expr: active_users_total < 10
+        for: 30m
+        labels:
+          severity: warning
+          type: business
+        annotations:
+          summary: "Low active user count"
+          description: "Active user count is {{ $value }}, which is below normal levels"
+
+      - alert: HighChurnRate
+        expr: user_churn_rate > 0.1
+        for: 1h
+        labels:
+          severity: warning
+          type: business
+        annotations:
+          summary: "High user churn rate"
+          description: "User churn rate is {{ $value | humanizePercentage }}"
+
+      - alert: PaymentProcessingFailures
+        expr: rate(payment_failures_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          type: business
+        annotations:
+          summary: "Payment processing failures"
+          description: "Payment failure rate is {{ $value }} per second"
+
+  # Security Alerts
+  - name: security.rules
+    rules:
+      - alert: HighFailedLoginAttempts
+        expr: rate(failed_login_attempts_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          type: security
+        annotations:
+          summary: "High failed login attempts"
+          description: "Failed login attempt rate is {{ $value }} per second"
+
+      - alert: SuspiciousAPIActivity
+        expr: rate(http_requests_total{status="403"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          type: security
+        annotations:
+          summary: "Suspicious API activity"
+          description: "High rate of 403 responses: {{ $value }} per second"
+
+      - alert: UnauthorizedAccess
+        expr: rate(http_requests_total{status="401"}[5m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+          type: security
+        annotations:
+          summary: "High unauthorized access attempts"
+          description: "High rate of 401 responses: {{ $value }} per second"
