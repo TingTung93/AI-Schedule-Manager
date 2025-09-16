@@ -1,117 +1,470 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { useApi, useApiMutation, usePaginatedApi, useRealTimeApi } from '../../hooks/useApi';
+/**
+ * Comprehensive tests for useApi and useApiMutation hooks.
+ * Tests loading states, error handling, caching, and optimization features.
+ */
 
-// Mock API functions
-const mockApiCall = jest.fn();
-const mockApiMutation = jest.fn();
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { useApi, useApiMutation } from '../../hooks/useApi';
+
+// Mock API service
+const mockApiFunction = jest.fn();
+const mockMutationFunction = jest.fn();
 
 describe('useApi Hook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockApiFunction.mockClear();
   });
 
-  test('should fetch data successfully', async () => {
-    const mockData = { id: 1, name: 'Test Data' };
-    mockApiCall.mockResolvedValue(mockData);
+  describe('Basic Functionality', () => {
+    it('should initialize with default state', () => {
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [])
+      );
 
-    const { result } = renderHook(() => useApi(mockApiCall));
+      expect(result.current.data).toBeNull();
+      expect(result.current.loading).toBe(true);
+      expect(result.current.error).toBeNull();
+      expect(typeof result.current.refetch).toBe('function');
+    });
 
-    expect(result.current.loading).toBe(true);
+    it('should fetch data on mount', async () => {
+      const mockData = { users: ['John', 'Jane'] };
+      mockApiFunction.mockResolvedValue(mockData);
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [])
+      );
+
+      expect(result.current.loading).toBe(true);
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
       expect(result.current.data).toEqual(mockData);
       expect(result.current.error).toBeNull();
+      expect(mockApiFunction).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockApiCall).toHaveBeenCalledTimes(1);
-  });
+    it('should handle API errors', async () => {
+      const mockError = new Error('API Error');
+      mockApiFunction.mockRejectedValue(mockError);
 
-  test('should handle API errors', async () => {
-    const errorMessage = 'API Error';
-    mockApiCall.mockRejectedValue(new Error(errorMessage));
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [])
+      );
 
-    const { result } = renderHook(() => useApi(mockApiCall));
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(errorMessage);
       expect(result.current.data).toBeNull();
+      expect(result.current.error).toEqual(mockError);
+    });
+
+    it('should refetch data when refetch is called', async () => {
+      const mockData1 = { count: 1 };
+      const mockData2 = { count: 2 };
+
+      mockApiFunction
+        .mockResolvedValueOnce(mockData1)
+        .mockResolvedValueOnce(mockData2);
+
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [])
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData1);
+      });
+
+      act(() => {
+        result.current.refetch();
+      });
+
+      expect(result.current.loading).toBe(true);
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData2);
+      });
+
+      expect(mockApiFunction).toHaveBeenCalledTimes(2);
     });
   });
 
-  test('should refetch data', async () => {
-    const mockData1 = { id: 1, name: 'Data 1' };
-    const mockData2 = { id: 2, name: 'Data 2' };
-    
-    mockApiCall
-      .mockResolvedValueOnce(mockData1)
-      .mockResolvedValueOnce(mockData2);
+  describe('Dependencies', () => {
+    it('should refetch when dependencies change', async () => {
+      const mockData1 = { page: 1 };
+      const mockData2 = { page: 2 };
 
-    const { result } = renderHook(() => useApi(mockApiCall));
+      mockApiFunction
+        .mockResolvedValueOnce(mockData1)
+        .mockResolvedValueOnce(mockData2);
 
-    await waitFor(() => {
-      expect(result.current.data).toEqual(mockData1);
+      let deps = [1];
+
+      const { result, rerender } = renderHook(
+        ({ dependencies }) => useApi(mockApiFunction, dependencies),
+        { initialProps: { dependencies: deps } }
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData1);
+      });
+
+      // Change dependencies
+      deps = [2];
+      rerender({ dependencies: deps });
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData2);
+      });
+
+      expect(mockApiFunction).toHaveBeenCalledTimes(2);
     });
 
-    await act(async () => {
-      await result.current.refetch();
+    it('should not refetch when dependencies are the same', async () => {
+      const mockData = { stable: true };
+      mockApiFunction.mockResolvedValue(mockData);
+
+      const deps = [1, 'test'];
+
+      const { result, rerender } = renderHook(
+        ({ dependencies }) => useApi(mockApiFunction, dependencies),
+        { initialProps: { dependencies: deps } }
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData);
+      });
+
+      // Rerender with same dependencies
+      rerender({ dependencies: [1, 'test'] });
+
+      // Should not make another API call
+      expect(mockApiFunction).toHaveBeenCalledTimes(1);
     });
 
-    await waitFor(() => {
-      expect(result.current.data).toEqual(mockData2);
-    });
+    it('should handle empty dependencies array', async () => {
+      const mockData = { static: true };
+      mockApiFunction.mockResolvedValue(mockData);
 
-    expect(mockApiCall).toHaveBeenCalledTimes(2);
+      const { result, rerender } = renderHook(() =>
+        useApi(mockApiFunction, [])
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData);
+      });
+
+      // Rerender should not cause refetch
+      rerender();
+
+      expect(mockApiFunction).toHaveBeenCalledTimes(1);
+    });
   });
 
-  test('should not fetch immediately when immediate is false', async () => {
-    const { result } = renderHook(() => 
-      useApi(mockApiCall, [], { immediate: false })
-    );
+  describe('Configuration Options', () => {
+    it('should handle onSuccess callback', async () => {
+      const mockData = { success: true };
+      const onSuccess = jest.fn();
 
-    expect(result.current.loading).toBe(true);
-    expect(mockApiCall).not.toHaveBeenCalled();
-  });
+      mockApiFunction.mockResolvedValue(mockData);
 
-  test('should retry on failure', async () => {
-    mockApiCall
-      .mockRejectedValueOnce(new Error('Error 1'))
-      .mockRejectedValueOnce(new Error('Error 2'))
-      .mockResolvedValueOnce({ success: true });
+      renderHook(() =>
+        useApi(mockApiFunction, [], { onSuccess })
+      );
 
-    const { result } = renderHook(() => 
-      useApi(mockApiCall, [], { retryCount: 2, retryDelay: 100 })
-    );
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledWith(mockData);
+      });
+    });
 
-    await waitFor(() => {
+    it('should handle onError callback', async () => {
+      const mockError = new Error('Test error');
+      const onError = jest.fn();
+
+      mockApiFunction.mockRejectedValue(mockError);
+
+      renderHook(() =>
+        useApi(mockApiFunction, [], { onError })
+      );
+
+      await waitFor(() => {
+        expect(onError).toHaveBeenCalledWith(mockError);
+      });
+    });
+
+    it('should respect enabled option', async () => {
+      mockApiFunction.mockResolvedValue({ data: 'test' });
+
+      const { result, rerender } = renderHook(
+        ({ enabled }) => useApi(mockApiFunction, [], { enabled }),
+        { initialProps: { enabled: false } }
+      );
+
+      // Should not fetch when disabled
+      expect(result.current.loading).toBe(false);
+      expect(mockApiFunction).not.toHaveBeenCalled();
+
+      // Enable and should fetch
+      rerender({ enabled: true });
+
+      expect(result.current.loading).toBe(true);
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(mockApiFunction).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use custom retry logic', async () => {
+      const mockError = new Error('Network error');
+      mockApiFunction
+        .mockRejectedValueOnce(mockError)
+        .mockRejectedValueOnce(mockError)
+        .mockResolvedValueOnce({ success: true });
+
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [], {
+          retry: 2,
+          retryDelay: 100
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
       expect(result.current.data).toEqual({ success: true });
-    }, { timeout: 3000 });
+      expect(mockApiFunction).toHaveBeenCalledTimes(3);
+    });
 
-    expect(mockApiCall).toHaveBeenCalledTimes(3);
-  });
+    it('should implement caching', async () => {
+      const mockData = { cached: true };
+      mockApiFunction.mockResolvedValue(mockData);
 
-  test('should call onSuccess callback', async () => {
-    const mockData = { id: 1 };
-    const onSuccess = jest.fn();
-    mockApiCall.mockResolvedValue(mockData);
+      const cacheKey = 'test-cache-key';
 
-    renderHook(() => useApi(mockApiCall, [], { onSuccess }));
+      // First hook instance
+      const { result: result1 } = renderHook(() =>
+        useApi(mockApiFunction, [], {
+          cacheKey,
+          cacheTime: 5000
+        })
+      );
 
-    await waitFor(() => {
-      expect(onSuccess).toHaveBeenCalledWith(mockData);
+      await waitFor(() => {
+        expect(result1.current.data).toEqual(mockData);
+      });
+
+      // Second hook instance with same cache key
+      const { result: result2 } = renderHook(() =>
+        useApi(mockApiFunction, [], {
+          cacheKey,
+          cacheTime: 5000
+        })
+      );
+
+      // Should use cached data, not make new API call
+      expect(result2.current.data).toEqual(mockData);
+      expect(result2.current.loading).toBe(false);
+      expect(mockApiFunction).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle stale data properly', async () => {
+      const staleData = { stale: true };
+      const freshData = { fresh: true };
+
+      mockApiFunction
+        .mockResolvedValueOnce(staleData)
+        .mockResolvedValueOnce(freshData);
+
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [], {
+          staleTime: 100,
+          cacheTime: 1000
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(staleData);
+      });
+
+      // Wait for data to become stale
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      act(() => {
+        result.current.refetch();
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(freshData);
+      });
+
+      expect(mockApiFunction).toHaveBeenCalledTimes(2);
     });
   });
 
-  test('should call onError callback', async () => {
-    const error = new Error('Test error');
-    const onError = jest.fn();
-    mockApiCall.mockRejectedValue(error);
+  describe('Concurrent Requests', () => {
+    it('should handle concurrent requests properly', async () => {
+      let resolveCount = 0;
+      mockApiFunction.mockImplementation(() =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolveCount++;
+            resolve({ request: resolveCount });
+          }, 100);
+        })
+      );
 
-    renderHook(() => useApi(mockApiCall, [], { onError }));
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [])
+      );
 
-    await waitFor(() => {
-      expect(onError).toHaveBeenCalledWith(error);
+      // Trigger multiple concurrent refetches
+      act(() => {
+        result.current.refetch();
+        result.current.refetch();
+        result.current.refetch();
+      });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should only show the latest request result
+      expect(result.current.data.request).toBe(resolveCount);
+    });
+
+    it('should cancel previous requests when new ones are made', async () => {
+      const abortSpy = jest.fn();
+      mockApiFunction.mockImplementation(() =>
+        new Promise((resolve, reject) => {
+          const controller = new AbortController();
+          controller.signal.addEventListener('abort', () => {
+            abortSpy();
+            reject(new Error('Aborted'));
+          });
+
+          setTimeout(() => resolve({ data: 'test' }), 1000);
+        })
+      );
+
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [])
+      );
+
+      // Quick successive refetches
+      act(() => {
+        result.current.refetch();
+      });
+
+      act(() => {
+        result.current.refetch();
+      });
+
+      await waitFor(() => {
+        expect(abortSpy).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Error Recovery', () => {
+    it('should retry failed requests', async () => {
+      const error = new Error('Temporary error');
+      mockApiFunction
+        .mockRejectedValueOnce(error)
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce({ recovered: true });
+
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [], {
+          retry: 2,
+          retryDelay: 50
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual({ recovered: true });
+      expect(result.current.error).toBeNull();
+      expect(mockApiFunction).toHaveBeenCalledTimes(3);
+    });
+
+    it('should not retry non-retryable errors', async () => {
+      const authError = new Error('Unauthorized');
+      authError.status = 401;
+
+      mockApiFunction.mockRejectedValue(authError);
+
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [], {
+          retry: 3,
+          retryCondition: (error) => error.status !== 401
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.error).toEqual(authError);
+      expect(mockApiFunction).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Memory Management', () => {
+    it('should cleanup on unmount', async () => {
+      mockApiFunction.mockImplementation(() =>
+        new Promise(resolve => setTimeout(() => resolve({ data: 'test' }), 1000))
+      );
+
+      const { result, unmount } = renderHook(() =>
+        useApi(mockApiFunction, [])
+      );
+
+      expect(result.current.loading).toBe(true);
+
+      // Unmount before request completes
+      unmount();
+
+      // Should not update state after unmount
+      await new Promise(resolve => setTimeout(resolve, 1100));
+
+      // No assertion needed - just ensure no memory leaks or warnings
+    });
+
+    it('should clear cache when specified', async () => {
+      const mockData = { test: 'data' };
+      mockApiFunction.mockResolvedValue(mockData);
+
+      const { result } = renderHook(() =>
+        useApi(mockApiFunction, [], {
+          cacheKey: 'test-key',
+          cacheTime: 1000
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData);
+      });
+
+      // Clear cache
+      act(() => {
+        result.current.clearCache();
+      });
+
+      // New request should be made
+      act(() => {
+        result.current.refetch();
+      });
+
+      expect(mockApiFunction).toHaveBeenCalledTimes(2);
     });
   });
 });
@@ -119,336 +472,366 @@ describe('useApi Hook', () => {
 describe('useApiMutation Hook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMutationFunction.mockClear();
   });
 
-  test('should perform mutation successfully', async () => {
-    const mockData = { id: 1, created: true };
-    mockApiMutation.mockResolvedValue(mockData);
+  describe('Basic Functionality', () => {
+    it('should initialize with default state', () => {
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction)
+      );
 
-    const { result } = renderHook(() => useApiMutation(mockApiMutation));
-
-    expect(result.current.loading).toBe(false);
-    expect(result.current.data).toBeNull();
-
-    await act(async () => {
-      const response = await result.current.mutate({ name: 'Test' });
-      expect(response).toEqual(mockData);
+      expect(result.current.data).toBeNull();
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(typeof result.current.mutate).toBe('function');
+      expect(typeof result.current.reset).toBe('function');
     });
 
-    expect(result.current.data).toEqual(mockData);
-    expect(result.current.error).toBeNull();
-    expect(mockApiMutation).toHaveBeenCalledWith({ name: 'Test' });
-  });
+    it('should execute mutation when mutate is called', async () => {
+      const mockData = { success: true };
+      mockMutationFunction.mockResolvedValue(mockData);
 
-  test('should handle mutation errors', async () => {
-    const errorMessage = 'Mutation failed';
-    mockApiMutation.mockRejectedValue(new Error(errorMessage));
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction)
+      );
 
-    const { result } = renderHook(() => useApiMutation(mockApiMutation));
+      expect(result.current.loading).toBe(false);
 
-    await act(async () => {
-      try {
-        await result.current.mutate({ name: 'Test' });
-      } catch (error) {
-        expect(error.message).toBe(errorMessage);
-      }
-    });
+      act(() => {
+        result.current.mutate({ input: 'test' });
+      });
 
-    expect(result.current.error).toBe(errorMessage);
-    expect(result.current.data).toBeNull();
-  });
+      expect(result.current.loading).toBe(true);
 
-  test('should reset mutation state', async () => {
-    const mockData = { id: 1 };
-    mockApiMutation.mockResolvedValue(mockData);
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
 
-    const { result } = renderHook(() => useApiMutation(mockApiMutation));
-
-    await act(async () => {
-      await result.current.mutate();
-    });
-
-    expect(result.current.data).toEqual(mockData);
-
-    act(() => {
-      result.current.reset();
-    });
-
-    expect(result.current.data).toBeNull();
-    expect(result.current.error).toBeNull();
-    expect(result.current.loading).toBe(false);
-  });
-
-  test('should call callbacks', async () => {
-    const mockData = { id: 1 };
-    const onSuccess = jest.fn();
-    const onError = jest.fn();
-    const onSettled = jest.fn();
-    
-    mockApiMutation.mockResolvedValue(mockData);
-
-    const { result } = renderHook(() => 
-      useApiMutation(mockApiMutation, { onSuccess, onError, onSettled })
-    );
-
-    await act(async () => {
-      await result.current.mutate();
-    });
-
-    expect(onSuccess).toHaveBeenCalledWith(mockData);
-    expect(onError).not.toHaveBeenCalled();
-    expect(onSettled).toHaveBeenCalled();
-  });
-});
-
-describe('usePaginatedApi Hook', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('should fetch paginated data', async () => {
-    const mockPage1 = {
-      items: [{ id: 1 }, { id: 2 }],
-      total: 5,
-      totalPages: 3
-    };
-
-    mockApiCall.mockResolvedValue(mockPage1);
-
-    const { result } = renderHook(() => 
-      usePaginatedApi(mockApiCall, { pageSize: 2 })
-    );
-
-    await waitFor(() => {
-      expect(result.current.data).toEqual(mockPage1.items);
-      expect(result.current.totalPages).toBe(3);
-      expect(result.current.hasMore).toBe(true);
-      expect(result.current.page).toBe(1);
-    });
-  });
-
-  test('should load more pages', async () => {
-    const mockPage1 = {
-      items: [{ id: 1 }, { id: 2 }],
-      total: 5,
-      totalPages: 3
-    };
-    const mockPage2 = {
-      items: [{ id: 3 }, { id: 4 }],
-      total: 5,
-      totalPages: 3
-    };
-
-    mockApiCall
-      .mockResolvedValueOnce(mockPage1)
-      .mockResolvedValueOnce(mockPage2);
-
-    const { result } = renderHook(() => 
-      usePaginatedApi(mockApiCall, { pageSize: 2 })
-    );
-
-    await waitFor(() => {
-      expect(result.current.data).toEqual(mockPage1.items);
-    });
-
-    await act(async () => {
-      result.current.loadMore();
-    });
-
-    await waitFor(() => {
-      expect(result.current.data).toEqual([
-        ...mockPage1.items,
-        ...mockPage2.items
-      ]);
-      expect(result.current.page).toBe(2);
-    });
-  });
-
-  test('should refresh pagination', async () => {
-    const mockPage1 = {
-      items: [{ id: 1 }],
-      totalPages: 2
-    };
-    const mockPage1Updated = {
-      items: [{ id: 10 }],
-      totalPages: 2
-    };
-
-    mockApiCall
-      .mockResolvedValueOnce(mockPage1)
-      .mockResolvedValueOnce(mockPage1Updated);
-
-    const { result } = renderHook(() => usePaginatedApi(mockApiCall));
-
-    await waitFor(() => {
-      expect(result.current.data).toEqual(mockPage1.items);
-    });
-
-    await act(async () => {
-      result.current.refresh();
-    });
-
-    await waitFor(() => {
-      expect(result.current.data).toEqual(mockPage1Updated.items);
-      expect(result.current.page).toBe(1);
-    });
-  });
-
-  test('should handle no more pages', async () => {
-    const mockLastPage = {
-      items: [{ id: 5 }],
-      total: 5,
-      totalPages: 1
-    };
-
-    mockApiCall.mockResolvedValue(mockLastPage);
-
-    const { result } = renderHook(() => usePaginatedApi(mockApiCall));
-
-    await waitFor(() => {
-      expect(result.current.hasMore).toBe(false);
-    });
-
-    act(() => {
-      result.current.loadMore();
-    });
-
-    expect(mockApiCall).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('useRealTimeApi Hook', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  test('should fetch data initially', async () => {
-    const mockData = { value: 1 };
-    mockApiCall.mockResolvedValue(mockData);
-
-    const { result } = renderHook(() => 
-      useRealTimeApi(mockApiCall, 5000)
-    );
-
-    await waitFor(() => {
       expect(result.current.data).toEqual(mockData);
+      expect(result.current.error).toBeNull();
+      expect(mockMutationFunction).toHaveBeenCalledWith({ input: 'test' });
+    });
+
+    it('should handle mutation errors', async () => {
+      const mockError = new Error('Mutation failed');
+      mockMutationFunction.mockRejectedValue(mockError);
+
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction)
+      );
+
+      act(() => {
+        result.current.mutate({ input: 'test' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data).toBeNull();
+      expect(result.current.error).toEqual(mockError);
+    });
+
+    it('should reset state when reset is called', async () => {
+      const mockData = { success: true };
+      mockMutationFunction.mockResolvedValue(mockData);
+
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction)
+      );
+
+      // Execute mutation
+      act(() => {
+        result.current.mutate({ input: 'test' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData);
+      });
+
+      // Reset state
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.data).toBeNull();
+      expect(result.current.error).toBeNull();
       expect(result.current.loading).toBe(false);
     });
   });
 
-  test('should poll for updates', async () => {
-    const mockData1 = { value: 1 };
-    const mockData2 = { value: 2 };
+  describe('Configuration Options', () => {
+    it('should call onSuccess callback on successful mutation', async () => {
+      const mockData = { success: true };
+      const onSuccess = jest.fn();
 
-    mockApiCall
-      .mockResolvedValueOnce(mockData1)
-      .mockResolvedValueOnce(mockData2);
+      mockMutationFunction.mockResolvedValue(mockData);
 
-    const { result } = renderHook(() => 
-      useRealTimeApi(mockApiCall, 1000)
-    );
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction, { onSuccess })
+      );
 
-    await waitFor(() => {
-      expect(result.current.data).toEqual(mockData1);
+      act(() => {
+        result.current.mutate({ input: 'test' });
+      });
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledWith(mockData);
+      });
     });
 
-    act(() => {
-      jest.advanceTimersByTime(1000);
+    it('should call onError callback on mutation failure', async () => {
+      const mockError = new Error('Test error');
+      const onError = jest.fn();
+
+      mockMutationFunction.mockRejectedValue(mockError);
+
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction, { onError })
+      );
+
+      act(() => {
+        result.current.mutate({ input: 'test' });
+      });
+
+      await waitFor(() => {
+        expect(onError).toHaveBeenCalledWith(mockError);
+      });
     });
 
-    await waitFor(() => {
-      expect(result.current.data).toEqual(mockData2);
+    it('should call onSettled callback after mutation completes', async () => {
+      const mockData = { success: true };
+      const onSettled = jest.fn();
+
+      mockMutationFunction.mockResolvedValue(mockData);
+
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction, { onSettled })
+      );
+
+      act(() => {
+        result.current.mutate({ input: 'test' });
+      });
+
+      await waitFor(() => {
+        expect(onSettled).toHaveBeenCalledWith(mockData, null);
+      });
+
+      // Test with error
+      const mockError = new Error('Test error');
+      mockMutationFunction.mockRejectedValue(mockError);
+
+      act(() => {
+        result.current.mutate({ input: 'test2' });
+      });
+
+      await waitFor(() => {
+        expect(onSettled).toHaveBeenCalledWith(null, mockError);
+      });
     });
 
-    expect(mockApiCall).toHaveBeenCalledTimes(2);
+    it('should handle mutation with custom configuration', async () => {
+      const mockData = { customResult: true };
+      mockMutationFunction.mockResolvedValue(mockData);
+
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction, {
+          retry: 2,
+          retryDelay: 100
+        })
+      );
+
+      act(() => {
+        result.current.mutate({ input: 'test' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData);
+      });
+    });
   });
 
-  test('should stop and start polling', async () => {
-    const mockData = { value: 1 };
-    mockApiCall.mockResolvedValue(mockData);
+  describe('Multiple Mutations', () => {
+    it('should handle multiple sequential mutations', async () => {
+      const mockData1 = { result: 1 };
+      const mockData2 = { result: 2 };
 
-    const { result } = renderHook(() => 
-      useRealTimeApi(mockApiCall, 1000)
-    );
+      mockMutationFunction
+        .mockResolvedValueOnce(mockData1)
+        .mockResolvedValueOnce(mockData2);
 
-    await waitFor(() => {
-      expect(result.current.isPolling).toBe(true);
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction)
+      );
+
+      // First mutation
+      act(() => {
+        result.current.mutate({ input: 'test1' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData1);
+      });
+
+      // Second mutation
+      act(() => {
+        result.current.mutate({ input: 'test2' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockData2);
+      });
+
+      expect(mockMutationFunction).toHaveBeenCalledTimes(2);
     });
 
-    act(() => {
-      result.current.stopPolling();
+    it('should handle concurrent mutations properly', async () => {
+      let resolveCount = 0;
+      mockMutationFunction.mockImplementation(() =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolveCount++;
+            resolve({ mutation: resolveCount });
+          }, 100);
+        })
+      );
+
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction)
+      );
+
+      // Trigger multiple concurrent mutations
+      act(() => {
+        result.current.mutate({ input: 'test1' });
+        result.current.mutate({ input: 'test2' });
+        result.current.mutate({ input: 'test3' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should only show the latest mutation result
+      expect(result.current.data.mutation).toBe(resolveCount);
     });
-
-    expect(result.current.isPolling).toBe(false);
-
-    act(() => {
-      jest.advanceTimersByTime(2000);
-    });
-
-    // Should only be called once (initial fetch)
-    expect(mockApiCall).toHaveBeenCalledTimes(1);
-
-    act(() => {
-      result.current.startPolling();
-    });
-
-    expect(result.current.isPolling).toBe(true);
   });
 
-  test('should call onUpdate when data changes', async () => {
-    const mockData1 = { value: 1 };
-    const mockData2 = { value: 2 };
-    const onUpdate = jest.fn();
+  describe('Error Handling', () => {
+    it('should retry failed mutations when configured', async () => {
+      const error = new Error('Temporary failure');
+      mockMutationFunction
+        .mockRejectedValueOnce(error)
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce({ recovered: true });
 
-    mockApiCall
-      .mockResolvedValueOnce(mockData1)
-      .mockResolvedValueOnce(mockData2);
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction, {
+          retry: 2,
+          retryDelay: 50
+        })
+      );
 
-    renderHook(() => 
-      useRealTimeApi(mockApiCall, 1000, { onUpdate })
-    );
+      act(() => {
+        result.current.mutate({ input: 'test' });
+      });
 
-    await waitFor(() => {
-      expect(onUpdate).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual({ recovered: true });
+      expect(result.current.error).toBeNull();
+      expect(mockMutationFunction).toHaveBeenCalledTimes(3);
     });
 
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
+    it('should not retry when retry is disabled', async () => {
+      const error = new Error('Permanent failure');
+      mockMutationFunction.mockRejectedValue(error);
 
-    await waitFor(() => {
-      expect(onUpdate).toHaveBeenCalledWith(mockData2, mockData1);
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction, { retry: 0 })
+      );
+
+      act(() => {
+        result.current.mutate({ input: 'test' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.error).toEqual(error);
+      expect(mockMutationFunction).toHaveBeenCalledTimes(1);
     });
   });
 
-  test('should handle polling errors', async () => {
-    const error = new Error('Polling error');
-    const onError = jest.fn();
-    
-    mockApiCall
-      .mockResolvedValueOnce({ value: 1 })
-      .mockRejectedValueOnce(error);
+  describe('Optimistic Updates', () => {
+    it('should handle optimistic updates', async () => {
+      const optimisticData = { optimistic: true };
+      const actualData = { actual: true };
 
-    const { result } = renderHook(() => 
-      useRealTimeApi(mockApiCall, 1000, { onError })
-    );
+      mockMutationFunction.mockResolvedValue(actualData);
 
-    await waitFor(() => {
-      expect(result.current.data).toEqual({ value: 1 });
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction)
+      );
+
+      // Mutation with optimistic update
+      act(() => {
+        result.current.mutate(
+          { input: 'test' },
+          { optimisticData }
+        );
+      });
+
+      // Should immediately show optimistic data
+      expect(result.current.data).toEqual(optimisticData);
+      expect(result.current.loading).toBe(true);
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should show actual data after completion
+      expect(result.current.data).toEqual(actualData);
     });
 
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
+    it('should rollback optimistic updates on error', async () => {
+      const optimisticData = { optimistic: true };
+      const previousData = { previous: true };
+      const error = new Error('Mutation failed');
 
-    await waitFor(() => {
-      expect(result.current.error).toBe('Polling error');
-      expect(onError).toHaveBeenCalledWith(error);
+      mockMutationFunction.mockRejectedValue(error);
+
+      const { result } = renderHook(() =>
+        useApiMutation(mockMutationFunction)
+      );
+
+      // Set previous data
+      result.current.data = previousData;
+
+      // Mutation with optimistic update
+      act(() => {
+        result.current.mutate(
+          { input: 'test' },
+          {
+            optimisticData,
+            rollbackOnError: true
+          }
+        );
+      });
+
+      // Should show optimistic data
+      expect(result.current.data).toEqual(optimisticData);
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should rollback to previous data on error
+      expect(result.current.data).toEqual(previousData);
+      expect(result.current.error).toEqual(error);
     });
   });
 });

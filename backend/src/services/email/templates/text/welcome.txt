@@ -1,0 +1,43 @@
+Welcome to {{ app_name }}!
+
+Hello {{ user.first_name or 'there' }},
+
+Thank you for joining {{ app_name }}! We're excited to help you streamline your scheduling and make managing shifts effortless. Your account has been successfully created and you're ready to get started.
+
+Here's what you can do with {{ app_name }}:
+
+🤖 AI-Powered Scheduling
+   Let our AI automatically optimize your schedules based on preferences and constraints
+
+📱 Smart Notifications
+   Get timely reminders and updates about your shifts and schedule changes
+
+📊 Analytics & Insights
+   Track your scheduling patterns and optimize your work-life balance
+
+👥 Team Collaboration
+   Coordinate with your team and manage shift swaps seamlessly
+
+READY TO GET STARTED?
+Access your dashboard: {{ dashboard_url }}
+
+Your Next Steps:
+✓ Complete your profile with preferences and availability
+✓ Set up your notification preferences
+✓ Create your first schedule or join your team
+✓ Explore the AI scheduling features
+✓ Download our mobile app for on-the-go access
+
+If you have any questions or need assistance getting started, our support team is here to help. Simply reply to this email or visit our help center at {{ help_center_url or website_url + '/help' }}.
+
+Welcome aboard!
+The {{ app_name }} Team
+
+---
+{{ app_name }}
+{% if company_address %}{{ company_address }}{% endif %}
+Website: {{ website_url }}
+Help Center: {{ help_center_url or website_url + '/help' }}
+
+This email was sent to {{ user.email }}.
+To unsubscribe: {{ unsubscribe_url }}

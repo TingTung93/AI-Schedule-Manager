@@ -1,0 +1,211 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-ssd
+  labels:
+    app: ai-schedule-manager
+provisioner: kubernetes.io/aws-ebs  # Change based on cloud provider
+parameters:
+  type: gp3
+  iops: "3000"
+  throughput: "125"
+  encrypted: "true"
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard-hdd
+  labels:
+    app: ai-schedule-manager
+provisioner: kubernetes.io/aws-ebs  # Change based on cloud provider
+parameters:
+  type: st1
+  encrypted: "true"
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete
+---
+# PostgreSQL Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: ai-schedule-manager
+  labels:
+    app: postgres
+    tier: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 20Gi
+---
+# Redis Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: ai-schedule-manager
+  labels:
+    app: redis
+    tier: cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Monitoring data Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+  namespace: ai-schedule-manager
+  labels:
+    app: prometheus
+    tier: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard-hdd
+  resources:
+    requests:
+      storage: 50Gi
+---
+# Grafana data Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+  namespace: ai-schedule-manager
+  labels:
+    app: grafana
+    tier: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 10Gi
+---
+# Backup storage Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: ai-schedule-manager
+  labels:
+    app: backup
+    tier: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard-hdd
+  resources:
+    requests:
+      storage: 100Gi
+---
+# Volume Snapshot Class for backups
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: postgres-snapshot-class
+  labels:
+    app: ai-schedule-manager
+driver: ebs.csi.aws.com  # Change based on cloud provider
+deletionPolicy: Retain
+parameters:
+  encrypted: "true"
+---
+# Scheduled Volume Snapshot for automated backups
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: postgres-snapshot-template
+  namespace: ai-schedule-manager
+  labels:
+    app: postgres
+    backup-schedule: daily
+spec:
+  volumeSnapshotClassName: postgres-snapshot-class
+  source:
+    persistentVolumeClaimName: postgres-pvc
+---
+# Local storage example for development
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-storage-pv
+  labels:
+    app: ai-schedule-manager
+    environment: development
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /mnt/data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - worker-node-1  # Replace with actual node name
+---
+# Multi-cloud storage class examples
+# AWS
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: aws-fast-ssd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  iops: "3000"
+  throughput: "125"
+  encrypted: "true"
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+---
+# Google Cloud
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gcp-fast-ssd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: pd.csi.storage.gke.io
+parameters:
+  type: pd-ssd
+  replication-type: regional-pd
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+---
+# Azure
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: azure-fast-ssd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: disk.csi.azure.com
+parameters:
+  skuName: Premium_LRS
+  kind: managed
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer

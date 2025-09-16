@@ -1,0 +1,111 @@
+# Multi-stage Docker build for optimal performance
+
+# Stage 1: Frontend build
+FROM node:18-alpine AS frontend-builder
+
+# Set working directory
+WORKDIR /app/frontend
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies with cache optimization
+RUN npm ci --only=production --silent
+
+# Copy source code
+COPY frontend/ .
+
+# Build optimized production bundle
+ENV NODE_ENV=production
+ENV GENERATE_SOURCEMAP=false
+ENV INLINE_RUNTIME_CHUNK=false
+RUN npm run build
+
+# Optimize build output
+RUN find build -name "*.js" -exec gzip -k {} \;
+RUN find build -name "*.css" -exec gzip -k {} \;
+
+# Stage 2: Backend dependencies
+FROM python:3.11-slim AS backend-deps
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements
+COPY backend/requirements.txt .
+COPY backend/requirements-prod.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir -r requirements-prod.txt
+
+# Stage 3: Production runtime
+FROM python:3.11-slim AS production
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    redis-tools \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash app
+
+# Copy virtual environment from deps stage
+COPY --from=backend-deps /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy backend application
+WORKDIR /app
+COPY --chown=app:app backend/ ./backend/
+
+# Copy frontend build
+COPY --from=frontend-builder --chown=app:app /app/frontend/build ./frontend/build/
+
+# Copy configuration files
+COPY --chown=app:app config/ ./config/
+
+# Create directories for logs and data
+RUN mkdir -p /app/logs /app/data && chown -R app:app /app
+
+# Switch to non-root user
+USER app
+
+# Set environment variables
+ENV PYTHONPATH=/app/backend/src
+ENV PYTHONUNBUFFERED=1
+ENV WORKERS=4
+ENV MAX_REQUESTS=1000
+ENV MAX_REQUESTS_JITTER=100
+ENV TIMEOUT=60
+ENV KEEPALIVE=5
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Start application with optimized settings
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "$WORKERS", \
+     "--worker-class", "uvicorn.workers.UvicornWorker", \
+     "--max-requests", "$MAX_REQUESTS", \
+     "--max-requests-jitter", "$MAX_REQUESTS_JITTER", \
+     "--timeout", "$TIMEOUT", \
+     "--keepalive", "$KEEPALIVE", \
+     "--preload", \
+     "--access-logfile", "/app/logs/access.log", \
+     "--error-logfile", "/app/logs/error.log", \
+     "--log-level", "info", \
+     "backend.src.main:app"]

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to {{ app_name }}</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8f9fa;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .message {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #555555;
+        }
+
+        .features {
+            margin: 30px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .feature-description {
+            color: #666666;
+            font-size: 14px;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: #ffffff;
+            color: #667eea;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .next-steps {
+            background-color: #e8f4fd;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .next-steps h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .next-steps ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .next-steps li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .next-steps li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .footer p {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .social-links {
+            margin: 20px 0;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 10px;
+            background-color: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        /* Mobile responsiveness */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 0;
+            }
+
+            .header,
+            .content,
+            .footer {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .feature-item {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px 15px;
+            }
+
+            .feature-icon {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+
+            .cta-section {
+                padding: 20px 15px;
+            }
+
+            .next-steps {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Welcome to {{ app_name }}!</h1>
+            <p>Your intelligent scheduling companion</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Hello {{ user.first_name or 'there' }}! 👋
+            </div>
+
+            <div class="message">
+                Thank you for joining {{ app_name }}! We're excited to help you streamline your scheduling and make managing shifts effortless. Your account has been successfully created and you're ready to get started.
+            </div>
+
+            <!-- Features -->
+            <div class="features">
+                <div class="feature-item">
+                    <div class="feature-icon">🤖</div>
+                    <div class="feature-text">
+                        <div class="feature-title">AI-Powered Scheduling</div>
+                        <div class="feature-description">Let our AI automatically optimize your schedules based on preferences and constraints</div>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">📱</div>
+                    <div class="feature-text">
+                        <div class="feature-title">Smart Notifications</div>
+                        <div class="feature-description">Get timely reminders and updates about your shifts and schedule changes</div>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">
+                        <div class="feature-title">Analytics & Insights</div>
+                        <div class="feature-description">Track your scheduling patterns and optimize your work-life balance</div>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-text">
+                        <div class="feature-title">Team Collaboration</div>
+                        <div class="feature-description">Coordinate with your team and manage shift swaps seamlessly</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <h2 style="color: white; margin-bottom: 15px;">Ready to Get Started?</h2>
+                <p style="color: rgba(255,255,255,0.9); margin-bottom: 25px;">
+                    Complete your profile setup and create your first schedule
+                </p>
+                <a href="{{ dashboard_url }}" class="cta-button">Access Your Dashboard</a>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>Your Next Steps:</h3>
+                <ul>
+                    <li>Complete your profile with preferences and availability</li>
+                    <li>Set up your notification preferences</li>
+                    <li>Create your first schedule or join your team</li>
+                    <li>Explore the AI scheduling features</li>
+                    <li>Download our mobile app for on-the-go access</li>
+                </ul>
+            </div>
+
+            <div class="message">
+                If you have any questions or need assistance getting started, our support team is here to help. Simply reply to this email or visit our help center.
+            </div>
+
+            <div class="message">
+                Welcome aboard!<br>
+                <strong>The {{ app_name }} Team</strong>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="social-links">
+                <a href="{{ social_links.twitter or '#' }}">T</a>
+                <a href="{{ social_links.facebook or '#' }}">F</a>
+                <a href="{{ social_links.linkedin or '#' }}">L</a>
+            </div>
+
+            <p>
+                <a href="{{ website_url }}">Visit our website</a> |
+                <a href="{{ help_center_url or website_url + '/help' }}">Help Center</a> |
+                <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+            </p>
+
+            <p>
+                {{ app_name }}<br>
+                {% if company_address %}{{ company_address }}{% endif %}
+            </p>
+
+            <p style="font-size: 12px; color: #999;">
+                This email was sent to {{ user.email }}. If you no longer wish to receive these emails,
+                you can <a href="{{ unsubscribe_url }}" style="color: #999;">unsubscribe here</a>.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -38,6 +38,8 @@ import {
   Schedule as ScheduleIcon,
   Person as PersonIcon,
   SwapHoriz as SwapIcon,
+  Circle as OnlineIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -45,6 +47,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO, isWithinInterval } from 'date-fns';
 import { scheduleService, employeeService } from '../services/api';
 import { useApi, useApiMutation } from '../hooks/useApi';
+import { useScheduleUpdates, usePresence, useTypingIndicator, useWebSocket } from '../hooks/useWebSocket';
+import websocketManager from '../services/websocket';
 
 const ScheduleDisplay = () => {
   // State management
@@ -57,6 +61,7 @@ const ScheduleDisplay = () => {
   const [conflicts, setConflicts] = useState([]);
   const [viewMode, setViewMode] = useState('week'); // 'week' or 'day'
   const [selectedDay, setSelectedDay] = useState(new Date());
+  const [showRealtimeUpdates, setShowRealtimeUpdates] = useState(false);
 
   // Form state for shift editing
   const [shiftForm, setShiftForm] = useState({
@@ -66,6 +71,12 @@ const ScheduleDisplay = () => {
     role: '',
     notes: '',
   });
+
+  // WebSocket hooks for real-time functionality
+  const { isConnected } = useWebSocket();
+  const { schedules: realtimeSchedules, lastUpdate } = useScheduleUpdates(selectedSchedule?.id);
+  const { onlineUsers, userActivity } = usePresence();
+  const { typingUsers, startTyping, stopTyping } = useTypingIndicator(`schedule-${selectedSchedule?.id || 'main'}`);
 
   // API hooks
   const { data: schedulesData, loading: loadingSchedules, refetch: refetchSchedules } = useApi(
@@ -204,6 +215,71 @@ const ScheduleDisplay = () => {
     detectConflicts();
   }, [selectedSchedule, employeeMap]);
 
+  // WebSocket event handlers
+  useEffect(() => {
+    if (lastUpdate) {
+      setShowRealtimeUpdates(true);
+      setNotification({
+        type: 'info',
+        message: `Schedule ${lastUpdate.type} by user ${lastUpdate.data.updated_by || lastUpdate.data.created_by || 'system'}`
+      });
+
+      // Auto-hide realtime update notification
+      const timer = setTimeout(() => setShowRealtimeUpdates(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [lastUpdate]);
+
+  // Handle editing states with WebSocket
+  const handleEditStart = useCallback((shift) => {
+    setSelectedShift(shift);
+    setShiftForm({
+      employeeId: shift.employeeId,
+      startTime: format(parseISO(shift.startTime), "yyyy-MM-dd'T'HH:mm"),
+      endTime: format(parseISO(shift.endTime), "yyyy-MM-dd'T'HH:mm"),
+      role: shift.role || '',
+      notes: shift.notes || '',
+    });
+    setOpenShiftDialog(true);
+
+    // Notify others that this shift is being edited
+    websocketManager.sendEditing('shift', shift.id);
+  }, []);
+
+  const handleEditEnd = useCallback(() => {
+    if (selectedShift) {
+      websocketManager.stopEditing('shift', selectedShift.id);
+    }
+    setOpenShiftDialog(false);
+    resetShiftForm();
+  }, [selectedShift]);
+
+  const handleInputChange = useCallback((field, value) => {
+    setShiftForm(prev => ({ ...prev, [field]: value }));
+    startTyping();
+
+    // Stop typing after a delay
+    const timer = setTimeout(() => stopTyping(), 1000);
+    return () => clearTimeout(timer);
+  }, [startTyping, stopTyping]);
+
+  // Get users currently editing specific shifts
+  const getEditingUsers = useCallback((shiftId) => {
+    return Object.entries(userActivity)
+      .filter(([userId, activity]) =>
+        activity.type === 'editing' &&
+        activity.resource_type === 'shift' &&
+        activity.resource_id === shiftId
+      )
+      .map(([userId]) => parseInt(userId));
+  }, [userActivity]);
+
+  // Check if a shift is being edited by someone else
+  const isShiftBeingEdited = useCallback((shiftId) => {
+    const editingUsers = getEditingUsers(shiftId);
+    return editingUsers.length > 0;
+  }, [getEditingUsers]);
+
   // Event handlers
   const resetShiftForm = useCallback(() => {
     setShiftForm({
@@ -217,16 +293,17 @@ const ScheduleDisplay = () => {
   }, []);
 
   const handleShiftClick = useCallback((shift) => {
-    setSelectedShift(shift);
-    setShiftForm({
-      employeeId: shift.employeeId,
-      startTime: format(parseISO(shift.startTime), "yyyy-MM-dd'T'HH:mm"),
-      endTime: format(parseISO(shift.endTime), "yyyy-MM-dd'T'HH:mm"),
-      role: shift.role || '',
-      notes: shift.notes || '',
-    });
-    setOpenShiftDialog(true);
-  }, []);
+    // Check if shift is being edited by someone else
+    if (isShiftBeingEdited(shift.id)) {
+      setNotification({
+        type: 'warning',
+        message: 'This shift is currently being edited by another user.'
+      });
+      return;
+    }
+
+    handleEditStart(shift);
+  }, [isShiftBeingEdited, handleEditStart]);
 
   const handleShiftSubmit = useCallback(() => {
     if (!selectedShift || !selectedSchedule) return;
@@ -342,6 +419,45 @@ const ScheduleDisplay = () => {
         {/* Header Controls */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
+            {/* Real-time status bar */}
+            <Box sx={{ mb: 2, p: 1, bgcolor: isConnected ? 'success.light' : 'error.light', borderRadius: 1 }}>
+              <Grid container alignItems="center" spacing={2}>
+                <Grid item>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <OnlineIcon
+                      sx={{
+                        fontSize: 12,
+                        color: isConnected ? 'success.main' : 'error.main',
+                        animation: isConnected ? 'pulse 2s infinite' : 'none'
+                      }}
+                    />
+                    <Typography variant="body2" color={isConnected ? 'success.main' : 'error.main'}>
+                      {isConnected ? 'Live Updates Active' : 'Offline Mode'}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item>
+                  <Badge badgeContent={onlineUsers.length} color="primary">
+                    <Typography variant="body2">Online Users</Typography>
+                  </Badge>
+                </Grid>
+                {typingUsers.length > 0 && (
+                  <Grid item>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                      {typingUsers.length} user{typingUsers.length > 1 ? 's' : ''} typing...
+                    </Typography>
+                  </Grid>
+                )}
+                {showRealtimeUpdates && lastUpdate && (
+                  <Grid item sx={{ flexGrow: 1 }}>
+                    <Alert severity="info" size="small" sx={{ py: 0 }}>
+                      Schedule {lastUpdate.type} by user {lastUpdate.data.updated_by || lastUpdate.data.created_by}
+                    </Alert>
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+
             <Grid container spacing={2} alignItems="center">
               <Grid item>
                 <FormControl size="small" sx={{ minWidth: 200 }}>

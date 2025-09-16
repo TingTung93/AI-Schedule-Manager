@@ -1,0 +1,1475 @@
+openapi: 3.0.0
+info:
+  title: AI Schedule Manager API
+  version: 1.0.0
+  description: |
+    Neural-powered scheduling API for small businesses with complete CRUD operations,
+    natural language rule parsing, and AI-driven schedule optimization.
+
+    ## Features
+    - Complete employee, schedule, and rule management
+    - Natural language rule parsing using NLP
+    - AI-powered schedule optimization
+    - Real-time notifications
+    - Role-based access control
+    - Comprehensive analytics
+
+    ## Authentication
+    This API uses JWT tokens for authentication. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+
+  contact:
+    name: AI Schedule Manager API Support
+    email: support@ai-schedule-manager.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.ai-schedule-manager.com
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Health and Info
+  /:
+    get:
+      summary: API Root
+      description: Get API information and status
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "AI Schedule Manager API"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  status:
+                    type: string
+                    example: "operational"
+                  features:
+                    type: array
+                    items:
+                      type: string
+                    example: ["CRUD operations", "Database integration", "Authentication", "Pagination"]
+
+  /health:
+    get:
+      summary: Health Check
+      description: Check API health status
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  # Authentication
+  /api/auth/login:
+    post:
+      summary: User Login
+      description: Authenticate user and return JWT tokens
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "manager@example.com"
+              password: "securepassword123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/auth/refresh:
+    post:
+      summary: Refresh Token
+      description: Refresh JWT access token using refresh token
+      tags: [Authentication]
+      security: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token refreshed successfully"
+                  access_token:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/logout:
+    post:
+      summary: User Logout
+      description: Logout user and revoke refresh token
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logout successful"
+
+  /api/auth/me:
+    get:
+      summary: Get Current User
+      description: Get current authenticated user information
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Employees
+  /api/employees:
+    get:
+      summary: List Employees
+      description: Get all employees with pagination and filtering
+      tags: [Employees]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortByParam'
+        - $ref: '#/components/parameters/SortOrderParam'
+        - name: role
+          in: query
+          description: Filter by employee role
+          schema:
+            $ref: '#/components/schemas/EmployeeRole'
+        - name: active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          description: Search by name or email
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EmployeeResponse'
+
+    post:
+      summary: Create Employee
+      description: Create a new employee (manager only)
+      tags: [Employees]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCreate'
+      responses:
+        '201':
+          description: Employee created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/employees/{employee_id}:
+    get:
+      summary: Get Employee
+      description: Get specific employee by ID
+      tags: [Employees]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdParam'
+      responses:
+        '200':
+          description: Employee details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update Employee
+      description: Update employee information (manager only)
+      tags: [Employees]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdate'
+      responses:
+        '200':
+          description: Employee updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      summary: Delete Employee
+      description: Delete employee (manager only)
+      tags: [Employees]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdParam'
+      responses:
+        '200':
+          description: Employee deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Employee deleted successfully"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/employees/{employee_id}/schedule:
+    get:
+      summary: Get Employee Schedule
+      description: Get schedule for specific employee
+      tags: [Employees, Schedules]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdParam'
+        - name: date_from
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Employee schedule
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduleResponse'
+
+  # Rules
+  /api/rules:
+    get:
+      summary: List Rules
+      description: Get all rules with pagination and filtering
+      tags: [Rules]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortByParam'
+        - $ref: '#/components/parameters/SortOrderParam'
+        - name: rule_type
+          in: query
+          description: Filter by rule type
+          schema:
+            $ref: '#/components/schemas/RuleType'
+        - name: employee_id
+          in: query
+          description: Filter by employee ID
+          schema:
+            type: integer
+        - name: active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of rules
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RuleResponse'
+
+  /api/rules/parse:
+    post:
+      summary: Parse Natural Language Rule
+      description: Parse natural language text into structured rule
+      tags: [Rules]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleParseRequest'
+            example:
+              rule_text: "John cannot work on Sundays and prefers morning shifts"
+      responses:
+        '200':
+          description: Rule parsed and created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/rules/{rule_id}:
+    get:
+      summary: Get Rule
+      description: Get specific rule by ID
+      tags: [Rules]
+      parameters:
+        - $ref: '#/components/parameters/RuleIdParam'
+      responses:
+        '200':
+          description: Rule details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update Rule
+      description: Update rule (manager only)
+      tags: [Rules]
+      parameters:
+        - $ref: '#/components/parameters/RuleIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleUpdate'
+      responses:
+        '200':
+          description: Rule updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      summary: Delete Rule
+      description: Delete rule (manager only)
+      tags: [Rules]
+      parameters:
+        - $ref: '#/components/parameters/RuleIdParam'
+      responses:
+        '200':
+          description: Rule deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Rule deleted successfully"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Schedules
+  /api/schedules:
+    get:
+      summary: List Schedules
+      description: Get all schedules with pagination and filtering
+      tags: [Schedules]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortByParam'
+        - $ref: '#/components/parameters/SortOrderParam'
+        - name: employee_id
+          in: query
+          description: Filter by employee ID
+          schema:
+            type: integer
+        - name: shift_id
+          in: query
+          description: Filter by shift ID
+          schema:
+            type: integer
+        - name: date_from
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          description: Filter by schedule status
+          schema:
+            $ref: '#/components/schemas/ScheduleStatus'
+      responses:
+        '200':
+          description: List of schedules
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ScheduleResponse'
+
+  /api/schedules/{schedule_id}:
+    get:
+      summary: Get Schedule
+      description: Get specific schedule by ID
+      tags: [Schedules]
+      parameters:
+        - $ref: '#/components/parameters/ScheduleIdParam'
+      responses:
+        '200':
+          description: Schedule details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update Schedule
+      description: Update schedule (manager only)
+      tags: [Schedules]
+      parameters:
+        - $ref: '#/components/parameters/ScheduleIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleUpdate'
+      responses:
+        '200':
+          description: Schedule updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      summary: Delete Schedule
+      description: Delete schedule (manager only)
+      tags: [Schedules]
+      parameters:
+        - $ref: '#/components/parameters/ScheduleIdParam'
+      responses:
+        '200':
+          description: Schedule deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Schedule deleted successfully"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Schedule Generation and Optimization
+  /api/schedule/generate:
+    post:
+      summary: Generate Schedule
+      description: Generate optimized schedule for date range using AI
+      tags: [AI Scheduling]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleGenerateRequest'
+            example:
+              start_date: "2024-01-01"
+              end_date: "2024-01-07"
+              constraints:
+                max_hours_per_employee: 40
+                min_coverage_ratio: 1.2
+      responses:
+        '200':
+          description: Schedule generation started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1234
+                  start_date:
+                    type: string
+                    format: date
+                  end_date:
+                    type: string
+                    format: date
+                  status:
+                    type: string
+                    example: "generated"
+                  shifts:
+                    type: array
+                    items:
+                      type: object
+                  created_at:
+                    type: string
+                    format: date-time
+                  message:
+                    type: string
+                    example: "Schedule generation started. Check back for results."
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/schedule/optimize:
+    post:
+      summary: Optimize Schedule
+      description: Optimize existing schedule using AI algorithms
+      tags: [AI Scheduling]
+      parameters:
+        - name: schedule_id
+          in: query
+          required: true
+          description: Schedule ID to optimize
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Schedule optimized successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "optimized"
+                  improvements:
+                    type: object
+                    properties:
+                      cost_savings:
+                        type: string
+                        example: "$450"
+                      coverage:
+                        type: string
+                        example: "95%"
+                      satisfaction:
+                        type: string
+                        example: "88%"
+                  message:
+                    type: string
+                    example: "Schedule optimized successfully using AI"
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Notifications
+  /api/notifications:
+    get:
+      summary: List Notifications
+      description: Get all notifications with pagination and filtering
+      tags: [Notifications]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortByParam'
+        - $ref: '#/components/parameters/SortOrderParam'
+        - name: employee_id
+          in: query
+          description: Filter by employee ID
+          schema:
+            type: integer
+        - name: notification_type
+          in: query
+          description: Filter by notification type
+          schema:
+            $ref: '#/components/schemas/NotificationType'
+        - name: read
+          in: query
+          description: Filter by read status
+          schema:
+            type: boolean
+        - name: priority
+          in: query
+          description: Filter by priority
+          schema:
+            $ref: '#/components/schemas/Priority'
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/NotificationResponse'
+
+    post:
+      summary: Create Notification
+      description: Create new notification (manager only)
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationCreate'
+      responses:
+        '201':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/notifications/{notification_id}/read:
+    patch:
+      summary: Mark Notification as Read
+      description: Mark specific notification as read
+      tags: [Notifications]
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdParam'
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/notifications/mark-all-read:
+    post:
+      summary: Mark All Notifications as Read
+      description: Mark all notifications as read for current user
+      tags: [Notifications]
+      parameters:
+        - name: employee_id
+          in: query
+          description: Employee ID (optional, defaults to current user)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Marked 5 notifications as read"
+
+  /api/notifications/{notification_id}:
+    delete:
+      summary: Delete Notification
+      description: Delete notification
+      tags: [Notifications]
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdParam'
+      responses:
+        '200':
+          description: Notification deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Notification deleted successfully"
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Analytics
+  /api/analytics/overview:
+    get:
+      summary: Get Analytics Overview
+      description: Get comprehensive analytics overview (manager only)
+      tags: [Analytics]
+      responses:
+        '200':
+          description: Analytics overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsOverview'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number (starts from 1)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    SizeParam:
+      name: size
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+
+    SortByParam:
+      name: sort_by
+      in: query
+      description: Field to sort by
+      schema:
+        type: string
+
+    SortOrderParam:
+      name: sort_order
+      in: query
+      description: Sort order
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
+
+    EmployeeIdParam:
+      name: employee_id
+      in: path
+      required: true
+      description: Employee ID
+      schema:
+        type: integer
+        minimum: 1
+
+    RuleIdParam:
+      name: rule_id
+      in: path
+      required: true
+      description: Rule ID
+      schema:
+        type: integer
+        minimum: 1
+
+    ScheduleIdParam:
+      name: schedule_id
+      in: path
+      required: true
+      description: Schedule ID
+      schema:
+        type: integer
+        minimum: 1
+
+    NotificationIdParam:
+      name: notification_id
+      in: path
+      required: true
+      description: Notification ID
+      schema:
+        type: integer
+        minimum: 1
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Invalid input parameters"
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Invalid credentials"
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Insufficient permissions"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Resource not found"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Internal server error"
+
+  schemas:
+    # Enums
+    EmployeeRole:
+      type: string
+      enum:
+        - manager
+        - supervisor
+        - server
+        - cook
+        - cashier
+        - cleaner
+        - security
+      description: Employee role in the organization
+
+    RuleType:
+      type: string
+      enum:
+        - availability
+        - preference
+        - requirement
+        - restriction
+      description: Type of scheduling rule
+
+    ScheduleStatus:
+      type: string
+      enum:
+        - scheduled
+        - completed
+        - cancelled
+        - no_show
+      description: Status of a scheduled shift
+
+    NotificationType:
+      type: string
+      enum:
+        - schedule
+        - request
+        - reminder
+        - alert
+      description: Type of notification
+
+    Priority:
+      type: string
+      enum:
+        - low
+        - normal
+        - high
+        - urgent
+      description: Priority level
+
+    # Base Models
+    PaginatedResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: {}
+        total:
+          type: integer
+          description: Total number of items
+        page:
+          type: integer
+          description: Current page number
+        size:
+          type: integer
+          description: Number of items per page
+        pages:
+          type: integer
+          description: Total number of pages
+
+    # Authentication
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "manager@example.com"
+        password:
+          type: string
+          minLength: 1
+          example: "securepassword123"
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+        token_type:
+          type: string
+          example: "bearer"
+        user:
+          $ref: '#/components/schemas/UserInfo'
+
+    UserInfo:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          example: "manager"
+
+    # Employee Models
+    EmployeeBase:
+      type: object
+      required:
+        - name
+        - email
+        - role
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        role:
+          $ref: '#/components/schemas/EmployeeRole'
+        phone:
+          type: string
+          maxLength: 50
+          example: "+1-555-123-4567"
+        hourly_rate:
+          type: number
+          minimum: 0
+          example: 15.50
+        max_hours_per_week:
+          type: integer
+          minimum: 1
+          maximum: 168
+          default: 40
+        qualifications:
+          type: array
+          items:
+            type: string
+          example: ["food_safety", "cash_handling"]
+        availability_pattern:
+          type: object
+          additionalProperties: true
+          example:
+            monday: ["09:00-17:00"]
+            tuesday: ["09:00-17:00"]
+        active:
+          type: boolean
+          default: true
+
+    EmployeeCreate:
+      allOf:
+        - $ref: '#/components/schemas/EmployeeBase'
+
+    EmployeeUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/EmployeeRole'
+        phone:
+          type: string
+          maxLength: 50
+        hourly_rate:
+          type: number
+          minimum: 0
+        max_hours_per_week:
+          type: integer
+          minimum: 1
+          maximum: 168
+        qualifications:
+          type: array
+          items:
+            type: string
+        availability_pattern:
+          type: object
+          additionalProperties: true
+        active:
+          type: boolean
+
+    EmployeeResponse:
+      allOf:
+        - $ref: '#/components/schemas/EmployeeBase'
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    # Rule Models
+    RuleBase:
+      type: object
+      required:
+        - rule_type
+        - original_text
+      properties:
+        rule_type:
+          $ref: '#/components/schemas/RuleType'
+        original_text:
+          type: string
+          minLength: 1
+          example: "John cannot work on Sundays"
+        constraints:
+          type: object
+          additionalProperties: true
+          example:
+            days_off: ["sunday"]
+            employee_name: "John"
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+          default: 1
+        employee_id:
+          type: integer
+          nullable: true
+        active:
+          type: boolean
+          default: true
+
+    RuleCreate:
+      allOf:
+        - $ref: '#/components/schemas/RuleBase'
+
+    RuleUpdate:
+      type: object
+      properties:
+        rule_type:
+          $ref: '#/components/schemas/RuleType'
+        original_text:
+          type: string
+          minLength: 1
+        constraints:
+          type: object
+          additionalProperties: true
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+        employee_id:
+          type: integer
+          nullable: true
+        active:
+          type: boolean
+
+    RuleResponse:
+      allOf:
+        - $ref: '#/components/schemas/RuleBase'
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            employee:
+              $ref: '#/components/schemas/EmployeeResponse'
+              nullable: true
+
+    RuleParseRequest:
+      type: object
+      required:
+        - rule_text
+      properties:
+        rule_text:
+          type: string
+          minLength: 1
+          example: "Sarah prefers morning shifts and cannot work weekends"
+
+    # Schedule Models
+    ScheduleBase:
+      type: object
+      required:
+        - employee_id
+        - shift_id
+        - date
+      properties:
+        employee_id:
+          type: integer
+          example: 1
+        shift_id:
+          type: integer
+          example: 1
+        date:
+          type: string
+          format: date
+          example: "2024-01-15"
+        status:
+          $ref: '#/components/schemas/ScheduleStatus'
+        notes:
+          type: string
+          nullable: true
+          example: "Double shift coverage needed"
+        overtime_approved:
+          type: boolean
+          default: false
+
+    ScheduleCreate:
+      allOf:
+        - $ref: '#/components/schemas/ScheduleBase'
+
+    ScheduleUpdate:
+      type: object
+      properties:
+        employee_id:
+          type: integer
+        shift_id:
+          type: integer
+        date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/ScheduleStatus'
+        notes:
+          type: string
+          nullable: true
+        overtime_approved:
+          type: boolean
+
+    ScheduleResponse:
+      allOf:
+        - $ref: '#/components/schemas/ScheduleBase'
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            employee:
+              $ref: '#/components/schemas/EmployeeResponse'
+            shift:
+              $ref: '#/components/schemas/ShiftResponse'
+
+    ShiftResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Morning Shift"
+        shift_type:
+          type: string
+          example: "regular"
+        start_time:
+          type: string
+          format: time
+          example: "09:00:00"
+        end_time:
+          type: string
+          format: time
+          example: "17:00:00"
+        required_staff:
+          type: integer
+          example: 2
+        required_qualifications:
+          type: array
+          items:
+            type: string
+          example: ["food_safety"]
+        department:
+          type: string
+          example: "kitchen"
+        hourly_rate_multiplier:
+          type: number
+          example: 1.0
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Schedule Generation
+    ScheduleGenerateRequest:
+      type: object
+      required:
+        - start_date
+        - end_date
+      properties:
+        start_date:
+          type: string
+          format: date
+          example: "2024-01-01"
+        end_date:
+          type: string
+          format: date
+          example: "2024-01-07"
+        template_id:
+          type: integer
+          nullable: true
+        constraints:
+          type: object
+          additionalProperties: true
+          example:
+            max_hours_per_employee: 40
+            min_coverage_ratio: 1.2
+
+    # Notification Models
+    NotificationBase:
+      type: object
+      required:
+        - notification_type
+        - title
+        - message
+      properties:
+        employee_id:
+          type: integer
+          nullable: true
+        notification_type:
+          $ref: '#/components/schemas/NotificationType'
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Schedule Updated"
+        message:
+          type: string
+          minLength: 1
+          example: "Your schedule for next week has been updated"
+        read:
+          type: boolean
+          default: false
+        priority:
+          $ref: '#/components/schemas/Priority'
+        metadata:
+          type: object
+          additionalProperties: true
+          nullable: true
+
+    NotificationCreate:
+      allOf:
+        - $ref: '#/components/schemas/NotificationBase'
+
+    NotificationUpdate:
+      type: object
+      properties:
+        read:
+          type: boolean
+        priority:
+          $ref: '#/components/schemas/Priority'
+        metadata:
+          type: object
+          additionalProperties: true
+
+    NotificationResponse:
+      allOf:
+        - $ref: '#/components/schemas/NotificationBase'
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            employee:
+              $ref: '#/components/schemas/EmployeeResponse'
+              nullable: true
+
+    # Analytics
+    AnalyticsOverview:
+      type: object
+      properties:
+        total_employees:
+          type: integer
+          example: 25
+        total_rules:
+          type: integer
+          example: 45
+        total_schedules:
+          type: integer
+          example: 120
+        avg_hours_per_week:
+          type: number
+          example: 35.5
+        labor_cost_trend:
+          type: string
+          example: "decreasing"
+        optimization_score:
+          type: integer
+          example: 85
+
+tags:
+  - name: Health
+    description: API health and status endpoints
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Employees
+    description: Employee management operations
+  - name: Rules
+    description: Scheduling rules and natural language parsing
+  - name: Schedules
+    description: Schedule management and operations
+  - name: AI Scheduling
+    description: AI-powered schedule generation and optimization
+  - name: Notifications
+    description: Notification management
+  - name: Analytics
+    description: Analytics and reporting endpoints

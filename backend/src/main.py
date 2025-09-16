@@ -18,16 +18,23 @@ from .schemas import (
 )
 from .services.crud import crud_employee, crud_rule, crud_schedule, crud_notification
 from .nlp.rule_parser import RuleParser
+from .api_docs import setup_docs
 import random
 import logging
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="AI Schedule Manager",
+    title="AI Schedule Manager API",
     description="Neural-powered scheduling for small businesses with complete CRUD operations",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
+
+# Setup enhanced API documentation
+setup_docs(app)
 
 app.add_middleware(
     CORSMiddleware,
