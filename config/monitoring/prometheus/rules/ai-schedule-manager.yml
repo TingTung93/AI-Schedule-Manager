@@ -1,0 +1,271 @@
+# Prometheus Alert Rules for AI Schedule Manager
+groups:
+  - name: ai-schedule-manager.rules
+    interval: 30s
+    rules:
+      # Service availability
+      - alert: ServiceDown
+        expr: up{job="ai-schedule-manager"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: ai-schedule-manager
+        annotations:
+          summary: "AI Schedule Manager service is down"
+          description: "The AI Schedule Manager service has been down for more than 1 minute."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/service-down"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(ai_schedule_manager_http_requests_total{status_code=~"5.."}[5m]) /
+            rate(ai_schedule_manager_http_requests_total[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: error
+          service: ai-schedule-manager
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} (above 5%) for more than 5 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/high-error-rate"
+
+      # Slow response time
+      - alert: SlowResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            rate(ai_schedule_manager_http_request_duration_seconds_bucket[5m])
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: ai-schedule-manager
+        annotations:
+          summary: "Slow response time detected"
+          description: "95th percentile response time is {{ $value }}s (above 2s) for more than 10 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/slow-response"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            process_resident_memory_bytes{job="ai-schedule-manager"} /
+            1024 / 1024 / 1024
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: ai-schedule-manager
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanize }}GB (above 2GB) for more than 10 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/memory-usage"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          rate(process_cpu_seconds_total{job="ai-schedule-manager"}[5m]) * 100 > 80
+        for: 15m
+        labels:
+          severity: warning
+          service: ai-schedule-manager
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }} (above 80%) for more than 15 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/cpu-usage"
+
+      # Database connection issues
+      - alert: DatabaseConnectionHigh
+        expr: ai_schedule_manager_db_connections_active > 50
+        for: 5m
+        labels:
+          severity: warning
+          service: ai-schedule-manager
+        annotations:
+          summary: "High database connection count"
+          description: "Database connections are {{ $value }} (above 50) for more than 5 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/database-connections"
+
+      # Database query performance
+      - alert: SlowDatabaseQueries
+        expr: |
+          histogram_quantile(0.95,
+            rate(ai_schedule_manager_db_query_duration_seconds_bucket[5m])
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          service: ai-schedule-manager
+        annotations:
+          summary: "Slow database queries"
+          description: "95th percentile database query time is {{ $value }}s (above 1s) for more than 10 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/slow-queries"
+
+      # Cache performance
+      - alert: LowCacheHitRate
+        expr: ai_schedule_manager_cache_hit_ratio < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          service: ai-schedule-manager
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (below 70%) for more than 10 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/cache-hit-rate"
+
+      # AI processing performance
+      - alert: SlowAIProcessing
+        expr: |
+          histogram_quantile(0.95,
+            rate(ai_schedule_manager_ai_processing_duration_seconds_bucket[5m])
+          ) > 10
+        for: 15m
+        labels:
+          severity: warning
+          service: ai-schedule-manager
+        annotations:
+          summary: "Slow AI processing"
+          description: "95th percentile AI processing time is {{ $value }}s (above 10s) for more than 15 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/ai-processing-time"
+
+      # AI service failures
+      - alert: AIServiceErrors
+        expr: |
+          rate(ai_schedule_manager_ai_requests_total{status="error"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: error
+          service: ai-schedule-manager
+        annotations:
+          summary: "AI service errors detected"
+          description: "AI service error rate is {{ $value }} errors/sec for more than 5 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/ai-service-errors"
+
+      # Schedule operation failures
+      - alert: ScheduleOperationFailures
+        expr: |
+          rate(ai_schedule_manager_schedule_operations_total{status="error"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: error
+          service: ai-schedule-manager
+        annotations:
+          summary: "Schedule operation failures"
+          description: "Schedule operation failure rate is {{ $value }} failures/sec for more than 5 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/schedule-failures"
+
+      # Task backlog buildup
+      - alert: HighTaskBacklog
+        expr: ai_schedule_manager_task_backlog > 1000
+        for: 30m
+        labels:
+          severity: warning
+          service: ai-schedule-manager
+        annotations:
+          summary: "High task backlog"
+          description: "Task backlog is {{ $value }} (above 1000) for more than 30 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/task-backlog"
+
+      # Security alerts
+      - alert: SecurityEvents
+        expr: |
+          rate(ai_schedule_manager_errors_total{error_type="security"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: ai-schedule-manager
+        annotations:
+          summary: "Security events detected"
+          description: "Security events detected at rate of {{ $value }} events/sec."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/security-events"
+
+  # System-level alerts
+  - name: system.rules
+    interval: 30s
+    rules:
+      # Host disk space
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/"} /
+            node_filesystem_size_bytes{mountpoint="/"}
+          ) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Disk space low"
+          description: "Disk space is {{ $value | humanizePercentage }} (below 10%) for more than 5 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/disk-space"
+
+      # Host memory usage
+      - alert: HostMemoryHigh
+        expr: |
+          (
+            1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+          ) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Host memory usage high"
+          description: "Host memory usage is {{ $value | humanizePercentage }} (above 90%) for more than 15 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/host-memory"
+
+      # Host CPU usage
+      - alert: HostCPUHigh
+        expr: |
+          (
+            100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          ) > 90
+        for: 15m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Host CPU usage high"
+          description: "Host CPU usage is {{ $value | humanizePercentage }} (above 90%) for more than 15 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/host-cpu"
+
+  # External dependencies
+  - name: dependencies.rules
+    interval: 60s
+    rules:
+      # Redis availability
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been down for more than 2 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/redis-down"
+
+      # PostgreSQL availability
+      - alert: PostgreSQLDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL has been down for more than 2 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/postgresql-down"
+
+      # External endpoint availability
+      - alert: ExternalEndpointDown
+        expr: probe_success{job="blackbox"} == 0
+        for: 5m
+        labels:
+          severity: error
+          service: external
+        annotations:
+          summary: "External endpoint {{ $labels.instance }} is down"
+          description: "External endpoint {{ $labels.instance }} has been down for more than 5 minutes."
+          runbook_url: "https://runbooks.ai-schedule-manager.com/external-endpoint-down"
