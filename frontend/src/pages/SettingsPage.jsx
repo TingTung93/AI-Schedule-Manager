@@ -1,38 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
-  Grid,
+  Paper,
   Switch,
   FormControlLabel,
-  TextField,
   Button,
   Divider,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Select,
-  MenuItem,
+  TextField,
   FormControl,
   InputLabel,
-  Chip,
-  Alert
+  Select,
+  MenuItem,
+  Grid,
+  Alert,
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import {
   Notifications,
-  Security,
   Palette,
-  Language,
-  Schedule,
+  Security,
+  Schedule as ScheduleIcon,
   Save
 } from '@mui/icons-material';
+import { settingsService } from '../services/api';
 
 const SettingsPage = () => {
+  const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState(null);
   const [settings, setSettings] = useState({
     notifications: {
       email: true,
@@ -57,208 +54,80 @@ const SettingsPage = () => {
     }
   });
 
-  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    loadSettings();
+  }, []);
 
-  const handleSettingChange = (category, setting, value) => {
+  const loadSettings = async () => {
+    try {
+      setLoading(true);
+      const response = await settingsService.getSettings();
+      setSettings(response.data);
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      setNotification({ type: 'error', message: 'Failed to load settings' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      await settingsService.updateSettings(settings);
+      setNotification({ type: 'success', message: 'Settings saved successfully!' });
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      setNotification({ type: 'error', message: 'Failed to save settings' });
+    }
+  };
+
+  const handleNotificationChange = (key) => (event) => {
     setSettings(prev => ({
       ...prev,
-      [category]: {
-        ...prev[category],
-        [setting]: value
+      notifications: {
+        ...prev.notifications,
+        [key]: event.target.checked
       }
     }));
   };
 
-  const handleSave = () => {
-    // Simulate saving settings
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleAppearanceChange = (key, value) => {
+    setSettings(prev => ({
+      ...prev,
+      appearance: {
+        ...prev.appearance,
+        [key]: value
+      }
+    }));
   };
 
-  const settingSections = [
-    {
-      title: 'Notifications',
-      icon: <Notifications />,
-      settings: [
-        {
-          key: 'email',
-          label: 'Email Notifications',
-          description: 'Receive notifications via email',
-          type: 'switch',
-          value: settings.notifications.email
-        },
-        {
-          key: 'push',
-          label: 'Push Notifications',
-          description: 'Receive browser push notifications',
-          type: 'switch',
-          value: settings.notifications.push
-        },
-        {
-          key: 'scheduleReminders',
-          label: 'Schedule Reminders',
-          description: 'Get reminders before shifts start',
-          type: 'switch',
-          value: settings.notifications.scheduleReminders
-        },
-        {
-          key: 'overtimeAlerts',
-          label: 'Overtime Alerts',
-          description: 'Alert when approaching overtime limits',
-          type: 'switch',
-          value: settings.notifications.overtimeAlerts
-        }
-      ]
-    },
-    {
-      title: 'Appearance',
-      icon: <Palette />,
-      settings: [
-        {
-          key: 'theme',
-          label: 'Theme',
-          description: 'Choose your preferred theme',
-          type: 'select',
-          value: settings.appearance.theme,
-          options: [
-            { value: 'light', label: 'Light' },
-            { value: 'dark', label: 'Dark' },
-            { value: 'auto', label: 'Auto' }
-          ]
-        },
-        {
-          key: 'language',
-          label: 'Language',
-          description: 'Select your preferred language',
-          type: 'select',
-          value: settings.appearance.language,
-          options: [
-            { value: 'en', label: 'English' },
-            { value: 'es', label: 'Spanish' },
-            { value: 'fr', label: 'French' }
-          ]
-        },
-        {
-          key: 'timezone',
-          label: 'Timezone',
-          description: 'Your local timezone',
-          type: 'select',
-          value: settings.appearance.timezone,
-          options: [
-            { value: 'America/New_York', label: 'Eastern Time' },
-            { value: 'America/Chicago', label: 'Central Time' },
-            { value: 'America/Denver', label: 'Mountain Time' },
-            { value: 'America/Los_Angeles', label: 'Pacific Time' }
-          ]
-        }
-      ]
-    },
-    {
-      title: 'Scheduling',
-      icon: <Schedule />,
-      settings: [
-        {
-          key: 'defaultShiftLength',
-          label: 'Default Shift Length (hours)',
-          description: 'Default duration for new shifts',
-          type: 'number',
-          value: settings.scheduling.defaultShiftLength
-        },
-        {
-          key: 'maxOvertimeHours',
-          label: 'Max Overtime Hours',
-          description: 'Maximum overtime hours per week',
-          type: 'number',
-          value: settings.scheduling.maxOvertimeHours
-        },
-        {
-          key: 'breakDuration',
-          label: 'Break Duration (minutes)',
-          description: 'Default break duration',
-          type: 'number',
-          value: settings.scheduling.breakDuration
-        },
-        {
-          key: 'autoApproveRequests',
-          label: 'Auto-approve Requests',
-          description: 'Automatically approve time-off requests',
-          type: 'switch',
-          value: settings.scheduling.autoApproveRequests
-        }
-      ]
-    },
-    {
-      title: 'Security',
-      icon: <Security />,
-      settings: [
-        {
-          key: 'twoFactorAuth',
-          label: 'Two-Factor Authentication',
-          description: 'Add an extra layer of security',
-          type: 'switch',
-          value: settings.security.twoFactorAuth
-        },
-        {
-          key: 'sessionTimeout',
-          label: 'Session Timeout (minutes)',
-          description: 'Automatically log out after inactivity',
-          type: 'number',
-          value: settings.security.sessionTimeout
-        }
-      ]
-    }
-  ];
-
-  const renderSetting = (section, setting) => {
-    const handleChange = (value) => {
-      handleSettingChange(section.title.toLowerCase(), setting.key, value);
-    };
-
-    switch (setting.type) {
-      case 'switch':
-        return (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={setting.value}
-                onChange={(e) => handleChange(e.target.checked)}
-              />
-            }
-            label=""
-          />
-        );
-
-      case 'select':
-        return (
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select
-              value={setting.value}
-              onChange={(e) => handleChange(e.target.value)}
-            >
-              {setting.options.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        );
-
-      case 'number':
-        return (
-          <TextField
-            type="number"
-            size="small"
-            value={setting.value}
-            onChange={(e) => handleChange(Number(e.target.value))}
-            sx={{ width: 100 }}
-          />
-        );
-
-      default:
-        return null;
-    }
+  const handleSchedulingChange = (key, value) => {
+    setSettings(prev => ({
+      ...prev,
+      scheduling: {
+        ...prev.scheduling,
+        [key]: value
+      }
+    }));
   };
+
+  const handleSecurityChange = (key, value) => {
+    setSettings(prev => ({
+      ...prev,
+      security: {
+        ...prev.security,
+        [key]: value
+      }
+    }));
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -287,113 +156,215 @@ const SettingsPage = () => {
         </Box>
       </motion.div>
 
-      {/* Success Alert */}
-      {saved && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-        >
-          <Alert severity="success" sx={{ mb: 3 }}>
-            Settings saved successfully!
-          </Alert>
-        </motion.div>
-      )}
-
-      {/* Settings Sections */}
       <Grid container spacing={3}>
-        {settingSections.map((section, sectionIndex) => (
-          <Grid item xs={12} key={section.title}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: sectionIndex * 0.1 }}
-            >
-              <Paper sx={{ overflow: 'hidden' }}>
-                <Box
-                  sx={{
-                    p: 3,
-                    background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-                    color: 'white'
-                  }}
-                >
-                  <Box display="flex" alignItems="center" gap={2}>
-                    {section.icon}
-                    <Typography variant="h6" fontWeight="bold">
-                      {section.title}
-                    </Typography>
-                  </Box>
-                </Box>
+        {/* Notifications */}
+        <Grid item xs={12}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Paper sx={{ p: 3 }}>
+              <Box display="flex" alignItems="center" mb={2}>
+                <Notifications sx={{ mr: 2, color: 'primary.main' }} />
+                <Typography variant="h6">Notifications</Typography>
+              </Box>
+              <Divider sx={{ mb: 2 }} />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.notifications.email}
+                    onChange={handleNotificationChange('email')}
+                  />
+                }
+                label="Email Notifications"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.notifications.push}
+                    onChange={handleNotificationChange('push')}
+                  />
+                }
+                label="Push Notifications"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.notifications.scheduleReminders}
+                    onChange={handleNotificationChange('scheduleReminders')}
+                  />
+                }
+                label="Schedule Reminders"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.notifications.overtimeAlerts}
+                    onChange={handleNotificationChange('overtimeAlerts')}
+                  />
+                }
+                label="Overtime Alerts"
+              />
+            </Paper>
+          </motion.div>
+        </Grid>
 
-                <List>
-                  {section.settings.map((setting, settingIndex) => (
-                    <Box key={setting.key}>
-                      <ListItem sx={{ py: 2 }}>
-                        <ListItemText
-                          primary={setting.label}
-                          secondary={setting.description}
-                          primaryTypographyProps={{ fontWeight: 500 }}
-                        />
-                        <ListItemSecondaryAction>
-                          {renderSetting(section, setting)}
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                      {settingIndex < section.settings.length - 1 && <Divider />}
-                    </Box>
-                  ))}
-                </List>
-              </Paper>
-            </motion.div>
-          </Grid>
-        ))}
+        {/* Appearance */}
+        <Grid item xs={12} md={6}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <Paper sx={{ p: 3 }}>
+              <Box display="flex" alignItems="center" mb={2}>
+                <Palette sx={{ mr: 2, color: 'primary.main' }} />
+                <Typography variant="h6">Appearance</Typography>
+              </Box>
+              <Divider sx={{ mb: 3 }} />
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Theme</InputLabel>
+                <Select
+                  value={settings.appearance.theme}
+                  label="Theme"
+                  onChange={(e) => handleAppearanceChange('theme', e.target.value)}
+                >
+                  <MenuItem value="light">Light</MenuItem>
+                  <MenuItem value="dark">Dark</MenuItem>
+                  <MenuItem value="auto">Auto</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Language</InputLabel>
+                <Select
+                  value={settings.appearance.language}
+                  label="Language"
+                  onChange={(e) => handleAppearanceChange('language', e.target.value)}
+                >
+                  <MenuItem value="en">English</MenuItem>
+                  <MenuItem value="es">Spanish</MenuItem>
+                  <MenuItem value="fr">French</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>Timezone</InputLabel>
+                <Select
+                  value={settings.appearance.timezone}
+                  label="Timezone"
+                  onChange={(e) => handleAppearanceChange('timezone', e.target.value)}
+                >
+                  <MenuItem value="America/New_York">Eastern Time</MenuItem>
+                  <MenuItem value="America/Chicago">Central Time</MenuItem>
+                  <MenuItem value="America/Denver">Mountain Time</MenuItem>
+                  <MenuItem value="America/Los_Angeles">Pacific Time</MenuItem>
+                </Select>
+              </FormControl>
+            </Paper>
+          </motion.div>
+        </Grid>
+
+        {/* Scheduling */}
+        <Grid item xs={12} md={6}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Paper sx={{ p: 3 }}>
+              <Box display="flex" alignItems="center" mb={2}>
+                <ScheduleIcon sx={{ mr: 2, color: 'primary.main' }} />
+                <Typography variant="h6">Scheduling</Typography>
+              </Box>
+              <Divider sx={{ mb: 3 }} />
+              <TextField
+                fullWidth
+                type="number"
+                label="Default Shift Length (hours)"
+                value={settings.scheduling.defaultShiftLength}
+                onChange={(e) => handleSchedulingChange('defaultShiftLength', parseInt(e.target.value))}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Max Overtime Hours"
+                value={settings.scheduling.maxOvertimeHours}
+                onChange={(e) => handleSchedulingChange('maxOvertimeHours', parseInt(e.target.value))}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Break Duration (minutes)"
+                value={settings.scheduling.breakDuration}
+                onChange={(e) => handleSchedulingChange('breakDuration', parseInt(e.target.value))}
+                sx={{ mb: 2 }}
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.scheduling.autoApproveRequests}
+                    onChange={(e) => handleSchedulingChange('autoApproveRequests', e.target.checked)}
+                  />
+                }
+                label="Auto-approve Time-off Requests"
+              />
+            </Paper>
+          </motion.div>
+        </Grid>
+
+        {/* Security */}
+        <Grid item xs={12}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Paper sx={{ p: 3 }}>
+              <Box display="flex" alignItems="center" mb={2}>
+                <Security sx={{ mr: 2, color: 'primary.main' }} />
+                <Typography variant="h6">Security</Typography>
+              </Box>
+              <Divider sx={{ mb: 2 }} />
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={settings.security.twoFactorAuth}
+                        onChange={(e) => handleSecurityChange('twoFactorAuth', e.target.checked)}
+                      />
+                    }
+                    label="Two-Factor Authentication"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Session Timeout (minutes)"
+                    value={settings.security.sessionTimeout}
+                    onChange={(e) => handleSecurityChange('sessionTimeout', parseInt(e.target.value))}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          </motion.div>
+        </Grid>
       </Grid>
 
-      {/* Additional Settings */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
+      <Snackbar
+        open={!!notification}
+        autoHideDuration={4000}
+        onClose={() => setNotification(null)}
       >
-        <Paper sx={{ p: 3, mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Advanced Settings
-          </Typography>
-          <Typography variant="body2" color="textSecondary" paragraph>
-            These settings are for advanced users only. Changing these may affect application performance.
-          </Typography>
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="API Endpoint"
-                defaultValue="https://api.scheduleai.com"
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Cache Duration (minutes)"
-                type="number"
-                defaultValue="30"
-                size="small"
-              />
-            </Grid>
-          </Grid>
-
-          <Box mt={3}>
-            <Typography variant="subtitle2" gutterBottom>
-              Data & Privacy
-            </Typography>
-            <Box display="flex" gap={1} flexWrap="wrap">
-              <Chip label="GDPR Compliant" color="success" size="small" />
-              <Chip label="Data Encrypted" color="primary" size="small" />
-              <Chip label="Regular Backups" color="info" size="small" />
-            </Box>
-          </Box>
-        </Paper>
-      </motion.div>
+        {notification && (
+          <Alert onClose={() => setNotification(null)} severity={notification.type}>
+            {notification.message}
+          </Alert>
+        )}
+      </Snackbar>
     </Box>
   );
 };

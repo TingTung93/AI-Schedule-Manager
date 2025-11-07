@@ -78,7 +78,7 @@ const Navigation = ({ children, onThemeToggle, darkMode = false }) => {
     {
       text: 'Schedules',
       icon: <ScheduleIcon />,
-      path: '/schedules',
+      path: '/schedule',
       description: 'View and edit schedules',
     },
     {
