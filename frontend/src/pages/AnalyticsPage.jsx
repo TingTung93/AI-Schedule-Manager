@@ -34,7 +34,7 @@ import {
   People,
   AccessTime
 } from '@mui/icons-material';
-import { analyticsService } from '../services/api';
+import api, { getErrorMessage } from '../services/api';
 
 // Register Chart.js components
 ChartJS.register(
@@ -69,16 +69,15 @@ const AnalyticsPage = () => {
     try {
       setLoading(true);
       const [overviewRes, costsRes] = await Promise.all([
-        analyticsService.getOverview(),
-        analyticsService.getLaborCosts(timeRange)
+        api.get('/api/analytics/overview'),
+        api.get('/api/analytics/labor-costs', { params: { timeRange } })
       ]);
-      
+
       setOverview(overviewRes.data);
       setLaborCosts(costsRes.data.data || []);
       setError(null);
     } catch (err) {
-      console.error('Failed to load analytics:', err);
-      setError('Failed to load analytics data');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

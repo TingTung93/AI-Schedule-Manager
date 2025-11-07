@@ -29,7 +29,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { scheduleService, employeeService } from '../services/api';
+import api, { getErrorMessage, scheduleService } from '../services/api';
 
 const SchedulePage = () => {
   const [schedules, setSchedules] = useState([]);
@@ -58,7 +58,7 @@ const SchedulePage = () => {
       setLoading(true);
       const [schedulesRes, employeesRes] = await Promise.all([
         scheduleService.getSchedules(),
-        employeeService.getEmployees()
+        api.get('/api/employees')
       ]);
       
       const schedulesData = schedulesRes.data.items || schedulesRes.data.schedules || [];

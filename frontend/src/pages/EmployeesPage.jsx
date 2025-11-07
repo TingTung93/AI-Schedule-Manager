@@ -38,7 +38,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/routeConfig';
-import { employeeService } from '../services/api';
+import api, { getErrorMessage } from '../services/api';
 
 const EmployeesPage = () => {
   const { user } = useAuth();
@@ -67,11 +67,10 @@ const EmployeesPage = () => {
   const loadEmployees = async () => {
     try {
       setLoading(true);
-      const response = await employeeService.getEmployees();
+      const response = await api.get('/api/employees');
       setEmployees(response.data.items || response.data.employees || []);
     } catch (error) {
-      console.error('Failed to load employees:', error);
-      setNotification({ type: 'error', message: 'Failed to load employees' });
+      setNotification({ type: 'error', message: getErrorMessage(error) });
     } finally {
       setLoading(false);
     }
@@ -117,12 +116,11 @@ const EmployeesPage = () => {
 
   const handleDeleteEmployee = async (employeeId) => {
     try {
-      await employeeService.deleteEmployee(employeeId);
+      await api.delete(`/api/employees/${employeeId}`);
       setNotification({ type: 'success', message: 'Employee deleted successfully' });
       loadEmployees();
     } catch (error) {
-      console.error('Failed to delete employee:', error);
-      setNotification({ type: 'error', message: 'Failed to delete employee' });
+      setNotification({ type: 'error', message: getErrorMessage(error) });
     }
     handleMenuClose();
   };
@@ -131,18 +129,17 @@ const EmployeesPage = () => {
     try {
       if (employeeForm.id) {
         // Update existing employee
-        await employeeService.updateEmployee(employeeForm.id, employeeForm);
+        await api.patch(`/api/employees/${employeeForm.id}`, employeeForm);
         setNotification({ type: 'success', message: 'Employee updated successfully' });
       } else {
         // Add new employee
-        await employeeService.createEmployee(employeeForm);
+        await api.post('/api/employees', employeeForm);
         setNotification({ type: 'success', message: 'Employee created successfully' });
       }
       setDialogOpen(false);
       loadEmployees();
     } catch (error) {
-      console.error('Failed to save employee:', error);
-      setNotification({ type: 'error', message: error.response?.data?.message || 'Failed to save employee' });
+      setNotification({ type: 'error', message: getErrorMessage(error) });
     }
   };
 

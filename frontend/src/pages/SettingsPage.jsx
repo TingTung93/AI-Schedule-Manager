@@ -25,7 +25,7 @@ import {
   Schedule as ScheduleIcon,
   Save
 } from '@mui/icons-material';
-import { settingsService } from '../services/api';
+import api, { getErrorMessage } from '../services/api';
 
 const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
@@ -61,11 +61,10 @@ const SettingsPage = () => {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const response = await settingsService.getSettings();
+      const response = await api.get('/api/settings');
       setSettings(response.data);
     } catch (error) {
-      console.error('Failed to load settings:', error);
-      setNotification({ type: 'error', message: 'Failed to load settings' });
+      setNotification({ type: 'error', message: getErrorMessage(error) });
     } finally {
       setLoading(false);
     }
@@ -73,11 +72,10 @@ const SettingsPage = () => {
 
   const handleSave = async () => {
     try {
-      await settingsService.updateSettings(settings);
+      await api.put('/api/settings', settings);
       setNotification({ type: 'success', message: 'Settings saved successfully!' });
     } catch (error) {
-      console.error('Failed to save settings:', error);
-      setNotification({ type: 'error', message: 'Failed to save settings' });
+      setNotification({ type: 'error', message: getErrorMessage(error) });
     }
   };
 
