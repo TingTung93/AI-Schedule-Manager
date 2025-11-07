@@ -8,6 +8,7 @@ from .schedule import Schedule
 from .schedule_assignment import ScheduleAssignment
 from .rule import Rule
 from .notification import Notification
+from .user_settings import UserSettings
 
 __all__ = [
     "Base",
@@ -16,5 +17,6 @@ __all__ = [
     "Schedule",
     "ScheduleAssignment",
     "Rule",
-    "Notification"
+    "Notification",
+    "UserSettings"
 ]

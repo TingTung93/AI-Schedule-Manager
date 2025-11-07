@@ -77,6 +77,13 @@ class Employee(Base):
         cascade="all, delete-orphan"
     )
 
+    settings: Mapped[Optional["UserSettings"]] = relationship(
+        "UserSettings",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
     # Constraints
     __table_args__ = (
         CheckConstraint(
