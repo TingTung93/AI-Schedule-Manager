@@ -538,6 +538,379 @@ export const userService = {
   }
 };
 
+// Employee management API calls
+export const employeeService = {
+  /**
+   * Get all employees with optional filtering
+   */
+  async getEmployees(params = {}) {
+    try {
+      const response = await api.get('/api/employees', { params });
+      return response;
+    } catch (error) {
+      console.error('Get employees failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get specific employee by ID
+   */
+  async getEmployee(employeeId) {
+    try {
+      const response = await api.get(`/api/employees/${employeeId}`);
+      return response;
+    } catch (error) {
+      console.error('Get employee failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create new employee
+   */
+  async createEmployee(employeeData) {
+    try {
+      const response = await api.post('/api/employees', employeeData);
+      return response;
+    } catch (error) {
+      console.error('Create employee failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update existing employee
+   */
+  async updateEmployee(employeeId, employeeData) {
+    try {
+      const response = await api.patch(`/api/employees/${employeeId}`, employeeData);
+      return response;
+    } catch (error) {
+      console.error('Update employee failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete employee
+   */
+  async deleteEmployee(employeeId) {
+    try {
+      const response = await api.delete(`/api/employees/${employeeId}`);
+      return response;
+    } catch (error) {
+      console.error('Delete employee failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get employee by email
+   */
+  async getByEmail(email) {
+    try {
+      const response = await api.get(`/api/employees/email/${email}`);
+      return response;
+    } catch (error) {
+      console.error('Get employee by email failed:', error);
+      throw error;
+    }
+  }
+};
+
+// Rule management API calls
+export const ruleService = {
+  /**
+   * Get all rules with optional filtering
+   */
+  async getRules(params = {}) {
+    try {
+      const response = await api.get('/api/rules', { params });
+      return response;
+    } catch (error) {
+      console.error('Get rules failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get specific rule by ID
+   */
+  async getRule(ruleId) {
+    try {
+      const response = await api.get(`/api/rules/${ruleId}`);
+      return response;
+    } catch (error) {
+      console.error('Get rule failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Parse natural language rule
+   */
+  async parseRule(ruleText) {
+    try {
+      const response = await api.post('/api/rules/parse', {
+        rule_text: ruleText
+      });
+      return response;
+    } catch (error) {
+      console.error('Parse rule failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update existing rule
+   */
+  async updateRule(ruleId, ruleData) {
+    try {
+      const response = await api.patch(`/api/rules/${ruleId}`, ruleData);
+      return response;
+    } catch (error) {
+      console.error('Update rule failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete rule
+   */
+  async deleteRule(ruleId) {
+    try {
+      const response = await api.delete(`/api/rules/${ruleId}`);
+      return response;
+    } catch (error) {
+      console.error('Delete rule failed:', error);
+      throw error;
+    }
+  }
+};
+
+// Analytics API calls
+export const analyticsService = {
+  /**
+   * Get analytics overview
+   */
+  async getOverview(params = {}) {
+    try {
+      const response = await api.get('/api/analytics/overview', { params });
+      return response;
+    } catch (error) {
+      console.error('Get analytics overview failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get labor costs for a time range
+   */
+  async getLaborCosts(timeRange = '7d') {
+    try {
+      const response = await api.get('/api/analytics/labor-costs', {
+        params: { timeRange }
+      });
+      return response;
+    } catch (error) {
+      console.error('Get labor costs failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get employee performance metrics
+   */
+  async getPerformanceMetrics(params = {}) {
+    try {
+      const response = await api.get('/api/analytics/performance', { params });
+      return response;
+    } catch (error) {
+      console.error('Get performance metrics failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get schedule efficiency metrics
+   */
+  async getEfficiencyMetrics(params = {}) {
+    try {
+      const response = await api.get('/api/analytics/efficiency', { params });
+      return response;
+    } catch (error) {
+      console.error('Get efficiency metrics failed:', error);
+      throw error;
+    }
+  }
+};
+
+// Notification API calls
+export const notificationService = {
+  /**
+   * Get all notifications for current user
+   */
+  async getNotifications(params = {}) {
+    try {
+      const response = await api.get('/api/notifications', { params });
+      return response;
+    } catch (error) {
+      console.error('Get notifications failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get specific notification by ID
+   */
+  async getNotification(notificationId) {
+    try {
+      const response = await api.get(`/api/notifications/${notificationId}`);
+      return response;
+    } catch (error) {
+      console.error('Get notification failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark notification as read
+   */
+  async markAsRead(notificationId) {
+    try {
+      const response = await api.patch(`/api/notifications/${notificationId}/read`);
+      return response;
+    } catch (error) {
+      console.error('Mark notification as read failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark all notifications as read
+   */
+  async markAllAsRead() {
+    try {
+      const response = await api.post('/api/notifications/mark-all-read');
+      return response;
+    } catch (error) {
+      console.error('Mark all as read failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete notification
+   */
+  async deleteNotification(notificationId) {
+    try {
+      const response = await api.delete(`/api/notifications/${notificationId}`);
+      return response;
+    } catch (error) {
+      console.error('Delete notification failed:', error);
+      throw error;
+    }
+  }
+};
+
+// Shift management API calls
+export const shiftService = {
+  /**
+   * Get all shifts with optional filtering
+   */
+  async getShifts(params = {}) {
+    try {
+      const response = await api.get('/api/shifts', { params });
+      return response;
+    } catch (error) {
+      console.error('Get shifts failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get specific shift by ID
+   */
+  async getShift(shiftId) {
+    try {
+      const response = await api.get(`/api/shifts/${shiftId}`);
+      return response;
+    } catch (error) {
+      console.error('Get shift failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create new shift
+   */
+  async createShift(shiftData) {
+    try {
+      const response = await api.post('/api/shifts', shiftData);
+      return response;
+    } catch (error) {
+      console.error('Create shift failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update existing shift
+   */
+  async updateShift(shiftId, shiftData) {
+    try {
+      const response = await api.put(`/api/shifts/${shiftId}`, shiftData);
+      return response;
+    } catch (error) {
+      console.error('Update shift failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete shift
+   */
+  async deleteShift(shiftId) {
+    try {
+      const response = await api.delete(`/api/shifts/${shiftId}`);
+      return response;
+    } catch (error) {
+      console.error('Delete shift failed:', error);
+      throw error;
+    }
+  }
+};
+
+// Settings API calls
+export const settingsService = {
+  /**
+   * Get user settings
+   */
+  async getSettings() {
+    try {
+      const response = await api.get('/api/settings');
+      return response;
+    } catch (error) {
+      console.error('Get settings failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update user settings
+   */
+  async updateSettings(settingsData) {
+    try {
+      const response = await api.put('/api/settings', settingsData);
+      return response;
+    } catch (error) {
+      console.error('Update settings failed:', error);
+      throw error;
+    }
+  }
+};
+
 // Error handling utilities
 export const errorHandler = {
   /**
