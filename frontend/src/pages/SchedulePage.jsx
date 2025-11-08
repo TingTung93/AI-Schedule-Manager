@@ -61,8 +61,8 @@ const SchedulePage = () => {
         api.get('/api/employees')
       ]);
       
-      const schedulesData = schedulesRes.data.items || schedulesRes.data.schedules || [];
-      const employeesData = employeesRes.data.items || employeesRes.data.employees || [];
+      const schedulesData = schedulesRes.data.schedules || [];
+      const employeesData = employeesRes.data.employees || [];
       
       // Transform schedules to FullCalendar events
       const events = schedulesData.map(schedule => ({

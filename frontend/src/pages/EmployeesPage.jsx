@@ -68,7 +68,7 @@ const EmployeesPage = () => {
     try {
       setLoading(true);
       const response = await api.get('/api/employees');
-      setEmployees(response.data.items || response.data.employees || []);
+      setEmployees(response.data.employees || []);
     } catch (error) {
       setNotification({ type: 'error', message: getErrorMessage(error) });
     } finally {
