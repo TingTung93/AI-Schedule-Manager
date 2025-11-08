@@ -29,7 +29,7 @@ import {
   FormErrorSummary
 } from './index';
 import { checkShiftConflicts, validateEmployeeQualifications } from '../../utils/validation';
-import { employeeService, scheduleService, shiftService } from '../../services/api';
+import api, { scheduleService } from '../../services/api';
 import { useApi } from '../../hooks/useApi';
 
 const ScheduleForm = ({
@@ -78,13 +78,13 @@ const ScheduleForm = ({
 
   // Fetch employees
   const { data: employeesData, loading: loadingEmployees } = useApi(
-    () => employeeService.getEmployees(),
+    () => api.get('/api/employees'),
     []
   );
 
   // Fetch shifts
   const { data: shiftsData, loading: loadingShifts } = useApi(
-    () => shiftService.getShifts(),
+    () => api.get('/api/shifts'),
     []
   );
 

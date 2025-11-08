@@ -49,7 +49,7 @@ import {
   Star as StarIcon,
   Work as WorkIcon,
 } from '@mui/icons-material';
-import { employeeService } from '../services/api';
+import api, { getErrorMessage } from '../services/api';
 import { useApi, useApiMutation } from '../hooks/useApi';
 
 const EmployeeManagement = () => {
@@ -90,20 +90,20 @@ const EmployeeManagement = () => {
 
   // API hooks
   const { data: employeesData, loading: loadingEmployees, refetch: refetchEmployees } = useApi(
-    () => employeeService.getEmployees(),
+    () => api.get('/api/employees'),
     [],
     {
       onSuccess: (data) => {
-        console.log('Employees loaded:', data);
+        // Employees loaded successfully
       },
       onError: (error) => {
-        setNotification({ type: 'error', message: 'Failed to load employees' });
+        setNotification({ type: 'error', message: getErrorMessage(error) });
       }
     }
   );
 
   const { mutate: createEmployee, loading: creating } = useApiMutation(
-    employeeService.createEmployee,
+    (data) => api.post('/api/employees', data),
     {
       onSuccess: () => {
         refetchEmployees();
@@ -112,13 +112,13 @@ const EmployeeManagement = () => {
         setNotification({ type: 'success', message: 'Employee added successfully' });
       },
       onError: (error) => {
-        setNotification({ type: 'error', message: error.message || 'Failed to create employee' });
+        setNotification({ type: 'error', message: getErrorMessage(error) });
       }
     }
   );
 
   const { mutate: updateEmployee, loading: updating } = useApiMutation(
-    employeeService.updateEmployee,
+    ({ id, data }) => api.patch(`/api/employees/${id}`, data),
     {
       onSuccess: () => {
         refetchEmployees();
@@ -127,13 +127,13 @@ const EmployeeManagement = () => {
         setNotification({ type: 'success', message: 'Employee updated successfully' });
       },
       onError: (error) => {
-        setNotification({ type: 'error', message: error.message || 'Failed to update employee' });
+        setNotification({ type: 'error', message: getErrorMessage(error) });
       }
     }
   );
 
   const { mutate: deleteEmployee, loading: deleting } = useApiMutation(
-    employeeService.deleteEmployee,
+    (id) => api.delete(`/api/employees/${id}`),
     {
       onSuccess: () => {
         refetchEmployees();
@@ -142,7 +142,7 @@ const EmployeeManagement = () => {
         setNotification({ type: 'success', message: 'Employee deleted successfully' });
       },
       onError: (error) => {
-        setNotification({ type: 'error', message: error.message || 'Failed to delete employee' });
+        setNotification({ type: 'error', message: getErrorMessage(error) });
       }
     }
   );

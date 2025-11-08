@@ -46,7 +46,7 @@ import {
   Email as EmailIcon,
 } from '@mui/icons-material';
 
-import { employeeService } from '../services/api';
+import api, { getErrorMessage } from '../services/api';
 import { useApi, useApiMutation } from '../hooks/useApi';
 import { employeeSchema } from '../schemas/validationSchemas';
 import {
@@ -114,20 +114,20 @@ const EmployeeManagementValidated = () => {
 
   // API hooks
   const { data: employeesData, loading: loadingEmployees, refetch: refetchEmployees } = useApi(
-    () => employeeService.getEmployees(),
+    () => api.get('/api/employees'),
     [],
     {
       onSuccess: (data) => {
-        console.log('Employees loaded:', data);
+        // Employees loaded successfully
       },
       onError: (error) => {
-        setNotification({ type: 'error', message: 'Failed to load employees' });
+        setNotification({ type: 'error', message: getErrorMessage(error) });
       }
     }
   );
 
   const { mutate: createEmployee, loading: creating } = useApiMutation(
-    employeeService.createEmployee,
+    (data) => api.post('/api/employees', data),
     {
       onSuccess: () => {
         refetchEmployees();
@@ -145,14 +145,14 @@ const EmployeeManagementValidated = () => {
             setNotification({ type: 'error', message: detail });
           }
         } else {
-          setNotification({ type: 'error', message: error.message || 'Failed to create employee' });
+          setNotification({ type: 'error', message: getErrorMessage(error) });
         }
       }
     }
   );
 
   const { mutate: updateEmployee, loading: updating } = useApiMutation(
-    employeeService.updateEmployee,
+    ({ id, data }) => api.patch(`/api/employees/${id}`, data),
     {
       onSuccess: () => {
         refetchEmployees();
@@ -169,14 +169,14 @@ const EmployeeManagementValidated = () => {
             setNotification({ type: 'error', message: detail });
           }
         } else {
-          setNotification({ type: 'error', message: error.message || 'Failed to update employee' });
+          setNotification({ type: 'error', message: getErrorMessage(error) });
         }
       }
     }
   );
 
   const { mutate: deleteEmployee, loading: deleting } = useApiMutation(
-    employeeService.deleteEmployee,
+    (id) => api.delete(`/api/employees/${id}`),
     {
       onSuccess: () => {
         refetchEmployees();
@@ -185,7 +185,7 @@ const EmployeeManagementValidated = () => {
         setNotification({ type: 'success', message: 'Employee deleted successfully' });
       },
       onError: (error) => {
-        setNotification({ type: 'error', message: error.message || 'Failed to delete employee' });
+        setNotification({ type: 'error', message: getErrorMessage(error) });
       }
     }
   );
@@ -218,11 +218,11 @@ const EmployeeManagementValidated = () => {
         return true;
       }
 
-      const response = await employeeService.checkEmailAvailability(email);
-      return response.available;
+      const response = await api.get(`/api/employees/check-email?email=${encodeURIComponent(email)}`);
+      return response.data.available;
     } catch (error) {
-      console.warn('Email validation error:', error);
-      return true; // Allow form submission, backend will handle
+      // Allow form submission, backend will handle validation
+      return true;
     }
   }, [dialogMode, selectedEmployee]);
 
