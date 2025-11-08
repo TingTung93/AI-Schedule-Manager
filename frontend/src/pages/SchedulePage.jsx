@@ -81,8 +81,7 @@ const SchedulePage = () => {
       setSchedules(events);
       setEmployees(employeesData);
     } catch (error) {
-      console.error('Failed to load data:', error);
-      setNotification({ type: 'error', message: 'Failed to load schedules' });
+      setNotification({ type: 'error', message: getErrorMessage(error) });
     } finally {
       setLoading(false);
     }
@@ -110,7 +109,7 @@ const SchedulePage = () => {
 
   const handleEventClick = (info) => {
     // Handle event click - could open edit dialog
-    console.log('Event clicked:', info.event);
+    // Event info available in info.event
   };
 
   const handleFormSubmit = async () => {
@@ -130,8 +129,7 @@ const SchedulePage = () => {
       setDialogOpen(false);
       loadData();
     } catch (error) {
-      console.error('Failed to create schedule:', error);
-      setNotification({ type: 'error', message: 'Failed to create schedule' });
+      setNotification({ type: 'error', message: getErrorMessage(error) });
     }
   };
 

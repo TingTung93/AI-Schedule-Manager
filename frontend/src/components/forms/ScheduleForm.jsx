@@ -152,7 +152,7 @@ const ScheduleForm = ({
           );
           setEmployeeShifts(response.schedules || []);
         } catch (error) {
-          console.warn('Failed to fetch employee shifts:', error);
+          // Silently handle - not critical if employee shifts can't be loaded
           setEmployeeShifts([]);
         }
       };
@@ -287,7 +287,7 @@ const ScheduleForm = ({
     try {
       await onSubmit(data);
     } catch (error) {
-      console.error('Schedule form submission error:', error);
+      // Error already handled by onSubmit callback
     }
   }, [businessValidation, onSubmit]);
 
