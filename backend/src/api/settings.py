@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from ..dependencies import get_database_session, get_current_user
 from ..models import UserSettings
-from ..schemas import UserSettingsResponse, MessageResponse
+from ..schemas import UserSettingsResponse, MessageResponse, SettingsUpdateResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
@@ -74,7 +74,7 @@ async def get_settings(
         "security": settings.security or DEFAULT_SETTINGS["security"]
     }
 
-@router.put("")
+@router.put("", response_model=SettingsUpdateResponse)
 async def update_settings(
     settings_update: SettingsUpdate,
     db: AsyncSession = Depends(get_database_session),

@@ -15,7 +15,7 @@ from ..services.export_service import ExportService
 from ..services.import_service import ImportService
 from ..services.file_handler import file_handler
 from ..services.backup_service import BackupService
-from ..schemas import PaginatedResponse
+from ..schemas import PaginatedResponse, MessageResponse
 from ..exceptions.import_exceptions import ImportValidationError, FileProcessingError
 
 router = APIRouter(prefix="/api/data", tags=["Data Import/Export"])
@@ -483,7 +483,7 @@ async def restore_backup(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.delete("/backup/{backup_id}")
+@router.delete("/backup/{backup_id}", response_model=MessageResponse)
 async def delete_backup(
     backup_id: str,
     current_user: dict = Depends(get_current_manager)
@@ -495,7 +495,7 @@ async def delete_backup(
         if not success:
             raise HTTPException(status_code=404, detail="Backup not found")
 
-        return {"message": "Backup deleted successfully"}
+        return MessageResponse(message="Backup deleted successfully")
 
     except Exception as e:
         logger.error(f"Backup deletion error: {e}")
@@ -522,7 +522,7 @@ async def get_file_info(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/files/{file_id}")
+@router.delete("/files/{file_id}", response_model=MessageResponse)
 async def delete_file(
     file_id: str,
     current_user: dict = Depends(get_current_user)
@@ -530,14 +530,14 @@ async def delete_file(
     """Delete uploaded file."""
     try:
         await file_handler.cleanup_file(file_id)
-        return {"message": "File deleted successfully"}
+        return MessageResponse(message="File deleted successfully")
 
     except Exception as e:
         logger.error(f"File deletion error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/files/cleanup")
+@router.post("/files/cleanup", response_model=MessageResponse)
 async def cleanup_expired_files(
     background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_manager)
@@ -545,7 +545,7 @@ async def cleanup_expired_files(
     """Clean up expired temporary files."""
     try:
         background_tasks.add_task(file_handler.cleanup_expired_files)
-        return {"message": "File cleanup initiated"}
+        return MessageResponse(message="File cleanup initiated")
 
     except Exception as e:
         logger.error(f"File cleanup error: {e}")

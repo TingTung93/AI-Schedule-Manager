@@ -456,3 +456,11 @@ class MessageResponse(BaseModel):
     success: bool = Field(True, description="Whether the operation was successful")
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SettingsUpdateResponse(BaseModel):
+    """Response for settings update operation."""
+    message: str = Field(..., description="Success message")
+    settings: UserSettingsResponse = Field(..., description="Updated settings")
+
+    model_config = ConfigDict(from_attributes=True)
