@@ -7,11 +7,18 @@ from sqlalchemy import select, func, and_, case
 from typing import Optional
 from ..dependencies import get_database_session, get_current_user
 from ..models import Employee, Schedule, Shift, ScheduleAssignment
+from ..schemas import (
+    AnalyticsOverviewResponse,
+    LaborCostsResponse,
+    LaborCostData,
+    PerformanceMetricsResponse,
+    EfficiencyMetricsResponse
+)
 from datetime import datetime, timedelta, date
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
-@router.get("/overview")
+@router.get("/overview", response_model=AnalyticsOverviewResponse)
 async def get_analytics_overview(
     db: AsyncSession = Depends(get_database_session),
     current_user: dict = Depends(get_current_user)
@@ -81,7 +88,7 @@ async def get_analytics_overview(
         "overtimeHours": round(overtime_hours, 2)
     }
 
-@router.get("/labor-costs")
+@router.get("/labor-costs", response_model=LaborCostsResponse)
 async def get_labor_costs(
     timeRange: str = Query("7d"),
     db: AsyncSession = Depends(get_database_session),
@@ -145,7 +152,7 @@ async def get_labor_costs(
         "average": round(average_cost, 2)
     }
 
-@router.get("/performance")
+@router.get("/performance", response_model=PerformanceMetricsResponse)
 async def get_performance_metrics(
     db: AsyncSession = Depends(get_database_session),
     current_user: dict = Depends(get_current_user)
@@ -189,7 +196,7 @@ async def get_performance_metrics(
         "punctuality": round(punctuality, 2)
     }
 
-@router.get("/efficiency")
+@router.get("/efficiency", response_model=EfficiencyMetricsResponse)
 async def get_efficiency_metrics(
     db: AsyncSession = Depends(get_database_session),
     current_user: dict = Depends(get_current_user)

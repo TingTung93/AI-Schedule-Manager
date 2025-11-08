@@ -3,16 +3,17 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import RuleInput from '../RuleInput';
-import { ruleService } from '../../services/api';
+import api from '../../services/api';
 
-// Mock the API service
+// Mock the API module
 jest.mock('../../services/api', () => ({
-  ruleService: {
-    parseRule: jest.fn(),
-    getRules: jest.fn(),
-    deleteRule: jest.fn(),
-    updateRule: jest.fn(),
-  }
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+  getErrorMessage: jest.fn((error) => error.message || 'An error occurred'),
 }));
 
 describe('RuleInput Component', () => {
@@ -59,32 +60,32 @@ describe('RuleInput Component', () => {
         original_text: "Sarah can't work past 5pm",
       };
 
-      ruleService.parseRule.mockResolvedValue(mockParsedRule);
-      
+      api.post.mockResolvedValue({ data: mockParsedRule });
+
       render(<RuleInput />);
-      
+
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
-      
+
       await userEvent.type(input, "Sarah can't work past 5pm");
       await userEvent.click(parseButton);
-      
+
       await waitFor(() => {
-        expect(ruleService.parseRule).toHaveBeenCalledWith("Sarah can't work past 5pm");
+        expect(api.post).toHaveBeenCalledWith('/api/rules/parse', { rule_text: "Sarah can't work past 5pm" });
       });
     });
 
     test('handles parsing errors gracefully', async () => {
-      ruleService.parseRule.mockRejectedValue(new Error('Failed to parse rule'));
-      
+      api.post.mockRejectedValue(new Error('Failed to parse rule'));
+
       render(<RuleInput />);
-      
+
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
-      
+
       await userEvent.type(input, 'Invalid rule text');
       await userEvent.click(parseButton);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Failed to parse rule')).toBeInTheDocument();
       });
@@ -98,18 +99,18 @@ describe('RuleInput Component', () => {
     });
 
     test('shows loading state during parsing', async () => {
-      ruleService.parseRule.mockImplementation(() => 
+      api.post.mockImplementation(() =>
         new Promise(resolve => setTimeout(resolve, 100))
       );
-      
+
       render(<RuleInput />);
-      
+
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
-      
+
       await userEvent.type(input, 'Test rule');
       await userEvent.click(parseButton);
-      
+
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
     });
   });
@@ -122,24 +123,24 @@ describe('RuleInput Component', () => {
         constraints: [],
       };
 
-      ruleService.parseRule.mockResolvedValue(mockParsedRule);
-      
+      api.post.mockResolvedValue({ data: mockParsedRule });
+
       render(<RuleInput />);
-      
+
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       await userEvent.type(input, "Sarah can't work past 5pm");
-      
+
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
       await userEvent.click(parseButton);
-      
+
       await waitFor(() => {
         const confirmButton = screen.getByRole('button', { name: /Confirm & Add/i });
         expect(confirmButton).toBeInTheDocument();
       });
-      
+
       const confirmButton = screen.getByRole('button', { name: /Confirm & Add/i });
       await userEvent.click(confirmButton);
-      
+
       await waitFor(() => {
         expect(screen.getByText("Sarah can't work past 5pm")).toBeInTheDocument();
       });
@@ -152,14 +153,14 @@ describe('RuleInput Component', () => {
         constraints: [],
       };
 
-      ruleService.parseRule.mockResolvedValue(mockParsedRule);
-      
+      api.post.mockResolvedValue({ data: mockParsedRule });
+
       render(<RuleInput />);
-      
+
       // Add a rule first
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       await userEvent.type(input, 'John needs mornings off');
-      
+
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
       await userEvent.click(parseButton);
       
@@ -192,14 +193,14 @@ describe('RuleInput Component', () => {
         constraints: [],
       };
 
-      ruleService.parseRule.mockResolvedValue(mockParsedRule);
-      
+      api.post.mockResolvedValue({ data: mockParsedRule });
+
       render(<RuleInput />);
-      
+
       // Add a rule
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       await userEvent.type(input, 'Mike prefers evenings');
-      
+
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
       await userEvent.click(parseButton);
       
@@ -246,13 +247,13 @@ describe('RuleInput Component', () => {
         constraints: [{ type: 'staffing', value: '3' }],
       };
 
-      ruleService.parseRule.mockResolvedValue(mockParsedRule);
-      
+      api.post.mockResolvedValue({ data: mockParsedRule });
+
       render(<RuleInput />);
-      
+
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       await userEvent.type(input, 'Need 3 people during lunch');
-      
+
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
       await userEvent.click(parseButton);
       
@@ -270,13 +271,13 @@ describe('RuleInput Component', () => {
         constraints: [],
       };
 
-      ruleService.parseRule.mockResolvedValue(mockParsedRule);
-      
+      api.post.mockResolvedValue({ data: mockParsedRule });
+
       render(<RuleInput />);
-      
+
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       await userEvent.type(input, "Sarah can't work evenings");
-      
+
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
       await userEvent.click(parseButton);
       
@@ -301,40 +302,40 @@ describe('RuleInput Component', () => {
         constraints: [],
       };
 
-      ruleService.parseRule.mockResolvedValue(mockParsedRule);
-      
+      api.post.mockResolvedValue({ data: mockParsedRule });
+
       render(<RuleInput />);
-      
+
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       await userEvent.type(input, "Sarah can't work past 5pm");
-      
+
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
       await userEvent.click(parseButton);
-      
+
       await waitFor(() => {
         const confirmButton = screen.getByRole('button', { name: /Confirm & Add/i });
         expect(confirmButton).toBeInTheDocument();
       });
-      
+
       const confirmButton = screen.getByRole('button', { name: /Confirm & Add/i });
       await userEvent.click(confirmButton);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Rule added successfully')).toBeInTheDocument();
       });
     });
 
     test('shows error notification on parse failure', async () => {
-      ruleService.parseRule.mockRejectedValue(new Error('Parse failed'));
-      
+      api.post.mockRejectedValue(new Error('Parse failed'));
+
       render(<RuleInput />);
-      
+
       const input = screen.getByPlaceholderText(/Example: Sarah can't work past 5pm/);
       await userEvent.type(input, 'Invalid rule');
-      
+
       const parseButton = screen.getByRole('button', { name: /Parse Rule/i });
       await userEvent.click(parseButton);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Failed to parse rule')).toBeInTheDocument();
       });

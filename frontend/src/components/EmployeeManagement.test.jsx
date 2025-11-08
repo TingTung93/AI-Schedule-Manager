@@ -3,15 +3,17 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import EmployeeManagement from './EmployeeManagement';
+import api from '../services/api';
 
-// Mock the API service
+// Mock the API module
 jest.mock('../services/api', () => ({
-  employeeService: {
-    getEmployees: jest.fn(),
-    createEmployee: jest.fn(),
-    updateEmployee: jest.fn(),
-    deleteEmployee: jest.fn(),
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   },
+  getErrorMessage: jest.fn((error) => error.message || 'An error occurred'),
 }));
 
 // Mock useApi and useApiMutation hooks
@@ -117,11 +119,12 @@ const mockEmployees = {
 };
 
 describe('EmployeeManagement', () => {
-  const { employeeService } = require('../services/api');
-
   beforeEach(() => {
     jest.clearAllMocks();
-    employeeService.getEmployees.mockResolvedValue(mockEmployees);
+    api.get.mockResolvedValue({ data: mockEmployees });
+    api.post.mockResolvedValue({ data: {} });
+    api.patch.mockResolvedValue({ data: {} });
+    api.delete.mockResolvedValue({ data: {} });
   });
 
   it('renders the employee management interface', async () => {
@@ -157,7 +160,7 @@ describe('EmployeeManagement', () => {
 
   it('shows loading state while fetching employees', () => {
     // Mock loading state
-    employeeService.getEmployees.mockImplementation(() => new Promise(() => {}));
+    api.get.mockImplementation(() => new Promise(() => {}));
 
     render(<EmployeeManagement />);
 

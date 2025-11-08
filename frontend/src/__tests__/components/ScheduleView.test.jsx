@@ -12,8 +12,9 @@ import userEvent from '@testing-library/user-event';
 
 import ScheduleView from '../../components/ScheduleView';
 import { scheduleService } from '../../services/api';
+import api from '../../services/api';
 
-// Mock the API service
+// Mock the API services
 jest.mock('../../services/api', () => ({
   scheduleService: {
     getSchedules: jest.fn(),
@@ -21,8 +22,11 @@ jest.mock('../../services/api', () => ({
     optimizeSchedule: jest.fn(),
     updateShift: jest.fn(),
   },
-  employeeService: {
-    getEmployees: jest.fn(),
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   },
 }));
 
@@ -97,6 +101,7 @@ describe('ScheduleView Component', () => {
       status: 'optimized',
       improvements: { cost_savings: '$500', coverage: '98%' },
     });
+    api.get.mockResolvedValue({ data: { employees: mockEmployees } });
   });
 
   it('renders without crashing', () => {

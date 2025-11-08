@@ -353,3 +353,106 @@ class NotificationFilters(BaseModel):
     size: int = Field(10, ge=1, le=100)
     sort_by: Optional[str] = "created_at"
     sort_order: Optional[str] = Field("desc", regex="^(asc|desc)$")
+
+# Analytics response models
+class AnalyticsOverviewResponse(BaseModel):
+    """Analytics overview response."""
+    totalEmployees: int = Field(..., description="Total number of active employees")
+    totalSchedules: int = Field(..., description="Total number of published/approved schedules")
+    totalHours: float = Field(..., description="Total hours worked across all shifts")
+    efficiency: float = Field(..., description="Efficiency percentage (confirmed/total assignments)")
+    overtimeHours: float = Field(..., description="Total overtime hours (shifts > 8 hours)")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LaborCostData(BaseModel):
+    """Labor cost data point."""
+    date: str = Field(..., description="Date in ISO format")
+    cost: float = Field(..., description="Labor cost for the date")
+    hours: float = Field(..., description="Total hours for the date")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LaborCostsResponse(BaseModel):
+    """Labor costs response."""
+    data: List[LaborCostData] = Field(..., description="Daily labor cost data")
+    total: float = Field(..., description="Total labor cost for the period")
+    average: float = Field(..., description="Average daily labor cost")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PerformanceMetricsResponse(BaseModel):
+    """Employee performance metrics response."""
+    averageRating: float = Field(..., description="Average employee rating (1-5 scale)")
+    completionRate: float = Field(..., description="Percentage of completed shifts")
+    punctuality: float = Field(..., description="Percentage of non-declined shifts")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EfficiencyMetricsResponse(BaseModel):
+    """Schedule efficiency metrics response."""
+    utilizationRate: float = Field(..., description="Percentage of shifts with assignments")
+    schedulingAccuracy: float = Field(..., description="Percentage of confirmed/completed assignments")
+    costEfficiency: float = Field(..., description="Percentage of fully staffed shifts")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Settings response models
+class NotificationSettings(BaseModel):
+    """Notification settings."""
+    email: bool = True
+    push: bool = False
+    scheduleReminders: bool = True
+    overtimeAlerts: bool = True
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AppearanceSettings(BaseModel):
+    """Appearance settings."""
+    theme: str = "light"
+    language: str = "en"
+    timezone: str = "America/New_York"
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SchedulingSettings(BaseModel):
+    """Scheduling preferences."""
+    defaultShiftLength: int = 8
+    maxOvertimeHours: int = 10
+    breakDuration: int = 30
+    autoApproveRequests: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SecuritySettings(BaseModel):
+    """Security settings."""
+    twoFactorAuth: bool = False
+    sessionTimeout: int = 60
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserSettingsResponse(BaseModel):
+    """User settings response."""
+    notifications: NotificationSettings
+    appearance: AppearanceSettings
+    scheduling: SchedulingSettings
+    security: SecuritySettings
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MessageResponse(BaseModel):
+    """Generic message response."""
+    message: str = Field(..., description="Response message")
+    success: bool = Field(True, description="Whether the operation was successful")
+
+    model_config = ConfigDict(from_attributes=True)
