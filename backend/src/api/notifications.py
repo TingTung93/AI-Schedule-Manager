@@ -21,7 +21,7 @@ async def get_notifications(
 ):
     """Get all notifications for current user."""
     skip = (page - 1) * size
-    
+
     result = await crud_notification.get_multi_with_filters(
         db=db,
         skip=skip,
@@ -29,7 +29,7 @@ async def get_notifications(
         user_id=current_user.get("id"),
         read=read
     )
-    
+
     return PaginatedResponse(
         items=result["items"],
         total=result["total"],
@@ -66,7 +66,7 @@ async def mark_notification_as_read(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Notification not found"
         )
-    
+
     update_data = NotificationUpdate(read=True, read_at=datetime.utcnow())
     updated = await crud_notification.update(db, notification, update_data)
     return updated

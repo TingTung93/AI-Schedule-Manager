@@ -316,10 +316,10 @@ async def validate_import_data(
 @router.post("/import/execute/{file_id}")
 async def execute_import(
     file_id: str,
-    import_type: str = Query(..., regex="^(employees|schedules|rules)$"),
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_database_session),
     current_user: dict = Depends(get_current_manager),
+    import_type: str = Query(..., regex="^(employees|schedules|rules)$"),
     update_existing: bool = Query(False),
     column_mapping: Optional[Dict[str, str]] = None
 ):
