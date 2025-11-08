@@ -2,6 +2,7 @@
 Celery tasks for email processing.
 """
 
+import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional
@@ -66,7 +67,7 @@ def send_email_task(
 
             # Send email
             if template_name:
-                result = await email_service.send_templated_email(
+                result = asyncio.run(email_service.send_templated_email(
                     to_email=to_email,
                     template_name=template_name,
                     template_variables=template_variables or {},
@@ -75,9 +76,9 @@ def send_email_task(
                     cc=cc,
                     bcc=bcc,
                     attachments=attachments
-                )
+                ))
             else:
-                result = await email_service.send_email(
+                result = asyncio.run(email_service.send_email(
                     to_email=to_email,
                     subject=subject,
                     html_content=html_content,
@@ -87,7 +88,7 @@ def send_email_task(
                     cc=cc,
                     bcc=bcc,
                     attachments=attachments
-                )
+                ))
 
             # Update email log with result
             if result['success']:
@@ -271,7 +272,7 @@ def process_email_webhooks(webhook_data: Dict[str, Any], provider: str) -> Dict[
         email_service = EmailService(db_session)
 
         # Process webhook based on provider
-        processed_events = await email_service.process_webhook(webhook_data, provider)
+        processed_events = asyncio.run(email_service.process_webhook(webhook_data, provider))
 
         logger.info(f"Processed {len(processed_events.get('events', []))} webhook events from {provider}")
 
@@ -336,7 +337,7 @@ def update_bounce_list() -> Dict[str, Any]:
         email_service = EmailService(db_session)
 
         # Get bounce list from provider
-        bounce_list = await email_service.get_bounce_list()
+        bounce_list = asyncio.run(email_service.get_bounce_list())
 
         updated_count = 0
         new_count = 0
