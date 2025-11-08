@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from ..dependencies import get_database_session, get_current_user
 from ..models import UserSettings
+from ..schemas import UserSettingsResponse, MessageResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
@@ -42,7 +43,7 @@ DEFAULT_SETTINGS = {
     }
 }
 
-@router.get("")
+@router.get("", response_model=UserSettingsResponse)
 async def get_settings(
     db: AsyncSession = Depends(get_database_session),
     current_user: dict = Depends(get_current_user)
