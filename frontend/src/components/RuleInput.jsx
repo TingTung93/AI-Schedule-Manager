@@ -33,7 +33,7 @@ import {
   Schedule as ScheduleIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-import { ruleService } from '../services/api';
+import api from '../services/api';
 import { useApi, useApiMutation } from '../hooks/useApi';
 
 const RuleInput = () => {
@@ -46,7 +46,7 @@ const RuleInput = () => {
 
   // Fetch existing rules on mount
   const { data: rulesData, loading: loadingRules, refetch: refetchRules } = useApi(
-    () => ruleService.getRules(),
+    () => api.get('/api/rules'),
     [],
     {
       onSuccess: (data) => {
@@ -60,7 +60,7 @@ const RuleInput = () => {
 
   // Setup mutations for API calls
   const { mutate: parseRuleMutation, loading: parsingApi } = useApiMutation(
-    ruleService.parseRule,
+    (ruleText) => api.post('/api/rules/parse', { rule_text: ruleText }),
     {
       onSuccess: (result) => {
         setParsedResult(result);
@@ -73,7 +73,7 @@ const RuleInput = () => {
   );
 
   const { mutate: deleteRuleMutation } = useApiMutation(
-    ruleService.deleteRule,
+    (id) => api.delete(`/api/rules/${id}`),
     {
       onSuccess: () => {
         refetchRules();
@@ -86,7 +86,7 @@ const RuleInput = () => {
   );
 
   const { mutate: updateRuleMutation } = useApiMutation(
-    ruleService.updateRule,
+    ({ id, data }) => api.put(`/api/rules/${id}`, data),
     {
       onSuccess: () => {
         refetchRules();
