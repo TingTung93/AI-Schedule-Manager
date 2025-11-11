@@ -76,59 +76,22 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock useApi and useRealTimeApi hooks
+// Return simple mock data without using React hooks inside the factory
 jest.mock('../hooks/useApi', () => ({
-  useApi: jest.fn((apiCall, deps, options) => {
-    const [data, setData] = React.useState(null);
-    const [loading, setLoading] = React.useState(true);
-    const [error, setError] = React.useState(null);
-
-    React.useEffect(() => {
-      apiCall()
-        .then((result) => {
-          setData(result);
-          setLoading(false);
-          if (options?.onSuccess) options.onSuccess(result);
-        })
-        .catch((err) => {
-          setError(err);
-          setLoading(false);
-          if (options?.onError) options.onError(err);
-        });
-    }, []);
-
-    return {
-      data,
-      loading,
-      error,
-      refetch: jest.fn(),
-    };
+  useApi: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    refetch: jest.fn(),
   }),
-  useRealTimeApi: jest.fn((apiCall, interval, options) => {
-    const [data, setData] = React.useState(null);
-    const [loading, setLoading] = React.useState(true);
-
-    React.useEffect(() => {
-      apiCall()
-        .then((result) => {
-          setData(result);
-          setLoading(false);
-          if (options?.onUpdate) options.onUpdate(result);
-        })
-        .catch((err) => {
-          setLoading(false);
-          if (options?.onError) options.onError(err);
-        });
-    }, []);
-
-    return {
-      data,
-      loading,
-      error: null,
-      isPolling: true,
-      startPolling: jest.fn(),
-      stopPolling: jest.fn(),
-      refetch: jest.fn(),
-    };
+  useRealTimeApi: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    isPolling: true,
+    startPolling: jest.fn(),
+    stopPolling: jest.fn(),
+    refetch: jest.fn(),
   }),
 }));
 

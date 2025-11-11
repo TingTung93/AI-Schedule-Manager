@@ -17,57 +17,20 @@ jest.mock('../services/api', () => ({
 }));
 
 // Mock useApi and useApiMutation hooks
+// Return simple mock data without using React hooks inside the factory
 jest.mock('../hooks/useApi', () => ({
-  useApi: jest.fn((apiCall, deps, options) => {
-    const [data, setData] = React.useState(null);
-    const [loading, setLoading] = React.useState(true);
-    const [error, setError] = React.useState(null);
-
-    React.useEffect(() => {
-      apiCall()
-        .then((result) => {
-          setData(result);
-          setLoading(false);
-          if (options?.onSuccess) options.onSuccess(result);
-        })
-        .catch((err) => {
-          setError(err);
-          setLoading(false);
-          if (options?.onError) options.onError(err);
-        });
-    }, []);
-
-    return {
-      data,
-      loading,
-      error,
-      refetch: jest.fn(),
-    };
+  useApi: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    refetch: jest.fn(),
   }),
-  useApiMutation: jest.fn((apiCall, options) => {
-    const [loading, setLoading] = React.useState(false);
-
-    const mutate = jest.fn(async (...args) => {
-      setLoading(true);
-      try {
-        const result = await apiCall(...args);
-        setLoading(false);
-        if (options?.onSuccess) options.onSuccess(result);
-        return result;
-      } catch (error) {
-        setLoading(false);
-        if (options?.onError) options.onError(error);
-        throw error;
-      }
-    });
-
-    return {
-      mutate,
-      loading,
-      data: null,
-      error: null,
-      reset: jest.fn(),
-    };
+  useApiMutation: () => ({
+    mutate: jest.fn(),
+    loading: false,
+    data: null,
+    error: null,
+    reset: jest.fn(),
   }),
 }));
 

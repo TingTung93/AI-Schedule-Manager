@@ -28,30 +28,13 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock useApi hook
+// Return simple mock data without using React hooks inside the factory
 jest.mock('../hooks/useApi', () => ({
-  useApi: jest.fn((apiCall, deps, options) => {
-    const [data, setData] = React.useState(null);
-    const [loading, setLoading] = React.useState(true);
-
-    React.useEffect(() => {
-      apiCall()
-        .then((result) => {
-          setData(result);
-          setLoading(false);
-          if (options?.onSuccess) options.onSuccess(result);
-        })
-        .catch((err) => {
-          setLoading(false);
-          if (options?.onError) options.onError(err);
-        });
-    }, []);
-
-    return {
-      data,
-      loading,
-      error: null,
-      refetch: jest.fn(),
-    };
+  useApi: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    refetch: jest.fn(),
   }),
 }));
 
