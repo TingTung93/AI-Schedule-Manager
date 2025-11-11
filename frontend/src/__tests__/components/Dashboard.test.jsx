@@ -1,7 +1,7 @@
-"""
-Comprehensive tests for Dashboard component.
-Tests widgets, analytics display, and user interactions.
-"""
+/**
+ * Comprehensive tests for Dashboard component.
+ * Tests widgets, analytics display, and user interactions.
+ */
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';

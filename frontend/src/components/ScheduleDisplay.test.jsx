@@ -13,24 +13,29 @@ const mockUpdateShift = jest.fn();
 const mockGenerateSchedule = jest.fn();
 
 // Mock axios for employee API calls
-jest.mock('../services/api', () => ({
-  ...jest.requireActual('../services/api'),
-  scheduleService: {
-    getSchedules: jest.fn(),
-    updateShift: jest.fn(),
-    generateSchedule: jest.fn(),
-  },
-  default: {
-    get: jest.fn(),
-    post: jest.fn(),
-    patch: jest.fn(),
-    delete: jest.fn(),
-  },
-}));
+jest.mock('../services/api', () => {
+  const actualApi = jest.requireActual('../services/api');
+  return {
+    ...actualApi,
+    scheduleService: {
+      getSchedules: jest.fn(),
+      updateShift: jest.fn(),
+      generateSchedule: jest.fn(),
+    },
+    default: {
+      get: jest.fn(),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    },
+  };
+});
 
 // Mock date-fns functions
-jest.mock('date-fns', () => ({
-  ...jest.requireActual('date-fns'),
+jest.mock('date-fns', () => {
+  const actualDateFns = jest.requireActual('date-fns');
+  return {
+    ...actualDateFns,
   startOfWeek: jest.fn(() => new Date('2024-01-15')), // Monday
   format: jest.fn((date, formatStr) => {
     if (formatStr === 'yyyy-MM-dd') return '2024-01-15';
