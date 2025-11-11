@@ -64,7 +64,7 @@ describe('Login Component', () => {
 
       expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
       expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+      expect(screen.getByLabelText('Password', { selector: 'input' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
       expect(screen.getByText(/forgot your password/i)).toBeInTheDocument();
       expect(screen.getByText(/don't have an account/i)).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       // Trigger validation errors
@@ -174,7 +174,7 @@ describe('Login Component', () => {
         </TestWrapper>
       );
 
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const toggleButton = screen.getByRole('button', { name: /show password/i });
 
       // Initially hidden
@@ -222,7 +222,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -255,7 +255,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -288,7 +288,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -321,7 +321,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -352,7 +352,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -378,7 +378,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -406,7 +406,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -439,7 +439,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -473,7 +473,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -505,7 +505,7 @@ describe('Login Component', () => {
       );
 
       const emailInput = screen.getByLabelText(/email address/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText('Password', { selector: 'input' });
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
       await act(async () => {
@@ -529,7 +529,7 @@ describe('Login Component', () => {
       );
 
       expect(screen.getByLabelText(/email address/i)).toHaveAttribute('required');
-      expect(screen.getByLabelText(/password/i)).toHaveAttribute('required');
+      expect(screen.getByLabelText('Password', { selector: 'input' })).toHaveAttribute('required');
       expect(screen.getByRole('button', { name: /show password/i })).toHaveAttribute('aria-label');
     });
 
