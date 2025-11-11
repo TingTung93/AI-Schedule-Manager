@@ -36,28 +36,29 @@ jest.mock('date-fns', () => {
   const actualDateFns = jest.requireActual('date-fns');
   return {
     ...actualDateFns,
-  startOfWeek: jest.fn(() => new Date('2024-01-15')), // Monday
-  format: jest.fn((date, formatStr) => {
-    if (formatStr === 'yyyy-MM-dd') return '2024-01-15';
-    if (formatStr === 'MMM d, yyyy') return 'Jan 15, 2024';
-    if (formatStr === 'EEE') return 'Mon';
-    if (formatStr === 'MMM d') return 'Jan 15';
-    if (formatStr === 'h:mm a') return '9:00 AM';
-    if (formatStr === 'h:mm') return '9:00';
-    if (formatStr === "yyyy-MM-dd'T'HH:mm") return '2024-01-15T09:00';
-    if (formatStr === 'EEEE, MMM d, yyyy') return 'Monday, Jan 15, 2024';
-    if (formatStr === 'EEEE') return 'Monday';
-    return date.toString();
-  }),
-  addDays: jest.fn((date, days) => new Date(date.getTime() + days * 24 * 60 * 60 * 1000)),
-  addWeeks: jest.fn((date, weeks) => new Date(date.getTime() + weeks * 7 * 24 * 60 * 60 * 1000)),
-  subWeeks: jest.fn((date, weeks) => new Date(date.getTime() - weeks * 7 * 24 * 60 * 60 * 1000)),
-  parseISO: jest.fn((str) => new Date(str)),
-  isSameDay: jest.fn(() => true),
-  isWithinInterval: jest.fn(() => true),
-  isToday: jest.fn(() => true),
-  isFuture: jest.fn(() => false),
-}));
+    startOfWeek: jest.fn(() => new Date('2024-01-15')), // Monday
+    format: jest.fn((date, formatStr) => {
+      if (formatStr === 'yyyy-MM-dd') return '2024-01-15';
+      if (formatStr === 'MMM d, yyyy') return 'Jan 15, 2024';
+      if (formatStr === 'EEE') return 'Mon';
+      if (formatStr === 'MMM d') return 'Jan 15';
+      if (formatStr === 'h:mm a') return '9:00 AM';
+      if (formatStr === 'h:mm') return '9:00';
+      if (formatStr === "yyyy-MM-dd'T'HH:mm") return '2024-01-15T09:00';
+      if (formatStr === 'EEEE, MMM d, yyyy') return 'Monday, Jan 15, 2024';
+      if (formatStr === 'EEEE') return 'Monday';
+      return date.toString();
+    }),
+    addDays: jest.fn((date, days) => new Date(date.getTime() + days * 24 * 60 * 60 * 1000)),
+    addWeeks: jest.fn((date, weeks) => new Date(date.getTime() + weeks * 7 * 24 * 60 * 60 * 1000)),
+    subWeeks: jest.fn((date, weeks) => new Date(date.getTime() - weeks * 7 * 24 * 60 * 60 * 1000)),
+    parseISO: jest.fn((str) => new Date(str)),
+    isSameDay: jest.fn(() => true),
+    isWithinInterval: jest.fn(() => true),
+    isToday: jest.fn(() => true),
+    isFuture: jest.fn(() => false),
+  };
+});
 
 // Mock Material-UI date picker
 jest.mock('@mui/x-date-pickers/DatePicker', () => ({
