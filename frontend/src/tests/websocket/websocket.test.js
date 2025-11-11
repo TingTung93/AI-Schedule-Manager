@@ -73,7 +73,7 @@ describe('WebSocketManager', () => {
       const connectPromise = manager.connect(token);
 
       // Wait for WebSocket to be created
-      await new Promise(resolve => setImmediate(resolve));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       // Simulate connection open
       const openHandler = mockWebSocket.addEventListener.mock.calls.find(
@@ -93,7 +93,7 @@ describe('WebSocketManager', () => {
       const connectPromise = manager.connect(token);
 
       // Wait for WebSocket to be created
-      await new Promise(resolve => setImmediate(resolve));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       // Simulate connection error
       const errorHandler = mockWebSocket.addEventListener.mock.calls.find(

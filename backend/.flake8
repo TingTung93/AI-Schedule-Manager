@@ -25,12 +25,12 @@ exclude =
     reports
 
 # Error codes to ignore
-ignore =
-    E203,  # Whitespace before ':'
-    E501,  # Line too long (handled by max-line-length)
-    W503,  # Line break before binary operator
-    W504,  # Line break after binary operator
-    E722,  # Do not use bare except (we handle this carefully)
+# E203: Whitespace before ':'
+# E501: Line too long (handled by max-line-length)
+# W503: Line break before binary operator
+# W504: Line break after binary operator
+# E722: Do not use bare except (we handle this carefully)
+ignore = E203,E501,W503,W504,E722
 
 # Select specific error codes
 select = E,W,F,C

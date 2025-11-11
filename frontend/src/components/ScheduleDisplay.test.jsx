@@ -88,9 +88,14 @@ jest.mock('@mui/x-date-pickers/AdapterDateFns', () => ({
   AdapterDateFns: function() { return {}; },
 }));
 
+// Create mock functions outside jest.mock()
+const mockRefetch = jest.fn();
+const mockReset = jest.fn();
+const mockMutate = jest.fn();
+
 // Mock useApi and useApiMutation hooks
 jest.mock('../hooks/useApi', () => ({
-  useApi: jest.fn((apiCall, deps, options) => {
+  useApi: (apiCall, deps, options) => {
     const [data, setData] = React.useState(null);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
@@ -113,13 +118,14 @@ jest.mock('../hooks/useApi', () => ({
       data,
       loading,
       error,
-      refetch: jest.fn(),
+      refetch: mockRefetch,
     };
-  }),
-  useApiMutation: jest.fn((apiCall, options) => {
+  },
+  useApiMutation: (apiCall, options) => {
     const [loading, setLoading] = React.useState(false);
 
-    const mutate = jest.fn(async (...args) => {
+    const mutate = async (...args) => {
+      mockMutate(...args);
       setLoading(true);
       try {
         const result = await apiCall(...args);
@@ -131,16 +137,16 @@ jest.mock('../hooks/useApi', () => ({
         if (options?.onError) options.onError(error);
         throw error;
       }
-    });
+    };
 
     return {
       mutate,
       loading,
       data: null,
       error: null,
-      reset: jest.fn(),
+      reset: mockReset,
     };
-  }),
+  },
 }));
 
 const mockSchedules = {
