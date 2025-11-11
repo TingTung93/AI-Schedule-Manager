@@ -575,7 +575,7 @@ describe('Register Component', () => {
       // Check loading state
       expect(screen.getByText(/creating account/i)).toBeInTheDocument();
       expect(submitButton).toBeDisabled();
-      expect(screen.getByRole('button')).toHaveClass('loading');
+      expect(submitButton).toHaveClass('loading');
     });
   });
 
