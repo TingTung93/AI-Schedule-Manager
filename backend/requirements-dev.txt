@@ -20,7 +20,7 @@ httpx==0.25.2
 
 # Type stubs
 types-redis==4.6.0.11
-types-passlib==1.7.7.14
+types-passlib==1.7.7.20250602
 
 # Debugging
 ipdb==0.13.13
