@@ -50,11 +50,11 @@ class BackupService:
         key_file = self.backup_dir / "encryption.key"
 
         if key_file.exists():
-            with open(key_file, 'rb') as f:
+            with open(key_file, "rb") as f:
                 return f.read()
         else:
             key = Fernet.generate_key()
-            with open(key_file, 'wb') as f:
+            with open(key_file, "wb") as f:
                 f.write(key)
             return key
 
@@ -62,7 +62,7 @@ class BackupService:
         """Load backup metadata from file."""
         if self.metadata_file.exists():
             try:
-                with open(self.metadata_file, 'r') as f:
+                with open(self.metadata_file, "r") as f:
                     return json.load(f)
             except Exception as e:
                 logger.error(f"Error loading backup metadata: {e}")
@@ -72,17 +72,13 @@ class BackupService:
     def _save_metadata(self):
         """Save backup metadata to file."""
         try:
-            with open(self.metadata_file, 'w') as f:
+            with open(self.metadata_file, "w") as f:
                 json.dump(self.backup_metadata, f, indent=2, default=str)
         except Exception as e:
             logger.error(f"Error saving backup metadata: {e}")
 
     async def create_backup(
-        self,
-        db: AsyncSession,
-        backup_type: str = "full",
-        include_files: bool = True,
-        user_id: str = "system"
+        self, db: AsyncSession, backup_type: str = "full", include_files: bool = True, user_id: str = "system"
     ) -> str:
         """Create a new backup."""
         try:
@@ -105,7 +101,7 @@ class BackupService:
                 "include_files": include_files,
                 "size": 0,
                 "tables": [],
-                "file_count": 0
+                "file_count": 0,
             }
 
             self.backup_metadata["backups"][backup_id] = backup_info
@@ -120,16 +116,10 @@ class BackupService:
                 raise BackupError(f"Unsupported backup type: {backup_type}")
 
             # Calculate backup size
-            backup_size = sum(
-                f.stat().st_size for f in backup_path.rglob('*') if f.is_file()
-            )
+            backup_size = sum(f.stat().st_size for f in backup_path.rglob("*") if f.is_file())
 
             # Update metadata
-            backup_info.update({
-                "status": "completed",
-                "completed_at": datetime.utcnow(),
-                "size": backup_size
-            })
+            backup_info.update({"status": "completed", "completed_at": datetime.utcnow(), "size": backup_size})
 
             self.backup_metadata["backups"][backup_id] = backup_info
             self._save_metadata()
@@ -141,29 +131,15 @@ class BackupService:
             logger.error(f"Backup creation failed: {e}")
             # Update metadata with error status
             if backup_id in self.backup_metadata["backups"]:
-                self.backup_metadata["backups"][backup_id].update({
-                    "status": "failed",
-                    "error": str(e),
-                    "failed_at": datetime.utcnow()
-                })
+                self.backup_metadata["backups"][backup_id].update(
+                    {"status": "failed", "error": str(e), "failed_at": datetime.utcnow()}
+                )
                 self._save_metadata()
             raise BackupError(f"Backup failed: {str(e)}")
 
-    async def _create_full_backup(
-        self,
-        db: AsyncSession,
-        backup_id: str,
-        backup_path: Path,
-        include_files: bool
-    ):
+    async def _create_full_backup(self, db: AsyncSession, backup_id: str, backup_path: Path, include_files: bool):
         """Create a full database backup."""
-        tables_to_backup = [
-            Employee,
-            Schedule,
-            Rule,
-            Shift,
-            Notification
-        ]
+        tables_to_backup = [Employee, Schedule, Rule, Shift, Notification]
 
         backed_up_tables = []
 
@@ -186,7 +162,7 @@ class BackupService:
                         # Handle datetime and other non-serializable types
                         if isinstance(value, datetime):
                             value = value.isoformat()
-                        elif hasattr(value, '__dict__'):
+                        elif hasattr(value, "__dict__"):
                             value = str(value)
                         record_dict[column.name] = value
                     table_data.append(record_dict)
@@ -195,14 +171,10 @@ class BackupService:
                 table_file = backup_path / f"{table_name}.json"
                 encrypted_data = self._encrypt_data(json.dumps(table_data, default=str))
 
-                async with aiofiles.open(table_file, 'wb') as f:
+                async with aiofiles.open(table_file, "wb") as f:
                     await f.write(encrypted_data)
 
-                backed_up_tables.append({
-                    "table": table_name,
-                    "record_count": len(table_data),
-                    "file": str(table_file)
-                })
+                backed_up_tables.append({"table": table_name, "record_count": len(table_data), "file": str(table_file)})
 
                 logger.info(f"Backed up {len(table_data)} records from {table_name}")
 
@@ -220,13 +192,7 @@ class BackupService:
         # Update backup metadata
         self.backup_metadata["backups"][backup_id]["tables"] = backed_up_tables
 
-    async def _create_incremental_backup(
-        self,
-        db: AsyncSession,
-        backup_id: str,
-        backup_path: Path,
-        include_files: bool
-    ):
+    async def _create_incremental_backup(self, db: AsyncSession, backup_id: str, backup_path: Path, include_files: bool):
         """Create an incremental backup (changes since last backup)."""
         # Find the last successful backup
         last_backup = None
@@ -243,13 +209,7 @@ class BackupService:
         last_backup_time = datetime.fromisoformat(last_backup["created_at"])
         logger.info(f"Creating incremental backup since {last_backup_time}")
 
-        tables_to_backup = [
-            Employee,
-            Schedule,
-            Rule,
-            Shift,
-            Notification
-        ]
+        tables_to_backup = [Employee, Schedule, Rule, Shift, Notification]
 
         backed_up_tables = []
 
@@ -258,9 +218,9 @@ class BackupService:
 
             try:
                 # Get records modified since last backup
-                if hasattr(model, 'updated_at'):
+                if hasattr(model, "updated_at"):
                     query = select(model).where(model.updated_at >= last_backup_time)
-                elif hasattr(model, 'created_at'):
+                elif hasattr(model, "created_at"):
                     query = select(model).where(model.created_at >= last_backup_time)
                 else:
                     # If no timestamp column, skip incremental for this table
@@ -282,7 +242,7 @@ class BackupService:
                         value = getattr(record, column.name)
                         if isinstance(value, datetime):
                             value = value.isoformat()
-                        elif hasattr(value, '__dict__'):
+                        elif hasattr(value, "__dict__"):
                             value = str(value)
                         record_dict[column.name] = value
                     table_data.append(record_dict)
@@ -291,16 +251,18 @@ class BackupService:
                 table_file = backup_path / f"{table_name}_incremental.json"
                 encrypted_data = self._encrypt_data(json.dumps(table_data, default=str))
 
-                async with aiofiles.open(table_file, 'wb') as f:
+                async with aiofiles.open(table_file, "wb") as f:
                     await f.write(encrypted_data)
 
-                backed_up_tables.append({
-                    "table": table_name,
-                    "record_count": len(table_data),
-                    "file": str(table_file),
-                    "incremental": True,
-                    "since": last_backup_time.isoformat()
-                })
+                backed_up_tables.append(
+                    {
+                        "table": table_name,
+                        "record_count": len(table_data),
+                        "file": str(table_file),
+                        "incremental": True,
+                        "since": last_backup_time.isoformat(),
+                    }
+                )
 
                 logger.info(f"Backed up {len(table_data)} changed records from {table_name}")
 
@@ -318,12 +280,16 @@ class BackupService:
             schema_info = []
 
             # Get all table names
-            result = await db.execute(text("""
+            result = await db.execute(
+                text(
+                    """
                 SELECT table_name
                 FROM information_schema.tables
                 WHERE table_schema = 'public'
                 AND table_type = 'BASE TABLE'
-            """))
+            """
+                )
+            )
 
             tables = result.fetchall()
 
@@ -331,31 +297,32 @@ class BackupService:
                 table_name = table[0]
 
                 # Get table structure
-                result = await db.execute(text(f"""
+                result = await db.execute(
+                    text(
+                        f"""
                     SELECT column_name, data_type, is_nullable, column_default
                     FROM information_schema.columns
                     WHERE table_name = '{table_name}'
                     ORDER BY ordinal_position
-                """))
+                """
+                    )
+                )
 
                 columns = result.fetchall()
-                schema_info.append({
-                    "table_name": table_name,
-                    "columns": [
-                        {
-                            "name": col[0],
-                            "type": col[1],
-                            "nullable": col[2] == 'YES',
-                            "default": col[3]
-                        } for col in columns
-                    ]
-                })
+                schema_info.append(
+                    {
+                        "table_name": table_name,
+                        "columns": [
+                            {"name": col[0], "type": col[1], "nullable": col[2] == "YES", "default": col[3]} for col in columns
+                        ],
+                    }
+                )
 
             # Save schema
             schema_file = backup_path / "schema.json"
             encrypted_schema = self._encrypt_data(json.dumps(schema_info, default=str))
 
-            async with aiofiles.open(schema_file, 'wb') as f:
+            async with aiofiles.open(schema_file, "wb") as f:
                 await f.write(encrypted_schema)
 
             logger.info("Database schema backed up successfully")
@@ -391,11 +358,7 @@ class BackupService:
         return self.cipher_suite.decrypt(encrypted_data).decode()
 
     async def restore_backup(
-        self,
-        backup_id: str,
-        db: AsyncSession,
-        verify_before_restore: bool = True,
-        user_id: str = "system"
+        self, backup_id: str, db: AsyncSession, verify_before_restore: bool = True, user_id: str = "system"
     ) -> str:
         """Restore from backup."""
         try:
@@ -420,9 +383,7 @@ class BackupService:
                 await self._verify_backup_integrity(backup_path, backup_info)
 
             # Create restore point (backup current state)
-            restore_point_id = await self.create_backup(
-                db, "full", False, f"restore_point_{user_id}"
-            )
+            restore_point_id = await self.create_backup(db, "full", False, f"restore_point_{user_id}")
 
             try:
                 # Perform restore
@@ -436,9 +397,7 @@ class BackupService:
                 # Attempt to rollback to restore point
                 try:
                     await self._restore_from_backup(
-                        db,
-                        self.backup_dir / restore_point_id,
-                        self.backup_metadata["backups"][restore_point_id]
+                        db, self.backup_dir / restore_point_id, self.backup_metadata["backups"][restore_point_id]
                     )
                     logger.info("Rollback to restore point successful")
                 except Exception as rollback_error:
@@ -462,7 +421,7 @@ class BackupService:
                     raise BackupError(f"Backup file missing: {table_file}")
 
                 # Try to decrypt and parse the file
-                async with aiofiles.open(table_file, 'rb') as f:
+                async with aiofiles.open(table_file, "rb") as f:
                     encrypted_data = await f.read()
 
                 try:
@@ -477,12 +436,7 @@ class BackupService:
             logger.error(f"Backup integrity verification failed: {e}")
             raise
 
-    async def _restore_from_backup(
-        self,
-        db: AsyncSession,
-        backup_path: Path,
-        backup_info: Dict[str, Any]
-    ):
+    async def _restore_from_backup(self, db: AsyncSession, backup_path: Path, backup_info: Dict[str, Any]):
         """Restore database from backup files."""
         try:
             # If it's an incremental backup, we need to be more careful
@@ -495,12 +449,7 @@ class BackupService:
             logger.error(f"Database restore failed: {e}")
             raise
 
-    async def _restore_full_backup(
-        self,
-        db: AsyncSession,
-        backup_path: Path,
-        backup_info: Dict[str, Any]
-    ):
+    async def _restore_full_backup(self, db: AsyncSession, backup_path: Path, backup_info: Dict[str, Any]):
         """Restore from a full backup."""
         # Clear existing data (be very careful here!)
         logger.warning("Clearing existing database data for full restore")
@@ -520,12 +469,7 @@ class BackupService:
         await db.commit()
         logger.info("Full database restore completed")
 
-    async def _restore_incremental_backup(
-        self,
-        db: AsyncSession,
-        backup_path: Path,
-        backup_info: Dict[str, Any]
-    ):
+    async def _restore_incremental_backup(self, db: AsyncSession, backup_path: Path, backup_info: Dict[str, Any]):
         """Restore from an incremental backup."""
         logger.info("Restoring incremental backup")
 
@@ -535,12 +479,7 @@ class BackupService:
         await db.commit()
         logger.info("Incremental database restore completed")
 
-    async def _restore_table_data(
-        self,
-        db: AsyncSession,
-        table_info: Dict[str, Any],
-        incremental: bool = False
-    ):
+    async def _restore_table_data(self, db: AsyncSession, table_info: Dict[str, Any], incremental: bool = False):
         """Restore data for a specific table."""
         table_name = table_info["table"]
         table_file = Path(table_info["file"])
@@ -549,7 +488,7 @@ class BackupService:
 
         try:
             # Read and decrypt table data
-            async with aiofiles.open(table_file, 'rb') as f:
+            async with aiofiles.open(table_file, "rb") as f:
                 encrypted_data = await f.read()
 
             decrypted_data = self._decrypt_data(encrypted_data)
@@ -561,11 +500,11 @@ class BackupService:
 
             # Get model class
             model_map = {
-                'employees': Employee,
-                'schedules': Schedule,
-                'rules': Rule,
-                'shifts': Shift,
-                'notifications': Notification
+                "employees": Employee,
+                "schedules": Schedule,
+                "rules": Rule,
+                "shifts": Shift,
+                "notifications": Notification,
             }
 
             model = model_map.get(table_name)
@@ -579,7 +518,7 @@ class BackupService:
                 for column in model.__table__.columns:
                     if column.name in record_data:
                         value = record_data[column.name]
-                        if isinstance(value, str) and 'T' in value:  # ISO datetime
+                        if isinstance(value, str) and "T" in value:  # ISO datetime
                             try:
                                 record_data[column.name] = datetime.fromisoformat(value)
                             except ValueError:
@@ -588,14 +527,14 @@ class BackupService:
                 if incremental:
                     # For incremental restore, use upsert (insert or update)
                     # This is a simplified approach - in production, you'd want more sophisticated conflict resolution
-                    existing_query = select(model).where(model.id == record_data['id'])
+                    existing_query = select(model).where(model.id == record_data["id"])
                     result = await db.execute(existing_query)
                     existing = result.scalar_one_or_none()
 
                     if existing:
                         # Update existing record
                         for key, value in record_data.items():
-                            if key != 'id':
+                            if key != "id":
                                 setattr(existing, key, value)
                     else:
                         # Insert new record
@@ -612,11 +551,7 @@ class BackupService:
             logger.error(f"Error restoring table {table_name}: {e}")
             raise
 
-    async def list_backups(
-        self,
-        skip: int = 0,
-        limit: int = 10
-    ) -> Dict[str, Any]:
+    async def list_backups(self, skip: int = 0, limit: int = 10) -> Dict[str, Any]:
         """List available backups with pagination."""
         backups = list(self.backup_metadata["backups"].values())
 
@@ -624,12 +559,9 @@ class BackupService:
         backups.sort(key=lambda x: x["created_at"], reverse=True)
 
         total = len(backups)
-        paginated_backups = backups[skip:skip + limit]
+        paginated_backups = backups[skip : skip + limit]
 
-        return {
-            "items": paginated_backups,
-            "total": total
-        }
+        return {"items": paginated_backups, "total": total}
 
     async def get_backup_status(self, backup_id: str) -> Optional[Dict[str, Any]]:
         """Get backup status and details."""

@@ -1,6 +1,7 @@
 """
 Shift model for defining work periods and requirements
 """
+
 from datetime import datetime, date, time, timedelta
 from typing import List, Optional
 from sqlalchemy import String, Date, Time, Integer, CheckConstraint, Index
@@ -24,25 +25,14 @@ class Shift(Base):
     end_time: Mapped[time] = mapped_column(Time, nullable=False)
 
     # Shift classification
-    shift_type: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        default="general",
-        index=True
-    )
+    shift_type: Mapped[str] = mapped_column(String(100), nullable=False, default="general", index=True)
 
     # Staffing requirements
-    required_staff: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=1
-    )
+    required_staff: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     # Additional requirements as JSON for flexibility
     requirements: Mapped[Optional[dict]] = mapped_column(
-        JSONB,
-        nullable=True,
-        comment="JSON structure for qualifications, skills, or other requirements"
+        JSONB, nullable=True, comment="JSON structure for qualifications, skills, or other requirements"
     )
 
     # Shift metadata
@@ -54,28 +44,16 @@ class Shift(Base):
 
     # Relationships
     schedule_assignments: Mapped[List["ScheduleAssignment"]] = relationship(
-        "ScheduleAssignment",
-        back_populates="shift",
-        cascade="all, delete-orphan"
+        "ScheduleAssignment", back_populates="shift", cascade="all, delete-orphan"
     )
 
     # Constraints and indexes
     __table_args__ = (
+        CheckConstraint("start_time < end_time", name="valid_shift_times"),
+        CheckConstraint("required_staff > 0", name="positive_required_staff"),
+        CheckConstraint("priority BETWEEN 1 AND 10", name="valid_priority_range"),
         CheckConstraint(
-            "start_time < end_time",
-            name="valid_shift_times"
-        ),
-        CheckConstraint(
-            "required_staff > 0",
-            name="positive_required_staff"
-        ),
-        CheckConstraint(
-            "priority BETWEEN 1 AND 10",
-            name="valid_priority_range"
-        ),
-        CheckConstraint(
-            "shift_type IN ('general', 'management', 'specialized', 'emergency', 'training')",
-            name="valid_shift_type"
+            "shift_type IN ('general', 'management', 'specialized', 'emergency', 'training')", name="valid_shift_type"
         ),
         Index("ix_shifts_date_time", "date", "start_time", "end_time"),
         Index("ix_shifts_type_priority", "shift_type", "priority"),
@@ -111,8 +89,7 @@ class Shift(Base):
 
     def get_assigned_count(self) -> int:
         """Get count of currently assigned employees"""
-        return len([assignment for assignment in self.schedule_assignments
-                   if assignment.status == "assigned"])
+        return len([assignment for assignment in self.schedule_assignments if assignment.status == "assigned"])
 
     def is_fully_staffed(self) -> bool:
         """Check if shift has enough assigned staff"""
@@ -128,8 +105,7 @@ class Shift(Base):
             return False
 
         # Check time overlap
-        return (self.start_time < other_shift.end_time and
-                self.end_time > other_shift.start_time)
+        return self.start_time < other_shift.end_time and self.end_time > other_shift.start_time
 
     def can_assign_employee(self, employee: "Employee") -> tuple[bool, str]:
         """
@@ -150,16 +126,16 @@ class Shift(Base):
         # Check specific requirements
         if self.requirements:
             required_quals = self.requirements.get("qualifications", [])
-            if required_quals and not any(
-                employee.has_qualification(qual) for qual in required_quals
-            ):
+            if required_quals and not any(employee.has_qualification(qual) for qual in required_quals):
                 return False, f"Employee missing required qualifications: {required_quals}"
 
         # Check if already assigned to conflicting shift
         for assignment in employee.schedule_assignments:
-            if (assignment.shift.date == self.date and
-                assignment.status == "assigned" and
-                self.conflicts_with(assignment.shift)):
+            if (
+                assignment.shift.date == self.date
+                and assignment.status == "assigned"
+                and self.conflicts_with(assignment.shift)
+            ):
                 return False, f"Employee already assigned to conflicting shift"
 
         return True, "Can assign"

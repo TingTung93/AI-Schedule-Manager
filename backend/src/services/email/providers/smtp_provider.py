@@ -23,18 +23,18 @@ class SMTPProvider(BaseEmailProvider):
 
     def _initialize(self) -> None:
         """Initialize SMTP configuration."""
-        required_config = ['host', 'port', 'username', 'password']
+        required_config = ["host", "port", "username", "password"]
         for key in required_config:
             if not self.config.get(key):
                 raise ValueError(f"SMTP {key} is required")
 
-        self.host = self.config['host']
-        self.port = self.config['port']
-        self.username = self.config['username']
-        self.password = self.config['password']
-        self.use_tls = self.config.get('use_tls', True)
-        self.use_ssl = self.config.get('use_ssl', False)
-        self.timeout = self.config.get('timeout', 60)
+        self.host = self.config["host"]
+        self.port = self.config["port"]
+        self.username = self.config["username"]
+        self.password = self.config["password"]
+        self.use_tls = self.config.get("use_tls", True)
+        self.use_ssl = self.config.get("use_ssl", False)
+        self.timeout = self.config.get("timeout", 60)
 
     async def send_email(self, message: EmailMessage) -> EmailResponse:
         """Send a single email via SMTP."""
@@ -42,10 +42,7 @@ class SMTPProvider(BaseEmailProvider):
             # Validate message
             validation_errors = self.validate_message(message)
             if validation_errors:
-                return EmailResponse(
-                    success=False,
-                    error_message=f"Validation errors: {', '.join(validation_errors)}"
-                )
+                return EmailResponse(success=False, error_message=f"Validation errors: {', '.join(validation_errors)}")
 
             # Create email message
             email_message = self._create_email_message(message)
@@ -55,45 +52,26 @@ class SMTPProvider(BaseEmailProvider):
 
             # Generate message ID (SMTP doesn't return one)
             import uuid
+
             message_id = str(uuid.uuid4())
 
-            return EmailResponse(
-                success=True,
-                message_id=message_id,
-                provider_response={'status': 'sent'},
-                status_code=250
-            )
+            return EmailResponse(success=True, message_id=message_id, provider_response={"status": "sent"}, status_code=250)
 
         except smtplib.SMTPAuthenticationError as e:
             logger.error(f"SMTP authentication error: {e}")
-            return EmailResponse(
-                success=False,
-                error_message=f"SMTP authentication failed: {str(e)}",
-                status_code=535
-            )
+            return EmailResponse(success=False, error_message=f"SMTP authentication failed: {str(e)}", status_code=535)
 
         except smtplib.SMTPRecipientsRefused as e:
             logger.error(f"SMTP recipients refused: {e}")
-            return EmailResponse(
-                success=False,
-                error_message=f"Recipients refused: {str(e)}",
-                status_code=550
-            )
+            return EmailResponse(success=False, error_message=f"Recipients refused: {str(e)}", status_code=550)
 
         except smtplib.SMTPDataError as e:
             logger.error(f"SMTP data error: {e}")
-            return EmailResponse(
-                success=False,
-                error_message=f"SMTP data error: {str(e)}",
-                status_code=e.smtp_code
-            )
+            return EmailResponse(success=False, error_message=f"SMTP data error: {str(e)}", status_code=e.smtp_code)
 
         except Exception as e:
             logger.error(f"SMTP send error: {e}")
-            return EmailResponse(
-                success=False,
-                error_message=f"SMTP error: {str(e)}"
-            )
+            return EmailResponse(success=False, error_message=f"SMTP error: {str(e)}")
 
     async def send_batch(self, messages: List[EmailMessage]) -> List[EmailResponse]:
         """Send multiple emails in batch."""
@@ -111,27 +89,27 @@ class SMTPProvider(BaseEmailProvider):
         """Create email message object."""
         # Create message container
         if message.html_content and message.text_content:
-            email_message = MIMEMultipart('alternative')
+            email_message = MIMEMultipart("alternative")
         else:
             email_message = MIMEMultipart()
 
         # Set headers
-        email_message['From'] = self._format_address(
-            message.from_email or self.config.get('default_from_email'),
-            message.from_name or self.config.get('default_from_name')
+        email_message["From"] = self._format_address(
+            message.from_email or self.config.get("default_from_email"),
+            message.from_name or self.config.get("default_from_name"),
         )
-        email_message['To'] = self._format_address(message.to_email, message.to_name)
-        email_message['Subject'] = message.subject
+        email_message["To"] = self._format_address(message.to_email, message.to_name)
+        email_message["Subject"] = message.subject
 
         # Add CC/BCC
         if message.cc:
-            email_message['Cc'] = ', '.join(message.cc)
+            email_message["Cc"] = ", ".join(message.cc)
         if message.bcc:
-            email_message['Bcc'] = ', '.join(message.bcc)
+            email_message["Bcc"] = ", ".join(message.bcc)
 
         # Add reply-to
         if message.reply_to:
-            email_message['Reply-To'] = message.reply_to
+            email_message["Reply-To"] = message.reply_to
 
         # Add custom headers
         headers = self.prepare_headers(message)
@@ -140,11 +118,11 @@ class SMTPProvider(BaseEmailProvider):
 
         # Add content
         if message.text_content:
-            text_part = MIMEText(message.text_content, 'plain', 'utf-8')
+            text_part = MIMEText(message.text_content, "plain", "utf-8")
             email_message.attach(text_part)
 
         if message.html_content:
-            html_part = MIMEText(message.html_content, 'html', 'utf-8')
+            html_part = MIMEText(message.html_content, "html", "utf-8")
             email_message.attach(html_part)
 
         # Add attachments
@@ -163,22 +141,20 @@ class SMTPProvider(BaseEmailProvider):
     def _add_attachment(self, email_message: MIMEMultipart, attachment_data: Dict[str, Any]) -> None:
         """Add attachment to email message."""
         try:
-            part = MIMEBase('application', 'octet-stream')
-            content = attachment_data.get('content', '')
+            part = MIMEBase("application", "octet-stream")
+            content = attachment_data.get("content", "")
 
             # Handle base64 encoded content
             if isinstance(content, str):
                 import base64
+
                 content = base64.b64decode(content)
 
             part.set_payload(content)
             encoders.encode_base64(part)
 
-            filename = attachment_data.get('filename', 'attachment')
-            part.add_header(
-                'Content-Disposition',
-                f'attachment; filename= {filename}'
-            )
+            filename = attachment_data.get("filename", "attachment")
+            part.add_header("Content-Disposition", f"attachment; filename= {filename}")
 
             email_message.attach(part)
 
@@ -196,26 +172,22 @@ class SMTPProvider(BaseEmailProvider):
 
         # Configure SMTP
         smtp_kwargs = {
-            'hostname': self.host,
-            'port': self.port,
-            'username': self.username,
-            'password': self.password,
-            'timeout': self.timeout
+            "hostname": self.host,
+            "port": self.port,
+            "username": self.username,
+            "password": self.password,
+            "timeout": self.timeout,
         }
 
         if self.use_ssl:
-            smtp_kwargs['use_tls'] = False
-            smtp_kwargs['start_tls'] = False
+            smtp_kwargs["use_tls"] = False
+            smtp_kwargs["start_tls"] = False
         elif self.use_tls:
-            smtp_kwargs['use_tls'] = True
-            smtp_kwargs['start_tls'] = True
+            smtp_kwargs["use_tls"] = True
+            smtp_kwargs["start_tls"] = True
 
         # Send email
-        await aiosmtplib.send(
-            email_message,
-            recipients=recipients,
-            **smtp_kwargs
-        )
+        await aiosmtplib.send(email_message, recipients=recipients, **smtp_kwargs)
 
     async def verify_email(self, email: str) -> bool:
         """Verify email address using SMTP VRFY command."""
@@ -255,7 +227,7 @@ class SMTPProvider(BaseEmailProvider):
         """Handle webhook events."""
         # SMTP doesn't support webhooks
         logger.warning("SMTP doesn't support webhook events")
-        return {'events': []}
+        return {"events": []}
 
     async def get_bounce_list(self) -> List[Dict[str, Any]]:
         """Get list of bounced emails."""

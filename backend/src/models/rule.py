@@ -1,6 +1,7 @@
 """
 Rule model for defining scheduling constraints and business rules
 """
+
 from datetime import datetime, timedelta
 from typing import Optional, List
 from sqlalchemy import String, Integer, Boolean, ForeignKey, CheckConstraint, Index, Text
@@ -19,38 +20,23 @@ class Rule(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     # Rule identification
-    rule_text: Mapped[str] = mapped_column(
-        Text,
-        nullable=False,
-        comment="Human-readable description of the rule"
-    )
+    rule_text: Mapped[str] = mapped_column(Text, nullable=False, comment="Human-readable description of the rule")
 
-    rule_type: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        index=True
-    )
+    rule_type: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
 
     # Rule scope - can be global or employee-specific
     employee_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("employees.id", ondelete="CASCADE"),
-        nullable=True,
-        index=True
+        ForeignKey("employees.id", ondelete="CASCADE"), nullable=True, index=True
     )
 
     # Rule constraints as JSON for flexibility
     constraints: Mapped[dict] = mapped_column(
-        JSONB,
-        nullable=False,
-        comment="JSON structure defining rule parameters and limits"
+        JSONB, nullable=False, comment="JSON structure defining rule parameters and limits"
     )
 
     # Rule metadata
     priority: Mapped[int] = mapped_column(
-        Integer,
-        default=5,
-        nullable=False,
-        comment="Rule priority (1-10, higher number = higher priority)"
+        Integer, default=5, nullable=False, comment="Rule priority (1-10, higher number = higher priority)"
     )
 
     # Rule status
@@ -58,17 +44,11 @@ class Rule(Base):
 
     # Validation and enforcement
     strict: Mapped[bool] = mapped_column(
-        Boolean,
-        default=False,
-        nullable=False,
-        comment="Whether rule violations should block scheduling"
+        Boolean, default=False, nullable=False, comment="Whether rule violations should block scheduling"
     )
 
     violation_count: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False,
-        comment="Count of times this rule has been violated"
+        Integer, default=0, nullable=False, comment="Count of times this rule has been violated"
     )
 
     # Effective period
@@ -78,42 +58,27 @@ class Rule(Base):
     # Rule metadata
     description: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
     tags: Mapped[Optional[List[str]]] = mapped_column(
-        JSONB,
-        nullable=True,
-        comment="Tags for rule categorization and filtering"
+        JSONB, nullable=True, comment="Tags for rule categorization and filtering"
     )
 
     # Audit fields
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    employee: Mapped[Optional["Employee"]] = relationship(
-        "Employee",
-        back_populates="rules"
-    )
+    employee: Mapped[Optional["Employee"]] = relationship("Employee", back_populates="rules")
 
     # Constraints and indexes
     __table_args__ = (
         CheckConstraint(
             "rule_type IN ('availability', 'workload', 'qualification', 'preference', 'restriction', 'overtime', 'consecutive_days', 'rest_period')",
-            name="valid_rule_type"
+            name="valid_rule_type",
         ),
-        CheckConstraint(
-            "priority BETWEEN 1 AND 10",
-            name="valid_priority_range"
-        ),
-        CheckConstraint(
-            "violation_count >= 0",
-            name="non_negative_violations"
-        ),
+        CheckConstraint("priority BETWEEN 1 AND 10", name="valid_priority_range"),
+        CheckConstraint("violation_count >= 0", name="non_negative_violations"),
         CheckConstraint(
             "(effective_from IS NULL) OR (effective_until IS NULL) OR (effective_from <= effective_until)",
-            name="valid_effective_period"
+            name="valid_effective_period",
         ),
         Index("ix_rules_type_active", "rule_type", "active"),
         Index("ix_rules_employee_type", "employee_id", "rule_type"),
@@ -165,7 +130,7 @@ class Rule(Base):
             "restriction": self._validate_restriction,
             "overtime": self._validate_overtime,
             "consecutive_days": self._validate_consecutive_days,
-            "rest_period": self._validate_rest_period
+            "rest_period": self._validate_rest_period,
         }
 
         validation_method = validation_methods.get(self.rule_type)
@@ -208,10 +173,9 @@ class Rule(Base):
         if max_daily_hours:
             # Calculate total hours for this employee on this date
             same_day_assignments = [
-                a for a in assignment.employee.schedule_assignments
-                if (a.shift.date == assignment.shift.date and
-                    a.status in ["assigned", "confirmed"] and
-                    a.id != assignment.id)
+                a
+                for a in assignment.employee.schedule_assignments
+                if (a.shift.date == assignment.shift.date and a.status in ["assigned", "confirmed"] and a.id != assignment.id)
             ]
 
             total_hours = sum(a.shift.duration_hours for a in same_day_assignments)
@@ -228,10 +192,9 @@ class Rule(Base):
             week_end = week_start + timedelta(days=6)
 
             week_assignments = [
-                a for a in assignment.employee.schedule_assignments
-                if (week_start <= a.shift.date <= week_end and
-                    a.status in ["assigned", "confirmed"] and
-                    a.id != assignment.id)
+                a
+                for a in assignment.employee.schedule_assignments
+                if (week_start <= a.shift.date <= week_end and a.status in ["assigned", "confirmed"] and a.id != assignment.id)
             ]
 
             total_weekly_hours = sum(a.shift.duration_hours for a in week_assignments)
@@ -252,10 +215,7 @@ class Rule(Base):
 
         employee_quals = assignment.employee.qualifications or []
 
-        missing_quals = [
-            qual for qual in required_qualifications
-            if qual not in employee_quals
-        ]
+        missing_quals = [qual for qual in required_qualifications if qual not in employee_quals]
 
         if missing_quals:
             return False, f"Missing required qualifications: {missing_quals}"
@@ -307,10 +267,9 @@ class Rule(Base):
         week_end = week_start + timedelta(days=6)
 
         week_assignments = [
-            a for a in assignment.employee.schedule_assignments
-            if (week_start <= a.shift.date <= week_end and
-                a.status in ["assigned", "confirmed"] and
-                a.id != assignment.id)
+            a
+            for a in assignment.employee.schedule_assignments
+            if (week_start <= a.shift.date <= week_end and a.status in ["assigned", "confirmed"] and a.id != assignment.id)
         ]
 
         total_hours = sum(a.shift.duration_hours for a in week_assignments)
@@ -337,9 +296,9 @@ class Rule(Base):
         check_date = current_date - timedelta(days=1)
         while True:
             day_assignments = [
-                a for a in assignment.employee.schedule_assignments
-                if (a.shift.date == check_date and
-                    a.status in ["assigned", "confirmed"])
+                a
+                for a in assignment.employee.schedule_assignments
+                if (a.shift.date == check_date and a.status in ["assigned", "confirmed"])
             ]
             if not day_assignments:
                 break
@@ -350,9 +309,9 @@ class Rule(Base):
         check_date = current_date + timedelta(days=1)
         while True:
             day_assignments = [
-                a for a in assignment.employee.schedule_assignments
-                if (a.shift.date == check_date and
-                    a.status in ["assigned", "confirmed"])
+                a
+                for a in assignment.employee.schedule_assignments
+                if (a.shift.date == check_date and a.status in ["assigned", "confirmed"])
             ]
             if not day_assignments:
                 break
@@ -372,9 +331,9 @@ class Rule(Base):
         # Check previous day's shifts
         previous_date = assignment.shift.date - timedelta(days=1)
         previous_assignments = [
-            a for a in assignment.employee.schedule_assignments
-            if (a.shift.date == previous_date and
-                a.status in ["assigned", "confirmed"])
+            a
+            for a in assignment.employee.schedule_assignments
+            if (a.shift.date == previous_date and a.status in ["assigned", "confirmed"])
         ]
 
         if previous_assignments:
@@ -409,7 +368,7 @@ class Rule(Base):
             "restriction": "Prohibits certain assignments",
             "overtime": "Limits overtime hours",
             "consecutive_days": "Limits consecutive working days",
-            "rest_period": "Ensures minimum rest between shifts"
+            "rest_period": "Ensures minimum rest between shifts",
         }
 
         return {
@@ -422,5 +381,5 @@ class Rule(Base):
             "active": self.active,
             "effective": self.is_effective,
             "violations": self.violation_count,
-            "constraints": self.constraints
+            "constraints": self.constraints,
         }

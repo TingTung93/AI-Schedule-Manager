@@ -1,6 +1,7 @@
 """
 Database configuration and session management for AI Schedule Manager
 """
+
 import os
 from typing import AsyncGenerator
 
@@ -10,10 +11,7 @@ from sqlalchemy.orm import DeclarativeBase
 from .models import Base
 
 # Database configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://postgres:password@localhost:5432/ai_schedule_manager"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/ai_schedule_manager")
 
 # Create async engine
 engine = create_async_engine(
@@ -114,5 +112,5 @@ __all__ = [
     "drop_tables",
     "close_db_connection",
     "DatabaseManager",
-    "Base"
+    "Base",
 ]

@@ -28,14 +28,12 @@ class EmailTemplateManager:
 
         # Create Jinja2 environment
         self.env = Environment(
-            loader=FileSystemLoader([
-                str(self.template_dir / 'html'),
-                str(self.template_dir / 'text'),
-                str(self.template_dir)
-            ]),
-            autoescape=select_autoescape(['html', 'xml']),
+            loader=FileSystemLoader(
+                [str(self.template_dir / "html"), str(self.template_dir / "text"), str(self.template_dir)]
+            ),
+            autoescape=select_autoescape(["html", "xml"]),
             trim_blocks=True,
-            lstrip_blocks=True
+            lstrip_blocks=True,
         )
 
         # Add custom filters
@@ -47,12 +45,12 @@ class EmailTemplateManager:
     def _add_custom_filters(self) -> None:
         """Add custom Jinja2 filters."""
 
-        @self.env.filter('datetime')
-        def datetime_filter(value, format='%Y-%m-%d %H:%M:%S'):
+        @self.env.filter("datetime")
+        def datetime_filter(value, format="%Y-%m-%d %H:%M:%S"):
             """Format datetime values."""
             if isinstance(value, str):
                 try:
-                    value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                    value = datetime.fromisoformat(value.replace("Z", "+00:00"))
                 except ValueError:
                     return value
 
@@ -60,46 +58,42 @@ class EmailTemplateManager:
                 return value.strftime(format)
             return value
 
-        @self.env.filter('currency')
-        def currency_filter(value, currency='USD'):
+        @self.env.filter("currency")
+        def currency_filter(value, currency="USD"):
             """Format currency values."""
             try:
                 return f"${float(value):,.2f}"
             except (ValueError, TypeError):
                 return value
 
-        @self.env.filter('capitalize_words')
+        @self.env.filter("capitalize_words")
         def capitalize_words_filter(value):
             """Capitalize each word."""
-            return ' '.join(word.capitalize() for word in str(value).split())
+            return " ".join(word.capitalize() for word in str(value).split())
 
-        @self.env.filter('truncate_words')
+        @self.env.filter("truncate_words")
         def truncate_words_filter(value, length=50):
             """Truncate to specific word count."""
             words = str(value).split()
             if len(words) <= length:
                 return value
-            return ' '.join(words[:length]) + '...'
+            return " ".join(words[:length]) + "..."
 
     def _ensure_directories(self) -> None:
         """Ensure template directories exist."""
         directories = [
             self.template_dir,
-            self.template_dir / 'html',
-            self.template_dir / 'text',
-            self.template_dir / 'layouts',
-            self.template_dir / 'partials'
+            self.template_dir / "html",
+            self.template_dir / "text",
+            self.template_dir / "layouts",
+            self.template_dir / "partials",
         ]
 
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)
 
     async def render_template(
-        self,
-        template_name: str,
-        variables: Dict[str, Any],
-        language: str = 'en',
-        content_type: str = 'html'
+        self, template_name: str, variables: Dict[str, Any], language: str = "en", content_type: str = "html"
     ) -> str:
         """Render template with variables."""
         try:
@@ -113,10 +107,10 @@ class EmailTemplateManager:
             template_vars = self._prepare_variables(variables)
 
             # Render template
-            if content_type == 'html' and template.html_content:
+            if content_type == "html" and template.html_content:
                 jinja_template = self.env.from_string(template.html_content)
                 return jinja_template.render(**template_vars)
-            elif content_type == 'text' and template.text_content:
+            elif content_type == "text" and template.text_content:
                 jinja_template = self.env.from_string(template.text_content)
                 return jinja_template.render(**template_vars)
             else:
@@ -144,30 +138,29 @@ class EmailTemplateManager:
         template_vars = variables.copy()
 
         # Add common variables
-        template_vars.update({
-            'current_year': datetime.now().year,
-            'current_date': datetime.now().strftime('%Y-%m-%d'),
-            'current_datetime': datetime.now(),
-            'app_name': 'AI Schedule Manager',
-            'support_email': 'support@aischedulemanager.com',
-            'website_url': 'https://aischedulemanager.com',
-        })
+        template_vars.update(
+            {
+                "current_year": datetime.now().year,
+                "current_date": datetime.now().strftime("%Y-%m-%d"),
+                "current_datetime": datetime.now(),
+                "app_name": "AI Schedule Manager",
+                "support_email": "support@aischedulemanager.com",
+                "website_url": "https://aischedulemanager.com",
+            }
+        )
 
         # Add utility functions
-        template_vars.update({
-            'format_date': lambda date: date.strftime('%B %d, %Y') if date else '',
-            'format_time': lambda time: time.strftime('%I:%M %p') if time else '',
-            'format_datetime': lambda dt: dt.strftime('%B %d, %Y at %I:%M %p') if dt else '',
-        })
+        template_vars.update(
+            {
+                "format_date": lambda date: date.strftime("%B %d, %Y") if date else "",
+                "format_time": lambda time: time.strftime("%I:%M %p") if time else "",
+                "format_datetime": lambda dt: dt.strftime("%B %d, %Y at %I:%M %p") if dt else "",
+            }
+        )
 
         return template_vars
 
-    async def _get_template(
-        self,
-        template_name: str,
-        language: str,
-        content_type: str
-    ) -> Optional[EmailTemplate]:
+    async def _get_template(self, template_name: str, language: str, content_type: str) -> Optional[EmailTemplate]:
         """Get template from cache or database."""
         cache_key = f"{template_name}:{language}:{content_type}"
 
@@ -177,11 +170,9 @@ class EmailTemplateManager:
             return template
 
         # Query database
-        template = self.db_session.query(EmailTemplate).filter_by(
-            name=template_name,
-            language=language,
-            is_active=True
-        ).first()
+        template = (
+            self.db_session.query(EmailTemplate).filter_by(name=template_name, language=language, is_active=True).first()
+        )
 
         if template:
             self.cache.set(cache_key, template)
@@ -201,18 +192,15 @@ class EmailTemplateManager:
         subject: str,
         html_content: str,
         text_content: Optional[str] = None,
-        template_type: str = 'custom',
-        language: str = 'en',
+        template_type: str = "custom",
+        language: str = "en",
         variables: Optional[Dict[str, Any]] = None,
-        created_by: Optional[int] = None
+        created_by: Optional[int] = None,
     ) -> EmailTemplate:
         """Create new email template."""
         try:
             # Check if template already exists
-            existing = self.db_session.query(EmailTemplate).filter_by(
-                name=name,
-                language=language
-            ).first()
+            existing = self.db_session.query(EmailTemplate).filter_by(name=name, language=language).first()
 
             if existing:
                 raise ValueError(f"Template '{name}' already exists for language '{language}'")
@@ -228,7 +216,7 @@ class EmailTemplateManager:
                 variables=variables or {},
                 created_by=created_by,
                 created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc)
+                updated_at=datetime.now(timezone.utc),
             )
 
             self.db_session.add(template)
@@ -245,11 +233,7 @@ class EmailTemplateManager:
             logger.error(f"Failed to create template: {e}")
             raise
 
-    async def update_template(
-        self,
-        template_id: int,
-        **updates
-    ) -> EmailTemplate:
+    async def update_template(self, template_id: int, **updates) -> EmailTemplate:
         """Update existing email template."""
         try:
             template = self.db_session.query(EmailTemplate).get(template_id)
@@ -277,23 +261,16 @@ class EmailTemplateManager:
             logger.error(f"Failed to update template: {e}")
             raise
 
-    async def get_template_by_type(
-        self,
-        template_type: str,
-        language: str = 'en'
-    ) -> Optional[EmailTemplate]:
+    async def get_template_by_type(self, template_type: str, language: str = "en") -> Optional[EmailTemplate]:
         """Get template by type and language."""
-        return self.db_session.query(EmailTemplate).filter_by(
-            template_type=template_type,
-            language=language,
-            is_active=True
-        ).first()
+        return (
+            self.db_session.query(EmailTemplate)
+            .filter_by(template_type=template_type, language=language, is_active=True)
+            .first()
+        )
 
     async def list_templates(
-        self,
-        template_type: Optional[str] = None,
-        language: Optional[str] = None,
-        is_active: Optional[bool] = None
+        self, template_type: Optional[str] = None, language: Optional[str] = None, is_active: Optional[bool] = None
     ) -> List[EmailTemplate]:
         """List email templates with optional filtering."""
         query = self.db_session.query(EmailTemplate)
@@ -328,35 +305,19 @@ class EmailTemplateManager:
             logger.error(f"Failed to delete template: {e}")
             raise
 
-    async def preview_template(
-        self,
-        template_name: str,
-        variables: Dict[str, Any],
-        language: str = 'en'
-    ) -> Dict[str, str]:
+    async def preview_template(self, template_name: str, variables: Dict[str, Any], language: str = "en") -> Dict[str, str]:
         """Preview template with sample data."""
         try:
-            html_content = await self.render_template(
-                template_name, variables, language, 'html'
-            )
-            text_content = await self.render_template(
-                template_name, variables, language, 'text'
-            )
+            html_content = await self.render_template(template_name, variables, language, "html")
+            text_content = await self.render_template(template_name, variables, language, "text")
 
-            return {
-                'html': html_content,
-                'text': text_content
-            }
+            return {"html": html_content, "text": text_content}
 
         except Exception as e:
             logger.error(f"Template preview error: {e}")
             raise
 
-    async def validate_template_syntax(
-        self,
-        html_content: str,
-        text_content: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def validate_template_syntax(self, html_content: str, text_content: Optional[str] = None) -> Dict[str, Any]:
         """Validate template syntax."""
         errors = []
         warnings = []
@@ -384,8 +345,4 @@ class EmailTemplateManager:
             except Exception as e:
                 warnings.append(f"Text template warning: {str(e)}")
 
-        return {
-            'valid': len(errors) == 0,
-            'errors': errors,
-            'warnings': warnings
-        }
+        return {"valid": len(errors) == 0, "errors": errors, "warnings": warnings}

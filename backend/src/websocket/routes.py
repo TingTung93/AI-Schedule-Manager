@@ -19,11 +19,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 security = HTTPBearer()
 
+
 @router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
     token: str = Query(..., description="JWT authentication token"),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_session),
 ):
     """Main WebSocket endpoint for real-time communication"""
     connection_id = str(uuid.uuid4())
@@ -44,12 +45,10 @@ async def websocket_endpoint(
         logger.info(f"WebSocket connected: User {user.id}, Connection {connection_id}")
 
         # Send welcome message
-        await manager.send_message(connection_id, {
-            "type": "connected",
-            "connection_id": connection_id,
-            "user_id": user.id,
-            "message": "Connected successfully"
-        })
+        await manager.send_message(
+            connection_id,
+            {"type": "connected", "connection_id": connection_id, "user_id": user.id, "message": "Connected successfully"},
+        )
 
         # Message handling loop
         while True:
@@ -63,26 +62,17 @@ async def websocket_endpoint(
                 event_data = message.get("data", {})
 
                 if not event_type:
-                    await manager.send_message(connection_id, {
-                        "type": "error",
-                        "message": "Event type required"
-                    })
+                    await manager.send_message(connection_id, {"type": "error", "message": "Event type required"})
                     continue
 
                 # Handle the event
                 await EventHandler.handle_event(connection_id, event_type, event_data)
 
             except json.JSONDecodeError:
-                await manager.send_message(connection_id, {
-                    "type": "error",
-                    "message": "Invalid JSON format"
-                })
+                await manager.send_message(connection_id, {"type": "error", "message": "Invalid JSON format"})
             except Exception as e:
                 logger.error(f"Error processing message from {connection_id}: {e}")
-                await manager.send_message(connection_id, {
-                    "type": "error",
-                    "message": "Error processing message"
-                })
+                await manager.send_message(connection_id, {"type": "error", "message": "Error processing message"})
 
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected: Connection {connection_id}")
@@ -92,67 +82,52 @@ async def websocket_endpoint(
         # Clean up connection
         await manager.disconnect(connection_id)
 
+
 @router.get("/ws/stats")
 async def get_websocket_stats():
     """Get WebSocket connection statistics"""
     try:
         stats = manager.get_connection_stats()
-        return {
-            "success": True,
-            "data": stats
-        }
+        return {"success": True, "data": stats}
     except Exception as e:
         logger.error(f"Error getting WebSocket stats: {e}")
         raise HTTPException(status_code=500, detail="Failed to get stats")
+
 
 @router.get("/ws/rooms/{room_name}/members")
 async def get_room_members(room_name: str):
     """Get members in a specific room"""
     try:
         members = manager.get_room_members(room_name)
-        return {
-            "success": True,
-            "room": room_name,
-            "members": members,
-            "count": len(members)
-        }
+        return {"success": True, "room": room_name, "members": members, "count": len(members)}
     except Exception as e:
         logger.error(f"Error getting room members for {room_name}: {e}")
         raise HTTPException(status_code=500, detail="Failed to get room members")
+
 
 @router.get("/ws/online-users")
 async def get_online_users():
     """Get list of online users"""
     try:
         online_users = manager.get_online_users()
-        return {
-            "success": True,
-            "online_users": online_users,
-            "count": len(online_users)
-        }
+        return {"success": True, "online_users": online_users, "count": len(online_users)}
     except Exception as e:
         logger.error(f"Error getting online users: {e}")
         raise HTTPException(status_code=500, detail="Failed to get online users")
 
+
 @router.post("/ws/broadcast/{room_name}")
-async def broadcast_to_room(
-    room_name: str,
-    message: dict,
-    exclude_connections: Optional[list] = None
-):
+async def broadcast_to_room(room_name: str, message: dict, exclude_connections: Optional[list] = None):
     """Broadcast message to specific room (admin endpoint)"""
     try:
         exclude_set = set(exclude_connections) if exclude_connections else None
         await manager.broadcast_to_room(room_name, message, exclude=exclude_set)
 
-        return {
-            "success": True,
-            "message": "Broadcast sent successfully",
-            "room": room_name
-        }
+        return {"success": True, "message": "Broadcast sent successfully", "room": room_name}
     except Exception as e:
         logger.error(f"Error broadcasting to room {room_name}: {e}")
         raise HTTPException(status_code=500, detail="Failed to broadcast message")
+
 
 @router.post("/ws/send-to-user/{user_id}")
 async def send_to_user(user_id: int, message: dict):
@@ -160,14 +135,11 @@ async def send_to_user(user_id: int, message: dict):
     try:
         await manager.send_personal_message(message, user_id)
 
-        return {
-            "success": True,
-            "message": "Message sent successfully",
-            "user_id": user_id
-        }
+        return {"success": True, "message": "Message sent successfully", "user_id": user_id}
     except Exception as e:
         logger.error(f"Error sending message to user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to send message")
+
 
 @router.delete("/ws/connections/{connection_id}")
 async def disconnect_connection(connection_id: str):
@@ -175,15 +147,13 @@ async def disconnect_connection(connection_id: str):
     try:
         if connection_id in manager.active_connections:
             await manager.disconnect(connection_id)
-            return {
-                "success": True,
-                "message": "Connection disconnected successfully"
-            }
+            return {"success": True, "message": "Connection disconnected successfully"}
         else:
             raise HTTPException(status_code=404, detail="Connection not found")
     except Exception as e:
         logger.error(f"Error disconnecting connection {connection_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to disconnect connection")
+
 
 # Health check endpoint
 @router.get("/ws/health")
@@ -195,11 +165,8 @@ async def websocket_health():
             "status": "healthy",
             "timestamp": "2025-09-16T01:01:14.989Z",
             "connections": stats["total_connections"],
-            "rooms": len(stats["rooms"])
+            "rooms": len(stats["rooms"]),
         }
     except Exception as e:
         logger.error(f"WebSocket health check failed: {e}")
-        return {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        return {"status": "unhealthy", "error": str(e)}

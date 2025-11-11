@@ -16,12 +16,13 @@ from .validators import (
     validate_constraints,
     validate_time_format,
     validate_time_range,
-    validate_password_strength
+    validate_password_strength,
 )
 
 
 class EmployeeRole(str, Enum):
     """Employee role enumeration."""
+
     MANAGER = "manager"
     SUPERVISOR = "supervisor"
     SERVER = "server"
@@ -33,6 +34,7 @@ class EmployeeRole(str, Enum):
 
 class RuleType(str, Enum):
     """Rule type enumeration."""
+
     AVAILABILITY = "availability"
     PREFERENCE = "preference"
     REQUIREMENT = "requirement"
@@ -41,6 +43,7 @@ class RuleType(str, Enum):
 
 class ScheduleStatus(str, Enum):
     """Schedule status enumeration."""
+
     SCHEDULED = "scheduled"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
@@ -49,6 +52,7 @@ class ScheduleStatus(str, Enum):
 
 class NotificationType(str, Enum):
     """Notification type enumeration."""
+
     SCHEDULE = "schedule"
     REQUEST = "request"
     REMINDER = "reminder"
@@ -57,6 +61,7 @@ class NotificationType(str, Enum):
 
 class Priority(str, Enum):
     """Priority enumeration."""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -66,6 +71,7 @@ class Priority(str, Enum):
 # Base schemas
 class PaginatedResponse(BaseModel):
     """Base paginated response."""
+
     items: List[Any]
     total: int
     page: int
@@ -76,6 +82,7 @@ class PaginatedResponse(BaseModel):
 # Employee schemas
 class EmployeeBase(BaseModel):
     """Base employee schema."""
+
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     role: EmployeeRole
@@ -89,11 +96,13 @@ class EmployeeBase(BaseModel):
 
 class EmployeeCreate(EmployeeBase):
     """Employee creation schema."""
+
     pass
 
 
 class EmployeeUpdate(BaseModel):
     """Employee update schema."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[EmailStr] = None
     role: Optional[EmployeeRole] = None
@@ -107,6 +116,7 @@ class EmployeeUpdate(BaseModel):
 
 class EmployeeResponse(EmployeeBase):
     """Employee response schema."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -117,6 +127,7 @@ class EmployeeResponse(EmployeeBase):
 # Rule schemas
 class RuleBase(BaseModel):
     """Base rule schema."""
+
     rule_type: RuleType
     original_text: str = Field(..., min_length=1)
     constraints: Dict[str, Any] = Field(default_factory=dict)
@@ -127,11 +138,13 @@ class RuleBase(BaseModel):
 
 class RuleCreate(RuleBase):
     """Rule creation schema."""
+
     pass
 
 
 class RuleUpdate(BaseModel):
     """Rule update schema."""
+
     rule_type: Optional[RuleType] = None
     original_text: Optional[str] = Field(None, min_length=1)
     constraints: Optional[Dict[str, Any]] = None
@@ -142,6 +155,7 @@ class RuleUpdate(BaseModel):
 
 class RuleResponse(RuleBase):
     """Rule response schema."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -152,12 +166,14 @@ class RuleResponse(RuleBase):
 
 class RuleParseRequest(BaseModel):
     """Rule parsing request schema."""
+
     rule_text: str = Field(..., min_length=1)
 
 
 # Shift schemas
 class ShiftBase(BaseModel):
     """Base shift schema."""
+
     name: str = Field(..., min_length=1, max_length=100)
     shift_type: str = Field(..., min_length=1, max_length=50)
     start_time: time
@@ -171,11 +187,13 @@ class ShiftBase(BaseModel):
 
 class ShiftCreate(ShiftBase):
     """Shift creation schema."""
+
     pass
 
 
 class ShiftUpdate(BaseModel):
     """Shift update schema."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     shift_type: Optional[str] = Field(None, min_length=1, max_length=50)
     start_time: Optional[time] = None
@@ -189,6 +207,7 @@ class ShiftUpdate(BaseModel):
 
 class ShiftResponse(ShiftBase):
     """Shift response schema."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -199,6 +218,7 @@ class ShiftResponse(ShiftBase):
 # Schedule schemas
 class ScheduleBase(BaseModel):
     """Base schedule schema."""
+
     employee_id: int
     shift_id: int
     date: date
@@ -209,11 +229,13 @@ class ScheduleBase(BaseModel):
 
 class ScheduleCreate(ScheduleBase):
     """Schedule creation schema."""
+
     pass
 
 
 class ScheduleUpdate(BaseModel):
     """Schedule update schema."""
+
     employee_id: Optional[int] = None
     shift_id: Optional[int] = None
     date: Optional[date] = None
@@ -224,6 +246,7 @@ class ScheduleUpdate(BaseModel):
 
 class ScheduleResponse(ScheduleBase):
     """Schedule response schema."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -236,6 +259,7 @@ class ScheduleResponse(ScheduleBase):
 # Notification schemas
 class NotificationBase(BaseModel):
     """Base notification schema."""
+
     employee_id: Optional[int] = None
     notification_type: NotificationType
     title: str = Field(..., min_length=1, max_length=255)
@@ -247,11 +271,13 @@ class NotificationBase(BaseModel):
 
 class NotificationCreate(NotificationBase):
     """Notification creation schema."""
+
     pass
 
 
 class NotificationUpdate(BaseModel):
     """Notification update schema."""
+
     read: Optional[bool] = None
     priority: Optional[Priority] = None
     metadata: Optional[Dict[str, Any]] = None
@@ -259,6 +285,7 @@ class NotificationUpdate(BaseModel):
 
 class NotificationResponse(NotificationBase):
     """Notification response schema."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -270,6 +297,7 @@ class NotificationResponse(NotificationBase):
 # Schedule generation schemas
 class ScheduleGenerateRequest(BaseModel):
     """Schedule generation request schema."""
+
     start_date: date
     end_date: date
     template_id: Optional[int] = None
@@ -278,6 +306,7 @@ class ScheduleGenerateRequest(BaseModel):
 
 class ScheduleOptimizeRequest(BaseModel):
     """Schedule optimization request schema."""
+
     schedule_ids: List[int]
     optimization_goals: Optional[List[str]] = Field(default_factory=lambda: ["cost", "coverage", "satisfaction"])
 
@@ -285,12 +314,14 @@ class ScheduleOptimizeRequest(BaseModel):
 # Authentication schemas
 class LoginRequest(BaseModel):
     """Login request schema."""
+
     email: EmailStr
     password: str = Field(..., min_length=1)
 
 
 class TokenResponse(BaseModel):
     """Token response schema."""
+
     access_token: str
     token_type: str = "bearer"
     user: Dict[str, Any]
@@ -299,6 +330,7 @@ class TokenResponse(BaseModel):
 # Analytics schemas
 class AnalyticsOverview(BaseModel):
     """Analytics overview schema."""
+
     total_employees: int
     total_rules: int
     total_schedules: int
@@ -310,6 +342,7 @@ class AnalyticsOverview(BaseModel):
 # Query parameter schemas
 class EmployeeFilters(BaseModel):
     """Employee query filters."""
+
     role: Optional[EmployeeRole] = None
     active: Optional[bool] = None
     search: Optional[str] = None
@@ -321,6 +354,7 @@ class EmployeeFilters(BaseModel):
 
 class RuleFilters(BaseModel):
     """Rule query filters."""
+
     rule_type: Optional[RuleType] = None
     employee_id: Optional[int] = None
     active: Optional[bool] = None
@@ -332,6 +366,7 @@ class RuleFilters(BaseModel):
 
 class ScheduleFilters(BaseModel):
     """Schedule query filters."""
+
     employee_id: Optional[int] = None
     shift_id: Optional[int] = None
     date_from: Optional[date] = None
@@ -345,6 +380,7 @@ class ScheduleFilters(BaseModel):
 
 class NotificationFilters(BaseModel):
     """Notification query filters."""
+
     employee_id: Optional[int] = None
     notification_type: Optional[NotificationType] = None
     read: Optional[bool] = None
@@ -354,9 +390,11 @@ class NotificationFilters(BaseModel):
     sort_by: Optional[str] = "created_at"
     sort_order: Optional[str] = Field("desc", regex="^(asc|desc)$")
 
+
 # Analytics response models
 class AnalyticsOverviewResponse(BaseModel):
     """Analytics overview response."""
+
     totalEmployees: int = Field(..., description="Total number of active employees")
     totalSchedules: int = Field(..., description="Total number of published/approved schedules")
     totalHours: float = Field(..., description="Total hours worked across all shifts")
@@ -368,6 +406,7 @@ class AnalyticsOverviewResponse(BaseModel):
 
 class LaborCostData(BaseModel):
     """Labor cost data point."""
+
     date: str = Field(..., description="Date in ISO format")
     cost: float = Field(..., description="Labor cost for the date")
     hours: float = Field(..., description="Total hours for the date")
@@ -377,6 +416,7 @@ class LaborCostData(BaseModel):
 
 class LaborCostsResponse(BaseModel):
     """Labor costs response."""
+
     data: List[LaborCostData] = Field(..., description="Daily labor cost data")
     total: float = Field(..., description="Total labor cost for the period")
     average: float = Field(..., description="Average daily labor cost")
@@ -386,6 +426,7 @@ class LaborCostsResponse(BaseModel):
 
 class PerformanceMetricsResponse(BaseModel):
     """Employee performance metrics response."""
+
     averageRating: float = Field(..., description="Average employee rating (1-5 scale)")
     completionRate: float = Field(..., description="Percentage of completed shifts")
     punctuality: float = Field(..., description="Percentage of non-declined shifts")
@@ -395,6 +436,7 @@ class PerformanceMetricsResponse(BaseModel):
 
 class EfficiencyMetricsResponse(BaseModel):
     """Schedule efficiency metrics response."""
+
     utilizationRate: float = Field(..., description="Percentage of shifts with assignments")
     schedulingAccuracy: float = Field(..., description="Percentage of confirmed/completed assignments")
     costEfficiency: float = Field(..., description="Percentage of fully staffed shifts")
@@ -405,6 +447,7 @@ class EfficiencyMetricsResponse(BaseModel):
 # Settings response models
 class NotificationSettings(BaseModel):
     """Notification settings."""
+
     email: bool = True
     push: bool = False
     scheduleReminders: bool = True
@@ -415,6 +458,7 @@ class NotificationSettings(BaseModel):
 
 class AppearanceSettings(BaseModel):
     """Appearance settings."""
+
     theme: str = "light"
     language: str = "en"
     timezone: str = "America/New_York"
@@ -424,6 +468,7 @@ class AppearanceSettings(BaseModel):
 
 class SchedulingSettings(BaseModel):
     """Scheduling preferences."""
+
     defaultShiftLength: int = 8
     maxOvertimeHours: int = 10
     breakDuration: int = 30
@@ -434,6 +479,7 @@ class SchedulingSettings(BaseModel):
 
 class SecuritySettings(BaseModel):
     """Security settings."""
+
     twoFactorAuth: bool = False
     sessionTimeout: int = 60
 
@@ -442,6 +488,7 @@ class SecuritySettings(BaseModel):
 
 class UserSettingsResponse(BaseModel):
     """User settings response."""
+
     notifications: NotificationSettings
     appearance: AppearanceSettings
     scheduling: SchedulingSettings
@@ -452,6 +499,7 @@ class UserSettingsResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     """Generic message response."""
+
     message: str = Field(..., description="Response message")
     success: bool = Field(True, description="Whether the operation was successful")
 
@@ -460,6 +508,7 @@ class MessageResponse(BaseModel):
 
 class SettingsUpdateResponse(BaseModel):
     """Response for settings update operation."""
+
     message: str = Field(..., description="Success message")
     settings: UserSettingsResponse = Field(..., description="Updated settings")
 

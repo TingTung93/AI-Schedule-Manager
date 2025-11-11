@@ -24,6 +24,7 @@ class TestBaseModels:
 
     def test_timestamp_mixin(self):
         """Test timestamp mixin functionality."""
+
         class TestModel(TimestampMixin):
             pass
 
@@ -31,8 +32,8 @@ class TestBaseModels:
         now = datetime.utcnow()
 
         # Test created_at is set
-        assert hasattr(model, 'created_at')
-        assert hasattr(model, 'updated_at')
+        assert hasattr(model, "created_at")
+        assert hasattr(model, "updated_at")
 
         # In a real scenario, these would be set by database
         model.created_at = now
@@ -43,6 +44,7 @@ class TestBaseModels:
 
     def test_soft_delete_mixin(self):
         """Test soft delete mixin functionality."""
+
         class TestModel(SoftDeleteMixin):
             pass
 
@@ -60,10 +62,7 @@ class TestBaseModels:
 
     def test_model_repr(self):
         """Test model string representation."""
-        employee = Employee(
-            name="John Doe",
-            email="john@example.com"
-        )
+        employee = Employee(name="John Doe", email="john@example.com")
 
         repr_str = repr(employee)
         assert "Employee" in repr_str
@@ -88,11 +87,7 @@ class TestEmployeeModel:
             "max_hours_week": 40,
             "preferred_shifts": ["morning", "afternoon"],
             "skills": ["customer_service", "cash_handling"],
-            "emergency_contact": {
-                "name": "John Johnson",
-                "phone": "+1-555-0124",
-                "relationship": "spouse"
-            }
+            "emergency_contact": {"name": "John Johnson", "phone": "+1-555-0124", "relationship": "spouse"},
         }
 
     def test_employee_creation(self, sample_employee_data):
@@ -108,23 +103,14 @@ class TestEmployeeModel:
     def test_employee_email_validation(self):
         """Test email validation."""
         # Valid emails should work
-        valid_emails = [
-            "test@example.com",
-            "user.name+tag@example.co.uk",
-            "admin@company-name.org"
-        ]
+        valid_emails = ["test@example.com", "user.name+tag@example.co.uk", "admin@company-name.org"]
 
         for email in valid_emails:
             employee = Employee(name="Test", email=email)
             assert employee.email == email
 
         # Invalid emails should raise validation error
-        invalid_emails = [
-            "invalid-email",
-            "@example.com",
-            "test@",
-            "test space@example.com"
-        ]
+        invalid_emails = ["invalid-email", "@example.com", "test@", "test space@example.com"]
 
         for email in invalid_emails:
             with pytest.raises((ValueError, ValidationError)):
@@ -132,12 +118,7 @@ class TestEmployeeModel:
 
     def test_employee_phone_validation(self):
         """Test phone number validation."""
-        valid_phones = [
-            "+1-555-0123",
-            "(555) 123-4567",
-            "555.123.4567",
-            "+44 20 7946 0958"
-        ]
+        valid_phones = ["+1-555-0123", "(555) 123-4567", "555.123.4567", "+44 20 7946 0958"]
 
         for phone in valid_phones:
             employee = Employee(name="Test", email="test@example.com", phone=phone)
@@ -146,78 +127,44 @@ class TestEmployeeModel:
     def test_employee_hourly_rate_validation(self):
         """Test hourly rate validation."""
         # Valid rates
-        employee = Employee(
-            name="Test",
-            email="test@example.com",
-            hourly_rate=Decimal("15.50")
-        )
+        employee = Employee(name="Test", email="test@example.com", hourly_rate=Decimal("15.50"))
         assert employee.hourly_rate == Decimal("15.50")
 
         # Negative rate should fail
         with pytest.raises((ValueError, ValidationError)):
-            Employee(
-                name="Test",
-                email="test@example.com",
-                hourly_rate=Decimal("-5.00")
-            )
+            Employee(name="Test", email="test@example.com", hourly_rate=Decimal("-5.00"))
 
         # Zero rate should be allowed (volunteers)
-        employee_volunteer = Employee(
-            name="Volunteer",
-            email="volunteer@example.com",
-            hourly_rate=Decimal("0.00")
-        )
+        employee_volunteer = Employee(name="Volunteer", email="volunteer@example.com", hourly_rate=Decimal("0.00"))
         assert employee_volunteer.hourly_rate == Decimal("0.00")
 
     def test_employee_hours_validation(self):
         """Test min/max hours validation."""
         # Valid hours
-        employee = Employee(
-            name="Test",
-            email="test@example.com",
-            min_hours_week=20,
-            max_hours_week=40
-        )
+        employee = Employee(name="Test", email="test@example.com", min_hours_week=20, max_hours_week=40)
         assert employee.min_hours_week == 20
         assert employee.max_hours_week == 40
 
         # Min hours greater than max should fail
         with pytest.raises((ValueError, ValidationError)):
-            Employee(
-                name="Test",
-                email="test@example.com",
-                min_hours_week=40,
-                max_hours_week=20
-            )
+            Employee(name="Test", email="test@example.com", min_hours_week=40, max_hours_week=20)
 
     def test_employee_full_name_property(self):
         """Test full name property."""
-        employee = Employee(
-            name="John Michael Doe",
-            email="john@example.com"
-        )
+        employee = Employee(name="John Michael Doe", email="john@example.com")
         assert employee.full_name == "John Michael Doe"
 
     def test_employee_weekly_cost_calculation(self):
         """Test weekly cost calculation."""
-        employee = Employee(
-            name="Test",
-            email="test@example.com",
-            hourly_rate=Decimal("15.00"),
-            max_hours_week=40
-        )
+        employee = Employee(name="Test", email="test@example.com", hourly_rate=Decimal("15.00"), max_hours_week=40)
 
         max_weekly_cost = employee.calculate_max_weekly_cost()
         assert max_weekly_cost == Decimal("600.00")  # 40 * 15.00
 
     def test_employee_age_calculation(self):
         """Test age calculation from birth date."""
-        birth_date = datetime.utcnow().date() - timedelta(days=25*365)  # 25 years ago
-        employee = Employee(
-            name="Test",
-            email="test@example.com",
-            birth_date=birth_date
-        )
+        birth_date = datetime.utcnow().date() - timedelta(days=25 * 365)  # 25 years ago
+        employee = Employee(name="Test", email="test@example.com", birth_date=birth_date)
 
         age = employee.calculate_age()
         assert 24 <= age <= 26  # Allow for leap years and timing
@@ -229,11 +176,7 @@ class TestEmployeeAvailabilityModel:
     def test_availability_creation(self):
         """Test creating availability record."""
         availability = EmployeeAvailability(
-            employee_id="emp-123",
-            day_of_week=1,  # Monday
-            start_time=time(9, 0),
-            end_time=time(17, 0),
-            is_available=True
+            employee_id="emp-123", day_of_week=1, start_time=time(9, 0), end_time=time(17, 0), is_available=True  # Monday
         )
 
         assert availability.day_of_week == 1
@@ -244,32 +187,19 @@ class TestEmployeeAvailabilityModel:
     def test_availability_time_validation(self):
         """Test time validation in availability."""
         # Valid times
-        availability = EmployeeAvailability(
-            employee_id="emp-123",
-            day_of_week=1,
-            start_time=time(9, 0),
-            end_time=time(17, 0)
-        )
+        availability = EmployeeAvailability(employee_id="emp-123", day_of_week=1, start_time=time(9, 0), end_time=time(17, 0))
         assert availability.start_time < availability.end_time
 
         # Invalid: end time before start time
         with pytest.raises((ValueError, ValidationError)):
-            EmployeeAvailability(
-                employee_id="emp-123",
-                day_of_week=1,
-                start_time=time(17, 0),
-                end_time=time(9, 0)
-            )
+            EmployeeAvailability(employee_id="emp-123", day_of_week=1, start_time=time(17, 0), end_time=time(9, 0))
 
     def test_day_of_week_validation(self):
         """Test day of week validation (0-6)."""
         # Valid days
         for day in range(7):
             availability = EmployeeAvailability(
-                employee_id="emp-123",
-                day_of_week=day,
-                start_time=time(9, 0),
-                end_time=time(17, 0)
+                employee_id="emp-123", day_of_week=day, start_time=time(9, 0), end_time=time(17, 0)
             )
             assert availability.day_of_week == day
 
@@ -277,10 +207,7 @@ class TestEmployeeAvailabilityModel:
         for invalid_day in [-1, 7, 8]:
             with pytest.raises((ValueError, ValidationError)):
                 EmployeeAvailability(
-                    employee_id="emp-123",
-                    day_of_week=invalid_day,
-                    start_time=time(9, 0),
-                    end_time=time(17, 0)
+                    employee_id="emp-123", day_of_week=invalid_day, start_time=time(9, 0), end_time=time(17, 0)
                 )
 
 
@@ -294,7 +221,7 @@ class TestScheduleModel:
             start_date=datetime(2024, 1, 15).date(),
             end_date=datetime(2024, 1, 21).date(),
             status="draft",
-            created_by="manager-123"
+            created_by="manager-123",
         )
 
         assert schedule.name == "Week of Jan 15-21"
@@ -305,19 +232,13 @@ class TestScheduleModel:
         """Test schedule date validation."""
         # Valid dates
         schedule = Schedule(
-            name="Test Schedule",
-            start_date=datetime(2024, 1, 15).date(),
-            end_date=datetime(2024, 1, 21).date()
+            name="Test Schedule", start_date=datetime(2024, 1, 15).date(), end_date=datetime(2024, 1, 21).date()
         )
         assert schedule.start_date < schedule.end_date
 
         # Invalid: end date before start date
         with pytest.raises((ValueError, ValidationError)):
-            Schedule(
-                name="Invalid Schedule",
-                start_date=datetime(2024, 1, 21).date(),
-                end_date=datetime(2024, 1, 15).date()
-            )
+            Schedule(name="Invalid Schedule", start_date=datetime(2024, 1, 21).date(), end_date=datetime(2024, 1, 15).date())
 
     def test_schedule_status_validation(self):
         """Test schedule status validation."""
@@ -325,10 +246,7 @@ class TestScheduleModel:
 
         for status in valid_statuses:
             schedule = Schedule(
-                name="Test",
-                start_date=datetime(2024, 1, 15).date(),
-                end_date=datetime(2024, 1, 21).date(),
-                status=status
+                name="Test", start_date=datetime(2024, 1, 15).date(), end_date=datetime(2024, 1, 21).date(), status=status
             )
             assert schedule.status == status
 
@@ -338,16 +256,12 @@ class TestScheduleModel:
                 name="Test",
                 start_date=datetime(2024, 1, 15).date(),
                 end_date=datetime(2024, 1, 21).date(),
-                status="invalid_status"
+                status="invalid_status",
             )
 
     def test_schedule_duration_calculation(self):
         """Test schedule duration calculation."""
-        schedule = Schedule(
-            name="Test",
-            start_date=datetime(2024, 1, 15).date(),
-            end_date=datetime(2024, 1, 21).date()
-        )
+        schedule = Schedule(name="Test", start_date=datetime(2024, 1, 15).date(), end_date=datetime(2024, 1, 21).date())
 
         duration = schedule.calculate_duration()
         assert duration.days == 6  # 7 days inclusive minus 1
@@ -365,7 +279,7 @@ class TestShiftModel:
             end_time=time(17, 0),
             position="Server",
             required_employees=2,
-            min_skill_level=3
+            min_skill_level=3,
         )
 
         assert shift.position == "Server"
@@ -380,7 +294,7 @@ class TestShiftModel:
             date=datetime(2024, 1, 15).date(),
             start_time=time(9, 0),
             end_time=time(17, 0),
-            position="Server"
+            position="Server",
         )
         assert shift.start_time < shift.end_time
 
@@ -391,7 +305,7 @@ class TestShiftModel:
                 date=datetime(2024, 1, 15).date(),
                 start_time=time(17, 0),
                 end_time=time(9, 0),
-                position="Server"
+                position="Server",
             )
 
     def test_shift_duration_calculation(self):
@@ -401,7 +315,7 @@ class TestShiftModel:
             date=datetime(2024, 1, 15).date(),
             start_time=time(9, 0),
             end_time=time(17, 0),
-            position="Server"
+            position="Server",
         )
 
         duration = shift.calculate_duration()
@@ -415,7 +329,7 @@ class TestShiftModel:
             start_time=time(9, 0),
             end_time=time(17, 0),
             position="Server",
-            break_duration_minutes=30
+            break_duration_minutes=30,
         )
 
         paid_duration = shift.calculate_paid_duration()
@@ -434,7 +348,7 @@ class TestRuleModel:
             rule_type="availability",
             employee_id="emp-123",
             priority=10,
-            is_active=True
+            is_active=True,
         )
 
         assert rule.name == "No evening shifts"
@@ -447,38 +361,24 @@ class TestRuleModel:
         valid_types = ["availability", "preference", "requirement", "restriction"]
 
         for rule_type in valid_types:
-            rule = Rule(
-                name="Test Rule",
-                rule_type=rule_type
-            )
+            rule = Rule(name="Test Rule", rule_type=rule_type)
             assert rule.rule_type == rule_type
 
         # Invalid type
         with pytest.raises((ValueError, ValidationError)):
-            Rule(
-                name="Test Rule",
-                rule_type="invalid_type"
-            )
+            Rule(name="Test Rule", rule_type="invalid_type")
 
     def test_rule_priority_validation(self):
         """Test rule priority validation."""
         # Valid priorities (1-10)
         for priority in range(1, 11):
-            rule = Rule(
-                name="Test Rule",
-                rule_type="availability",
-                priority=priority
-            )
+            rule = Rule(name="Test Rule", rule_type="availability", priority=priority)
             assert rule.priority == priority
 
         # Invalid priorities
         for invalid_priority in [0, 11, -1]:
             with pytest.raises((ValueError, ValidationError)):
-                Rule(
-                    name="Test Rule",
-                    rule_type="availability",
-                    priority=invalid_priority
-                )
+                Rule(name="Test Rule", rule_type="availability", priority=invalid_priority)
 
 
 class TestConstraintModel:
@@ -488,12 +388,8 @@ class TestConstraintModel:
         """Test creating constraint."""
         constraint = Constraint(
             constraint_type="time_restriction",
-            parameters={
-                "start_time": "09:00",
-                "end_time": "17:00",
-                "days": ["monday", "tuesday", "wednesday"]
-            },
-            description="Cannot work after 5pm on weekdays"
+            parameters={"start_time": "09:00", "end_time": "17:00", "days": ["monday", "tuesday", "wednesday"]},
+            description="Cannot work after 5pm on weekdays",
         )
 
         assert constraint.constraint_type == "time_restriction"
@@ -508,37 +404,25 @@ class TestConstraintModel:
             "skill_requirement",
             "max_hours",
             "min_hours",
-            "break_requirement"
+            "break_requirement",
         ]
 
         for constraint_type in valid_types:
-            constraint = Constraint(
-                constraint_type=constraint_type,
-                parameters={}
-            )
+            constraint = Constraint(constraint_type=constraint_type, parameters={})
             assert constraint.constraint_type == constraint_type
 
     def test_constraint_parameters_validation(self):
         """Test constraint parameters validation."""
         # Time restriction parameters
         time_constraint = Constraint(
-            constraint_type="time_restriction",
-            parameters={
-                "start_time": "09:00",
-                "end_time": "17:00"
-            }
+            constraint_type="time_restriction", parameters={"start_time": "09:00", "end_time": "17:00"}
         )
 
         assert time_constraint.parameters["start_time"] == "09:00"
 
         # Invalid time format should be caught by validation
         with pytest.raises((ValueError, ValidationError)):
-            Constraint(
-                constraint_type="time_restriction",
-                parameters={
-                    "start_time": "invalid_time"
-                }
-            )
+            Constraint(constraint_type="time_restriction", parameters={"start_time": "invalid_time"})
 
 
 class TestModelRelationships:
@@ -553,16 +437,10 @@ class TestModelRelationships:
 
     async def test_employee_availability_relationship(self, db_session):
         """Test Employee -> EmployeeAvailability relationship."""
-        employee = Employee(
-            name="Test Employee",
-            email="test@example.com"
-        )
+        employee = Employee(name="Test Employee", email="test@example.com")
 
         availability = EmployeeAvailability(
-            employee_id=employee.id,
-            day_of_week=1,
-            start_time=time(9, 0),
-            end_time=time(17, 0)
+            employee_id=employee.id, day_of_week=1, start_time=time(9, 0), end_time=time(17, 0)
         )
 
         # In a real test, this would use actual database
@@ -573,9 +451,7 @@ class TestModelRelationships:
     async def test_schedule_shifts_relationship(self, db_session):
         """Test Schedule -> Shift relationship."""
         schedule = Schedule(
-            name="Test Schedule",
-            start_date=datetime(2024, 1, 15).date(),
-            end_date=datetime(2024, 1, 21).date()
+            name="Test Schedule", start_date=datetime(2024, 1, 15).date(), end_date=datetime(2024, 1, 21).date()
         )
 
         shift = Shift(
@@ -583,7 +459,7 @@ class TestModelRelationships:
             date=datetime(2024, 1, 15).date(),
             start_time=time(9, 0),
             end_time=time(17, 0),
-            position="Server"
+            position="Server",
         )
 
         schedule.shifts = [shift]
@@ -593,16 +469,10 @@ class TestModelRelationships:
     async def test_cascade_deletion(self, db_session):
         """Test cascade deletion behavior."""
         # When employee is deleted, availability should also be deleted
-        employee = Employee(
-            name="Test Employee",
-            email="test@example.com"
-        )
+        employee = Employee(name="Test Employee", email="test@example.com")
 
         availability = EmployeeAvailability(
-            employee_id=employee.id,
-            day_of_week=1,
-            start_time=time(9, 0),
-            end_time=time(17, 0)
+            employee_id=employee.id, day_of_week=1, start_time=time(9, 0), end_time=time(17, 0)
         )
 
         # In actual test with database:
@@ -630,14 +500,7 @@ class TestModelQueries:
     async def test_employee_availability_query(self, db_session):
         """Test querying employee availability."""
         # Mock query result
-        mock_result = [
-            EmployeeAvailability(
-                employee_id="emp-123",
-                day_of_week=1,
-                start_time=time(9, 0),
-                end_time=time(17, 0)
-            )
-        ]
+        mock_result = [EmployeeAvailability(employee_id="emp-123", day_of_week=1, start_time=time(9, 0), end_time=time(17, 0))]
 
         db_session.execute.return_value.scalars.return_value.all.return_value = mock_result
 
@@ -656,10 +519,7 @@ class TestModelQueries:
         # This would test a complex query joining multiple tables
         # to find optimal shift assignments
 
-        mock_employees = [
-            Employee(name="John", email="john@example.com"),
-            Employee(name="Jane", email="jane@example.com")
-        ]
+        mock_employees = [Employee(name="John", email="john@example.com"), Employee(name="Jane", email="jane@example.com")]
 
         db_session.execute.return_value.scalars.return_value.all.return_value = mock_employees
 
@@ -679,18 +539,8 @@ class TestModelQueries:
         """Test detecting conflicting rules."""
         # Mock conflicting rules
         conflicting_rules = [
-            Rule(
-                name="Rule 1",
-                rule_type="availability",
-                employee_id="emp-123",
-                priority=5
-            ),
-            Rule(
-                name="Rule 2",
-                rule_type="requirement",
-                employee_id="emp-123",
-                priority=8
-            )
+            Rule(name="Rule 1", rule_type="availability", employee_id="emp-123", priority=5),
+            Rule(name="Rule 2", rule_type="requirement", employee_id="emp-123", priority=8),
         ]
 
         db_session.execute.return_value.scalars.return_value.all.return_value = conflicting_rules
@@ -722,7 +572,7 @@ class TestModelValidationEdgeCases:
             date=datetime(2024, 1, 15).date(),
             start_time=time(23, 0),
             end_time=time(23, 59),
-            position="Security"
+            position="Security",
         )
         assert shift.start_time == time(23, 0)
 
@@ -733,34 +583,24 @@ class TestModelValidationEdgeCases:
             start_time=time(22, 0),
             end_time=time(6, 0),  # Next day
             position="Night Shift",
-            spans_midnight=True
+            spans_midnight=True,
         )
         assert overnight_shift.spans_midnight == True
 
     def test_decimal_precision(self):
         """Test decimal precision for monetary values."""
         # Hourly rate with high precision
-        employee = Employee(
-            name="Test",
-            email="test@example.com",
-            hourly_rate=Decimal("15.555")  # 3 decimal places
-        )
+        employee = Employee(name="Test", email="test@example.com", hourly_rate=Decimal("15.555"))  # 3 decimal places
 
         # Should round to 2 decimal places for currency
-        assert employee.hourly_rate.quantize(Decimal('0.01')) == Decimal("15.56")
+        assert employee.hourly_rate.quantize(Decimal("0.01")) == Decimal("15.56")
 
     def test_unicode_handling(self):
         """Test Unicode character handling."""
         # Employee with Unicode name
-        employee = Employee(
-            name="José María García-López",
-            email="jose@example.com"
-        )
+        employee = Employee(name="José María García-López", email="jose@example.com")
         assert employee.name == "José María García-López"
 
         # Emoji in name (should be handled gracefully)
-        employee_emoji = Employee(
-            name="John 😊 Doe",
-            email="john@example.com"
-        )
+        employee_emoji = Employee(name="John 😊 Doe", email="john@example.com")
         assert "😊" in employee_emoji.name

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 @dataclass
 class EmailMessage:
     """Email message data structure."""
+
     to_email: str
     to_name: Optional[str] = None
     subject: str = ""
@@ -30,6 +31,7 @@ class EmailMessage:
 @dataclass
 class EmailResponse:
     """Email provider response."""
+
     success: bool
     message_id: Optional[str] = None
     provider_response: Optional[Dict[str, Any]] = None
@@ -99,7 +101,7 @@ class BaseEmailProvider(ABC):
             errors.append("Email content or template ID is required")
 
         # Basic email validation
-        if message.to_email and '@' not in message.to_email:
+        if message.to_email and "@" not in message.to_email:
             errors.append("Invalid recipient email format")
 
         return errors
@@ -113,9 +115,9 @@ class BaseEmailProvider(ABC):
 
         # Add tracking headers if enabled
         if message.tracking_settings:
-            if message.tracking_settings.get('open_tracking'):
-                headers['X-Track-Opens'] = 'true'
-            if message.tracking_settings.get('click_tracking'):
-                headers['X-Track-Clicks'] = 'true'
+            if message.tracking_settings.get("open_tracking"):
+                headers["X-Track-Opens"] = "true"
+            if message.tracking_settings.get("click_tracking"):
+                headers["X-Track-Clicks"] = "true"
 
         return headers

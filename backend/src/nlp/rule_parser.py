@@ -18,13 +18,13 @@ class RuleParser:
             "availability": ["available", "free", "work", "can"],
             "preference": ["prefer", "like", "want", "would rather"],
             "requirement": ["need", "must", "require", "have to"],
-            "restriction": ["cannot", "can't", "not available", "unavailable", "max", "limit"]
+            "restriction": ["cannot", "can't", "not available", "unavailable", "max", "limit"],
         }
 
         self.time_patterns = [
-            r'(\d{1,2}):(\d{2})\s*(am|pm)?',
-            r'(\d{1,2})\s*(am|pm)',
-            r'(\d{1,2}):(\d{2})',
+            r"(\d{1,2}):(\d{2})\s*(am|pm)?",
+            r"(\d{1,2})\s*(am|pm)",
+            r"(\d{1,2}):(\d{2})",
         ]
 
         self.day_patterns = {
@@ -36,13 +36,13 @@ class RuleParser:
             "saturday": ["saturday", "sat"],
             "sunday": ["sunday", "sun"],
             "weekday": ["weekday", "weekdays"],
-            "weekend": ["weekend", "weekends"]
+            "weekend": ["weekend", "weekends"],
         }
 
         self.shift_patterns = {
             "morning": ["morning", "am", "early"],
             "afternoon": ["afternoon", "midday", "noon"],
-            "evening": ["evening", "night", "pm", "late"]
+            "evening": ["evening", "night", "pm", "late"],
         }
 
     async def parse_rule(self, rule_text: str) -> Dict[str, Any]:
@@ -84,7 +84,7 @@ class RuleParser:
                 "constraints": constraints,
                 "priority": priority,
                 "employee_id": None,  # Could be extracted from context
-                "confidence": 0.8  # Simple confidence score
+                "confidence": 0.8,  # Simple confidence score
             }
 
         except Exception as e:
@@ -95,7 +95,7 @@ class RuleParser:
                 "constraints": {"original": rule_text},
                 "priority": 1,
                 "employee_id": None,
-                "confidence": 0.3
+                "confidence": 0.3,
             }
 
     def _determine_rule_type(self, text: str) -> str:
@@ -154,21 +154,17 @@ class RuleParser:
 
         # Look for patterns like "max 8 hours", "minimum 4 hours", "40 hours per week"
         hour_patterns = [
-            r'max(?:imum)?\s+(\d+)\s+hours?',
-            r'min(?:imum)?\s+(\d+)\s+hours?',
-            r'(\d+)\s+hours?\s+per\s+week',
-            r'(\d+)\s+hours?\s+per\s+day',
-            r'no\s+more\s+than\s+(\d+)\s+hours?'
+            r"max(?:imum)?\s+(\d+)\s+hours?",
+            r"min(?:imum)?\s+(\d+)\s+hours?",
+            r"(\d+)\s+hours?\s+per\s+week",
+            r"(\d+)\s+hours?\s+per\s+day",
+            r"no\s+more\s+than\s+(\d+)\s+hours?",
         ]
 
         for pattern in hour_patterns:
             matches = re.finditer(pattern, text)
             for match in matches:
-                hours.append({
-                    "type": "hours",
-                    "value": int(match.group(1)),
-                    "constraint": match.group(0)
-                })
+                hours.append({"type": "hours", "value": int(match.group(1)), "constraint": match.group(0)})
 
         return hours
 

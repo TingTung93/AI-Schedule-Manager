@@ -17,12 +17,13 @@ from .validators import (
     validate_time_format,
     validate_time_range,
     validate_password_strength,
-    BusinessLogicValidator
+    BusinessLogicValidator,
 )
 
 
 class EmployeeRole(str, Enum):
     """Employee role enumeration."""
+
     MANAGER = "manager"
     SUPERVISOR = "supervisor"
     SERVER = "server"
@@ -34,6 +35,7 @@ class EmployeeRole(str, Enum):
 
 class RuleType(str, Enum):
     """Rule type enumeration."""
+
     AVAILABILITY = "availability"
     PREFERENCE = "preference"
     REQUIREMENT = "requirement"
@@ -42,6 +44,7 @@ class RuleType(str, Enum):
 
 class ScheduleStatus(str, Enum):
     """Schedule status enumeration."""
+
     SCHEDULED = "scheduled"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
@@ -50,6 +53,7 @@ class ScheduleStatus(str, Enum):
 
 class NotificationType(str, Enum):
     """Notification type enumeration."""
+
     SCHEDULE = "schedule"
     REQUEST = "request"
     REMINDER = "reminder"
@@ -58,6 +62,7 @@ class NotificationType(str, Enum):
 
 class Priority(str, Enum):
     """Priority enumeration."""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -67,6 +72,7 @@ class Priority(str, Enum):
 # Enhanced Employee schemas
 class EmployeeBase(BaseModel):
     """Base employee schema with comprehensive validation."""
+
     first_name: str = Field(..., min_length=1, max_length=50)
     last_name: str = Field(..., min_length=1, max_length=50)
     email: EmailStr
@@ -78,29 +84,29 @@ class EmployeeBase(BaseModel):
     availability: Optional[Dict[str, Any]] = None
     is_active: bool = True
 
-    @validator('first_name', 'last_name')
+    @validator("first_name", "last_name")
     def validate_names(cls, v):
         return validate_employee_name(v)
 
-    @validator('phone')
+    @validator("phone")
     def validate_phone(cls, v):
         if v:
             return validate_phone_number(v)
         return v
 
-    @validator('hourly_rate')
+    @validator("hourly_rate")
     def validate_rate(cls, v):
         return validate_hourly_rate(v)
 
-    @validator('max_hours_per_week')
+    @validator("max_hours_per_week")
     def validate_max_hours(cls, v):
         return validate_max_hours_per_week(v)
 
-    @validator('qualifications')
+    @validator("qualifications")
     def validate_quals(cls, v):
         return validate_qualifications(v)
 
-    @validator('availability')
+    @validator("availability")
     def validate_availability_data(cls, v):
         if v:
             return validate_availability_pattern(v)
@@ -109,18 +115,18 @@ class EmployeeBase(BaseModel):
     @root_validator
     def validate_max_hours_vs_availability(cls, values):
         """Validate max hours against availability pattern."""
-        max_hours = values.get('max_hours_per_week')
-        availability = values.get('availability')
+        max_hours = values.get("max_hours_per_week")
+        availability = values.get("availability")
 
         if max_hours and availability:
             total_available_hours = 0
-            days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+            days_of_week = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
             for day in days_of_week:
                 day_data = availability.get(day, {})
-                if day_data.get('available', False):
-                    start_time = day_data.get('start')
-                    end_time = day_data.get('end')
+                if day_data.get("available", False):
+                    start_time = day_data.get("start")
+                    end_time = day_data.get("end")
 
                     if start_time and end_time:
                         try:
@@ -142,11 +148,13 @@ class EmployeeBase(BaseModel):
 
 class EmployeeCreate(EmployeeBase):
     """Employee creation schema."""
+
     pass
 
 
 class EmployeeUpdate(BaseModel):
     """Employee update schema."""
+
     first_name: Optional[str] = Field(None, min_length=1, max_length=50)
     last_name: Optional[str] = Field(None, min_length=1, max_length=50)
     email: Optional[EmailStr] = None
@@ -158,35 +166,35 @@ class EmployeeUpdate(BaseModel):
     availability: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
 
-    @validator('first_name', 'last_name')
+    @validator("first_name", "last_name")
     def validate_names(cls, v):
         if v:
             return validate_employee_name(v)
         return v
 
-    @validator('phone')
+    @validator("phone")
     def validate_phone(cls, v):
         if v:
             return validate_phone_number(v)
         return v
 
-    @validator('hourly_rate')
+    @validator("hourly_rate")
     def validate_rate(cls, v):
         return validate_hourly_rate(v)
 
-    @validator('max_hours_per_week')
+    @validator("max_hours_per_week")
     def validate_max_hours(cls, v):
         if v:
             return validate_max_hours_per_week(v)
         return v
 
-    @validator('qualifications')
+    @validator("qualifications")
     def validate_quals(cls, v):
         if v:
             return validate_qualifications(v)
         return v
 
-    @validator('availability')
+    @validator("availability")
     def validate_availability_data(cls, v):
         if v:
             return validate_availability_pattern(v)
@@ -195,6 +203,7 @@ class EmployeeUpdate(BaseModel):
 
 class EmployeeResponse(EmployeeBase):
     """Employee response schema."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -205,6 +214,7 @@ class EmployeeResponse(EmployeeBase):
 # Enhanced Shift schemas
 class ShiftBase(BaseModel):
     """Base shift schema with validation."""
+
     name: str = Field(..., min_length=1, max_length=100)
     shift_type: str = Field(..., min_length=1, max_length=50)
     start_time: time
@@ -215,19 +225,19 @@ class ShiftBase(BaseModel):
     hourly_rate_multiplier: float = Field(1.0, ge=0, le=10)
     is_active: bool = True
 
-    @validator('start_time', 'end_time')
+    @validator("start_time", "end_time")
     def validate_times(cls, v):
         return validate_time_format(v)
 
-    @validator('required_qualifications')
+    @validator("required_qualifications")
     def validate_required_quals(cls, v):
         return validate_qualifications(v)
 
     @root_validator
     def validate_time_range(cls, values):
         """Validate start time is before end time."""
-        start_time = values.get('start_time')
-        end_time = values.get('end_time')
+        start_time = values.get("start_time")
+        end_time = values.get("end_time")
 
         if start_time and end_time:
             validate_time_range(start_time, end_time)
@@ -237,11 +247,13 @@ class ShiftBase(BaseModel):
 
 class ShiftCreate(ShiftBase):
     """Shift creation schema."""
+
     pass
 
 
 class ShiftUpdate(BaseModel):
     """Shift update schema."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     shift_type: Optional[str] = Field(None, min_length=1, max_length=50)
     start_time: Optional[time] = None
@@ -252,13 +264,13 @@ class ShiftUpdate(BaseModel):
     hourly_rate_multiplier: Optional[float] = Field(None, ge=0, le=10)
     is_active: Optional[bool] = None
 
-    @validator('start_time', 'end_time')
+    @validator("start_time", "end_time")
     def validate_times(cls, v):
         if v:
             return validate_time_format(v)
         return v
 
-    @validator('required_qualifications')
+    @validator("required_qualifications")
     def validate_required_quals(cls, v):
         if v:
             return validate_qualifications(v)
@@ -267,6 +279,7 @@ class ShiftUpdate(BaseModel):
 
 class ShiftResponse(ShiftBase):
     """Shift response schema."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -277,6 +290,7 @@ class ShiftResponse(ShiftBase):
 # Enhanced Schedule schemas
 class ScheduleBase(BaseModel):
     """Base schedule schema with business logic validation."""
+
     employee_id: int = Field(..., ge=1)
     shift_id: int = Field(..., ge=1)
     date: date
@@ -284,7 +298,7 @@ class ScheduleBase(BaseModel):
     notes: Optional[str] = Field(None, max_length=500)
     overtime_approved: bool = False
 
-    @validator('date')
+    @validator("date")
     def validate_schedule_date(cls, v):
         """Validate schedule date is not in the past."""
         if v < date.today():
@@ -296,10 +310,7 @@ class ScheduleCreate(ScheduleBase):
     """Schedule creation schema with conflict validation."""
 
     def validate_business_rules(
-        self,
-        employee_data: Dict[str, Any],
-        shift_data: Dict[str, Any],
-        existing_schedules: List[Dict[str, Any]]
+        self, employee_data: Dict[str, Any], shift_data: Dict[str, Any], existing_schedules: List[Dict[str, Any]]
     ):
         """Validate business rules for schedule creation."""
 
@@ -307,37 +318,38 @@ class ScheduleCreate(ScheduleBase):
         BusinessLogicValidator.validate_schedule_conflicts(
             employee_id=self.employee_id,
             shift_date=self.date,
-            shift_start=shift_data['start_time'],
-            shift_end=shift_data['end_time'],
-            existing_schedules=existing_schedules
+            shift_start=shift_data["start_time"],
+            shift_end=shift_data["end_time"],
+            existing_schedules=existing_schedules,
         )
 
         # Check employee qualifications
         BusinessLogicValidator.validate_employee_qualifications(
-            employee_qualifications=employee_data.get('qualifications', []),
-            required_qualifications=shift_data.get('required_qualifications', [])
+            employee_qualifications=employee_data.get("qualifications", []),
+            required_qualifications=shift_data.get("required_qualifications", []),
         )
 
         # Check employee availability
         BusinessLogicValidator.validate_employee_availability(
-            employee_availability=employee_data.get('availability', {}),
+            employee_availability=employee_data.get("availability", {}),
             shift_date=self.date,
-            shift_start=shift_data['start_time'],
-            shift_end=shift_data['end_time']
+            shift_start=shift_data["start_time"],
+            shift_end=shift_data["end_time"],
         )
 
         # Check minimum rest period
         BusinessLogicValidator.validate_minimum_rest_period(
             employee_id=self.employee_id,
             shift_date=self.date,
-            shift_start=shift_data['start_time'],
-            shift_end=shift_data['end_time'],
-            existing_schedules=existing_schedules
+            shift_start=shift_data["start_time"],
+            shift_end=shift_data["end_time"],
+            existing_schedules=existing_schedules,
         )
 
 
 class ScheduleUpdate(BaseModel):
     """Schedule update schema."""
+
     employee_id: Optional[int] = Field(None, ge=1)
     shift_id: Optional[int] = Field(None, ge=1)
     date: Optional[date] = None
@@ -345,7 +357,7 @@ class ScheduleUpdate(BaseModel):
     notes: Optional[str] = Field(None, max_length=500)
     overtime_approved: Optional[bool] = None
 
-    @validator('date')
+    @validator("date")
     def validate_schedule_date(cls, v):
         if v and v < date.today():
             raise ValueError("Schedule date cannot be in the past")
@@ -354,6 +366,7 @@ class ScheduleUpdate(BaseModel):
 
 class ScheduleResponse(ScheduleBase):
     """Schedule response schema."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -366,6 +379,7 @@ class ScheduleResponse(ScheduleBase):
 # Enhanced Rule schemas
 class RuleBase(BaseModel):
     """Base rule schema with constraint validation."""
+
     rule_type: RuleType
     original_text: str = Field(..., min_length=5, max_length=500)
     constraints: Dict[str, Any] = Field(default_factory=dict)
@@ -373,11 +387,11 @@ class RuleBase(BaseModel):
     employee_id: Optional[int] = Field(None, ge=1)
     is_active: bool = True
 
-    @validator('constraints')
+    @validator("constraints")
     def validate_rule_constraints(cls, v):
         return validate_constraints(v)
 
-    @validator('original_text')
+    @validator("original_text")
     def validate_rule_text(cls, v):
         if not v.strip():
             raise ValueError("Rule description cannot be empty")
@@ -386,11 +400,13 @@ class RuleBase(BaseModel):
 
 class RuleCreate(RuleBase):
     """Rule creation schema."""
+
     pass
 
 
 class RuleUpdate(BaseModel):
     """Rule update schema."""
+
     rule_type: Optional[RuleType] = None
     original_text: Optional[str] = Field(None, min_length=5, max_length=500)
     constraints: Optional[Dict[str, Any]] = None
@@ -398,13 +414,13 @@ class RuleUpdate(BaseModel):
     employee_id: Optional[int] = Field(None, ge=1)
     is_active: Optional[bool] = None
 
-    @validator('constraints')
+    @validator("constraints")
     def validate_rule_constraints(cls, v):
         if v:
             return validate_constraints(v)
         return v
 
-    @validator('original_text')
+    @validator("original_text")
     def validate_rule_text(cls, v):
         if v and not v.strip():
             raise ValueError("Rule description cannot be empty")
@@ -413,6 +429,7 @@ class RuleUpdate(BaseModel):
 
 class RuleResponse(RuleBase):
     """Rule response schema."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -424,39 +441,42 @@ class RuleResponse(RuleBase):
 # Authentication schemas
 class LoginRequest(BaseModel):
     """Login request schema."""
+
     email: EmailStr
     password: str = Field(..., min_length=1)
 
 
 class RegisterRequest(BaseModel):
     """Registration request schema."""
+
     first_name: str = Field(..., min_length=1, max_length=50)
     last_name: str = Field(..., min_length=1, max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8)
 
-    @validator('first_name', 'last_name')
+    @validator("first_name", "last_name")
     def validate_names(cls, v):
         return validate_employee_name(v)
 
-    @validator('password')
+    @validator("password")
     def validate_password(cls, v):
         return validate_password_strength(v)
 
 
 class PasswordChangeRequest(BaseModel):
     """Password change request schema."""
+
     current_password: str = Field(..., min_length=1)
     new_password: str = Field(..., min_length=8)
 
-    @validator('new_password')
+    @validator("new_password")
     def validate_new_password(cls, v):
         return validate_password_strength(v)
 
     @root_validator
     def validate_passwords_different(cls, values):
-        current = values.get('current_password')
-        new = values.get('new_password')
+        current = values.get("current_password")
+        new = values.get("new_password")
 
         if current and new and current == new:
             raise ValueError("New password must be different from current password")
@@ -466,6 +486,7 @@ class PasswordChangeRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     """Token response schema."""
+
     access_token: str
     token_type: str = "bearer"
     user: Dict[str, Any]
@@ -474,6 +495,7 @@ class TokenResponse(BaseModel):
 # Validation response schemas
 class ValidationResult(BaseModel):
     """Validation result schema."""
+
     is_valid: bool
     errors: List[str] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
@@ -481,6 +503,7 @@ class ValidationResult(BaseModel):
 
 class EmailValidationResponse(BaseModel):
     """Email validation response schema."""
+
     email: str
     is_available: bool
     is_valid_format: bool
@@ -489,6 +512,7 @@ class EmailValidationResponse(BaseModel):
 
 class ScheduleConflictCheck(BaseModel):
     """Schedule conflict check schema."""
+
     employee_id: int
     shift_date: date
     shift_start: time
@@ -499,6 +523,7 @@ class ScheduleConflictCheck(BaseModel):
 
 class BusinessRuleValidation(BaseModel):
     """Business rule validation schema."""
+
     rule_type: str
     validation_results: Dict[str, ValidationResult]
     overall_valid: bool
@@ -508,12 +533,14 @@ class BusinessRuleValidation(BaseModel):
 # Query parameter schemas
 class PaginationParams(BaseModel):
     """Pagination parameters."""
+
     page: int = Field(1, ge=1)
     size: int = Field(10, ge=1, le=100)
 
 
 class EmployeeFilters(PaginationParams):
     """Employee query filters."""
+
     role: Optional[EmployeeRole] = None
     is_active: Optional[bool] = None
     search: Optional[str] = None
@@ -523,6 +550,7 @@ class EmployeeFilters(PaginationParams):
 
 class ScheduleFilters(PaginationParams):
     """Schedule query filters."""
+
     employee_id: Optional[int] = Field(None, ge=1)
     shift_id: Optional[int] = Field(None, ge=1)
     date_from: Optional[date] = None
@@ -533,8 +561,8 @@ class ScheduleFilters(PaginationParams):
 
     @root_validator
     def validate_date_range(cls, values):
-        date_from = values.get('date_from')
-        date_to = values.get('date_to')
+        date_from = values.get("date_from")
+        date_to = values.get("date_to")
 
         if date_from and date_to and date_from > date_to:
             raise ValueError("Start date must be before end date")
@@ -544,6 +572,7 @@ class ScheduleFilters(PaginationParams):
 
 class RuleFilters(PaginationParams):
     """Rule query filters."""
+
     rule_type: Optional[RuleType] = None
     employee_id: Optional[int] = Field(None, ge=1)
     is_active: Optional[bool] = None
@@ -553,12 +582,37 @@ class RuleFilters(PaginationParams):
 
 # Export all schemas
 __all__ = [
-    'EmployeeRole', 'RuleType', 'ScheduleStatus', 'NotificationType', 'Priority',
-    'EmployeeBase', 'EmployeeCreate', 'EmployeeUpdate', 'EmployeeResponse',
-    'ShiftBase', 'ShiftCreate', 'ShiftUpdate', 'ShiftResponse',
-    'ScheduleBase', 'ScheduleCreate', 'ScheduleUpdate', 'ScheduleResponse',
-    'RuleBase', 'RuleCreate', 'RuleUpdate', 'RuleResponse',
-    'LoginRequest', 'RegisterRequest', 'PasswordChangeRequest', 'TokenResponse',
-    'ValidationResult', 'EmailValidationResponse', 'ScheduleConflictCheck', 'BusinessRuleValidation',
-    'PaginationParams', 'EmployeeFilters', 'ScheduleFilters', 'RuleFilters'
+    "EmployeeRole",
+    "RuleType",
+    "ScheduleStatus",
+    "NotificationType",
+    "Priority",
+    "EmployeeBase",
+    "EmployeeCreate",
+    "EmployeeUpdate",
+    "EmployeeResponse",
+    "ShiftBase",
+    "ShiftCreate",
+    "ShiftUpdate",
+    "ShiftResponse",
+    "ScheduleBase",
+    "ScheduleCreate",
+    "ScheduleUpdate",
+    "ScheduleResponse",
+    "RuleBase",
+    "RuleCreate",
+    "RuleUpdate",
+    "RuleResponse",
+    "LoginRequest",
+    "RegisterRequest",
+    "PasswordChangeRequest",
+    "TokenResponse",
+    "ValidationResult",
+    "EmailValidationResponse",
+    "ScheduleConflictCheck",
+    "BusinessRuleValidation",
+    "PaginationParams",
+    "EmployeeFilters",
+    "ScheduleFilters",
+    "RuleFilters",
 ]

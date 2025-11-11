@@ -14,9 +14,17 @@ from flask import Flask
 from werkzeug.test import Client
 
 from backend.src.auth import (
-    auth_service, AuthenticationError, AuthorizationError,
-    token_required, require_role, require_permission,
-    rate_limit, User, Role, Permission, LoginAttempt
+    auth_service,
+    AuthenticationError,
+    AuthorizationError,
+    token_required,
+    require_role,
+    require_permission,
+    rate_limit,
+    User,
+    Role,
+    Permission,
+    LoginAttempt,
 )
 from backend.src.auth.auth import AuthService
 from backend.src.auth.middleware import RateLimiter, CSRFProtection
@@ -28,9 +36,9 @@ class TestAuthService:
     def setup_method(self):
         """Setup test environment"""
         self.app = Flask(__name__)
-        self.app.config['JWT_SECRET_KEY'] = 'test-secret-key'
-        self.app.config['JWT_REFRESH_SECRET_KEY'] = 'test-refresh-secret'
-        self.app.config['TESTING'] = True
+        self.app.config["JWT_SECRET_KEY"] = "test-secret-key"
+        self.app.config["JWT_REFRESH_SECRET_KEY"] = "test-refresh-secret"
+        self.app.config["TESTING"] = True
 
         # Initialize auth service
         self.auth_service = AuthService()
@@ -42,15 +50,15 @@ class TestAuthService:
 
         # Test user data
         self.test_user_data = {
-            'id': 1,
-            'email': 'test@example.com',
-            'role': 'user',
-            'permissions': ['schedule.read', 'schedule.write']
+            "id": 1,
+            "email": "test@example.com",
+            "role": "user",
+            "permissions": ["schedule.read", "schedule.write"],
         }
 
     def test_password_hashing(self):
         """Test password hashing and verification"""
-        password = 'TestPassword123!'
+        password = "TestPassword123!"
 
         # Test hashing
         hashed = self.auth_service.hash_password(password)
@@ -60,7 +68,7 @@ class TestAuthService:
 
         # Test verification
         assert self.auth_service.verify_password(password, hashed) is True
-        assert self.auth_service.verify_password('wrong_password', hashed) is False
+        assert self.auth_service.verify_password("wrong_password", hashed) is False
 
     def test_access_token_generation_verification(self):
         """Test JWT access token generation and verification"""
@@ -72,10 +80,10 @@ class TestAuthService:
 
             # Verify token
             payload = self.auth_service.verify_access_token(token)
-            assert payload['user_id'] == self.test_user_data['id']
-            assert payload['email'] == self.test_user_data['email']
-            assert payload['role'] == self.test_user_data['role']
-            assert payload['type'] == 'access'
+            assert payload["user_id"] == self.test_user_data["id"]
+            assert payload["email"] == self.test_user_data["email"]
+            assert payload["role"] == self.test_user_data["role"]
+            assert payload["type"] == "access"
 
     def test_refresh_token_generation_verification(self):
         """Test JWT refresh token generation and verification"""
@@ -93,9 +101,9 @@ class TestAuthService:
 
             # Verify token
             payload = self.auth_service.verify_refresh_token(token)
-            assert payload['user_id'] == user_id
-            assert payload['type'] == 'refresh'
-            assert 'jti' in payload
+            assert payload["user_id"] == user_id
+            assert payload["type"] == "refresh"
+            assert "jti" in payload
 
     def test_token_expiration(self):
         """Test token expiration handling"""
@@ -111,6 +119,7 @@ class TestAuthService:
 
             # Wait for expiration (simulate)
             import time
+
             time.sleep(0.002)
 
             # Verify token is expired
@@ -165,24 +174,15 @@ class TestAuthService:
 
             # Verify reset token
             payload = self.auth_service.verify_password_reset_token(token)
-            assert payload['user_id'] == user_id
-            assert payload['email'] == email
-            assert payload['type'] == 'password_reset'
+            assert payload["user_id"] == user_id
+            assert payload["email"] == email
+            assert payload["type"] == "password_reset"
 
     def test_email_validation(self):
         """Test email format validation"""
-        valid_emails = [
-            'test@example.com',
-            'user.name@domain.co.uk',
-            'user+tag@example.org'
-        ]
+        valid_emails = ["test@example.com", "user.name@domain.co.uk", "user+tag@example.org"]
 
-        invalid_emails = [
-            'invalid-email',
-            '@example.com',
-            'user@',
-            'user..name@example.com'
-        ]
+        invalid_emails = ["invalid-email", "@example.com", "user@", "user..name@example.com"]
 
         for email in valid_emails:
             assert self.auth_service.validate_email_format(email) is True
@@ -192,20 +192,16 @@ class TestAuthService:
 
     def test_password_strength_validation(self):
         """Test password strength checking"""
-        strong_passwords = [
-            'StrongPassword123!',
-            'MySecure@Pass1',
-            'Complex#Password9'
-        ]
+        strong_passwords = ["StrongPassword123!", "MySecure@Pass1", "Complex#Password9"]
 
         weak_passwords = [
-            'weak',
-            'password',
-            '12345678',
-            'NoSpecialChar123',
-            'nouppercasechar1!',
-            'NOLOWERCASECHAR1!',
-            'NoNumbers!@#'
+            "weak",
+            "password",
+            "12345678",
+            "NoSpecialChar123",
+            "nouppercasechar1!",
+            "NOLOWERCASECHAR1!",
+            "NoNumbers!@#",
         ]
 
         for password in strong_passwords:
@@ -225,8 +221,8 @@ class TestMiddleware:
     def setup_method(self):
         """Setup test environment"""
         self.app = Flask(__name__)
-        self.app.config['JWT_SECRET_KEY'] = 'test-secret-key'
-        self.app.config['TESTING'] = True
+        self.app.config["JWT_SECRET_KEY"] = "test-secret-key"
+        self.app.config["TESTING"] = True
 
         # Initialize auth service
         auth_service.init_app(self.app)
@@ -237,88 +233,72 @@ class TestMiddleware:
 
     def test_token_required_decorator(self):
         """Test token_required decorator"""
-        @self.app.route('/protected')
+
+        @self.app.route("/protected")
         @token_required
         def protected_route():
             from flask import g
-            return {'user_id': g.user_id}
+
+            return {"user_id": g.user_id}
 
         with self.app.app_context():
             # Test without token
-            response = self.client.get('/protected')
+            response = self.client.get("/protected")
             assert response.status_code == 401
 
             # Test with valid token
-            user_data = {'id': 1, 'email': 'test@example.com', 'role': 'user'}
+            user_data = {"id": 1, "email": "test@example.com", "role": "user"}
             token = auth_service.generate_access_token(user_data)
 
-            response = self.client.get('/protected', headers={
-                'Authorization': f'Bearer {token}'
-            })
+            response = self.client.get("/protected", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code == 200
 
     def test_role_required_decorator(self):
         """Test require_role decorator"""
-        @self.app.route('/admin')
+
+        @self.app.route("/admin")
         @token_required
-        @require_role('admin')
+        @require_role("admin")
         def admin_route():
-            return {'message': 'Admin access granted'}
+            return {"message": "Admin access granted"}
 
         with self.app.app_context():
             # Test with user role
-            user_data = {'id': 1, 'email': 'test@example.com', 'role': 'user'}
+            user_data = {"id": 1, "email": "test@example.com", "role": "user"}
             token = auth_service.generate_access_token(user_data)
 
-            response = self.client.get('/admin', headers={
-                'Authorization': f'Bearer {token}'
-            })
+            response = self.client.get("/admin", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code == 403
 
             # Test with admin role
-            admin_data = {'id': 2, 'email': 'admin@example.com', 'role': 'admin'}
+            admin_data = {"id": 2, "email": "admin@example.com", "role": "admin"}
             admin_token = auth_service.generate_access_token(admin_data)
 
-            response = self.client.get('/admin', headers={
-                'Authorization': f'Bearer {admin_token}'
-            })
+            response = self.client.get("/admin", headers={"Authorization": f"Bearer {admin_token}"})
             assert response.status_code == 200
 
     def test_permission_required_decorator(self):
         """Test require_permission decorator"""
-        @self.app.route('/delete-user')
+
+        @self.app.route("/delete-user")
         @token_required
-        @require_permission('user.delete')
+        @require_permission("user.delete")
         def delete_user_route():
-            return {'message': 'User deleted'}
+            return {"message": "User deleted"}
 
         with self.app.app_context():
             # Test without permission
-            user_data = {
-                'id': 1,
-                'email': 'test@example.com',
-                'role': 'user',
-                'permissions': ['user.read']
-            }
+            user_data = {"id": 1, "email": "test@example.com", "role": "user", "permissions": ["user.read"]}
             token = auth_service.generate_access_token(user_data)
 
-            response = self.client.get('/delete-user', headers={
-                'Authorization': f'Bearer {token}'
-            })
+            response = self.client.get("/delete-user", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code == 403
 
             # Test with permission
-            admin_data = {
-                'id': 2,
-                'email': 'admin@example.com',
-                'role': 'admin',
-                'permissions': ['user.delete']
-            }
+            admin_data = {"id": 2, "email": "admin@example.com", "role": "admin", "permissions": ["user.delete"]}
             admin_token = auth_service.generate_access_token(admin_data)
 
-            response = self.client.get('/delete-user', headers={
-                'Authorization': f'Bearer {admin_token}'
-            })
+            response = self.client.get("/delete-user", headers={"Authorization": f"Bearer {admin_token}"})
             assert response.status_code == 200
 
 
@@ -335,26 +315,26 @@ class TestRateLimiting:
         self.mock_redis.get.return_value = None
         self.mock_redis.setex.return_value = True
 
-        is_limited = self.rate_limiter.is_rate_limited('test_key', 5, 300)
+        is_limited = self.rate_limiter.is_rate_limited("test_key", 5, 300)
         assert is_limited is False
 
-        self.mock_redis.setex.assert_called_with('rate_limit:test_key', 300, 1)
+        self.mock_redis.setex.assert_called_with("rate_limit:test_key", 300, 1)
 
     def test_rate_limiting_within_limit(self):
         """Test requests within limit are allowed"""
-        self.mock_redis.get.return_value = b'3'  # 3 previous requests
+        self.mock_redis.get.return_value = b"3"  # 3 previous requests
         self.mock_redis.incr.return_value = 4
 
-        is_limited = self.rate_limiter.is_rate_limited('test_key', 5, 300)
+        is_limited = self.rate_limiter.is_rate_limited("test_key", 5, 300)
         assert is_limited is False
 
-        self.mock_redis.incr.assert_called_with('rate_limit:test_key')
+        self.mock_redis.incr.assert_called_with("rate_limit:test_key")
 
     def test_rate_limiting_exceeds_limit(self):
         """Test requests exceeding limit are blocked"""
-        self.mock_redis.get.return_value = b'5'  # Already at limit
+        self.mock_redis.get.return_value = b"5"  # Already at limit
 
-        is_limited = self.rate_limiter.is_rate_limited('test_key', 5, 300)
+        is_limited = self.rate_limiter.is_rate_limited("test_key", 5, 300)
         assert is_limited is True
 
         # Should not increment counter
@@ -362,14 +342,14 @@ class TestRateLimiting:
 
     def test_remaining_attempts(self):
         """Test remaining attempts calculation"""
-        self.mock_redis.get.return_value = b'3'
+        self.mock_redis.get.return_value = b"3"
 
-        remaining = self.rate_limiter.get_remaining_attempts('test_key', 5)
+        remaining = self.rate_limiter.get_remaining_attempts("test_key", 5)
         assert remaining == 2
 
         # Test when no attempts yet
         self.mock_redis.get.return_value = None
-        remaining = self.rate_limiter.get_remaining_attempts('test_key', 5)
+        remaining = self.rate_limiter.get_remaining_attempts("test_key", 5)
         assert remaining == 5
 
 
@@ -385,7 +365,7 @@ class TestCSRFProtection:
         """Test CSRF token generation"""
         self.mock_redis.setex.return_value = True
 
-        token = self.csrf_protection.generate_csrf_token('session_123')
+        token = self.csrf_protection.generate_csrf_token("session_123")
         assert token is not None
         assert len(token) > 20  # Should be a reasonable length
 
@@ -393,24 +373,24 @@ class TestCSRFProtection:
 
     def test_csrf_token_validation_success(self):
         """Test successful CSRF token validation"""
-        test_token = 'test_csrf_token_123'
-        self.mock_redis.get.return_value = test_token.encode('utf-8')
+        test_token = "test_csrf_token_123"
+        self.mock_redis.get.return_value = test_token.encode("utf-8")
 
-        is_valid = self.csrf_protection.validate_csrf_token('session_123', test_token)
+        is_valid = self.csrf_protection.validate_csrf_token("session_123", test_token)
         assert is_valid is True
 
     def test_csrf_token_validation_failure(self):
         """Test failed CSRF token validation"""
-        self.mock_redis.get.return_value = b'different_token'
+        self.mock_redis.get.return_value = b"different_token"
 
-        is_valid = self.csrf_protection.validate_csrf_token('session_123', 'wrong_token')
+        is_valid = self.csrf_protection.validate_csrf_token("session_123", "wrong_token")
         assert is_valid is False
 
     def test_csrf_token_missing(self):
         """Test validation when no token exists"""
         self.mock_redis.get.return_value = None
 
-        is_valid = self.csrf_protection.validate_csrf_token('session_123', 'any_token')
+        is_valid = self.csrf_protection.validate_csrf_token("session_123", "any_token")
         assert is_valid is False
 
 
@@ -420,11 +400,9 @@ class TestIntegration:
     def setup_method(self):
         """Setup test environment"""
         self.app = Flask(__name__)
-        self.app.config.update({
-            'JWT_SECRET_KEY': 'test-secret-key',
-            'JWT_REFRESH_SECRET_KEY': 'test-refresh-secret',
-            'TESTING': True
-        })
+        self.app.config.update(
+            {"JWT_SECRET_KEY": "test-secret-key", "JWT_REFRESH_SECRET_KEY": "test-refresh-secret", "TESTING": True}
+        )
 
         # Initialize auth service
         auth_service.init_app(self.app)
@@ -442,51 +420,51 @@ class TestIntegration:
         with self.app.app_context():
             # 1. Generate tokens (simulating registration/login)
             user_data = {
-                'id': 1,
-                'email': 'test@example.com',
-                'role': 'user',
-                'permissions': ['schedule.read', 'schedule.write']
+                "id": 1,
+                "email": "test@example.com",
+                "role": "user",
+                "permissions": ["schedule.read", "schedule.write"],
             }
 
             access_token = auth_service.generate_access_token(user_data)
-            refresh_token = auth_service.generate_refresh_token(user_data['id'])
+            refresh_token = auth_service.generate_refresh_token(user_data["id"])
 
             assert access_token is not None
             assert refresh_token is not None
 
             # 2. Verify access token
             payload = auth_service.verify_access_token(access_token)
-            assert payload['user_id'] == user_data['id']
-            assert payload['email'] == user_data['email']
+            assert payload["user_id"] == user_data["id"]
+            assert payload["email"] == user_data["email"]
 
             # 3. Verify refresh token
             refresh_payload = auth_service.verify_refresh_token(refresh_token)
-            assert refresh_payload['user_id'] == user_data['id']
-            assert refresh_payload['type'] == 'refresh'
+            assert refresh_payload["user_id"] == user_data["id"]
+            assert refresh_payload["type"] == "refresh"
 
             # 4. Test token refresh
             new_access_token = auth_service.generate_access_token(user_data)
             new_payload = auth_service.verify_access_token(new_access_token)
-            assert new_payload['user_id'] == user_data['id']
+            assert new_payload["user_id"] == user_data["id"]
 
     def test_security_features(self):
         """Test security features integration"""
         with self.app.app_context():
             # Test password hashing
-            password = 'SecurePassword123!'
+            password = "SecurePassword123!"
             hashed = auth_service.hash_password(password)
             assert auth_service.verify_password(password, hashed) is True
 
             # Test email validation
-            assert auth_service.validate_email_format('valid@example.com') is True
-            assert auth_service.validate_email_format('invalid-email') is False
+            assert auth_service.validate_email_format("valid@example.com") is True
+            assert auth_service.validate_email_format("invalid-email") is False
 
             # Test password strength
             is_strong, issues = auth_service.check_password_strength(password)
             assert is_strong is True
             assert len(issues) == 0
 
-            weak_password = 'weak'
+            weak_password = "weak"
             is_weak, weak_issues = auth_service.check_password_strength(weak_password)
             assert is_weak is False
             assert len(weak_issues) > 0
@@ -496,37 +474,37 @@ class TestIntegration:
 def store_test_results():
     """Store test implementation details in memory"""
     try:
-        if hasattr(pytest, 'current_test_results'):
+        if hasattr(pytest, "current_test_results"):
             implementation = {
-                'backend_auth_tests': {
-                    'test_classes': [
-                        'TestAuthService - Core authentication functionality',
-                        'TestMiddleware - Decorators and route protection',
-                        'TestRateLimiting - Rate limiting mechanisms',
-                        'TestCSRFProtection - CSRF token handling',
-                        'TestIntegration - Complete authentication flow'
+                "backend_auth_tests": {
+                    "test_classes": [
+                        "TestAuthService - Core authentication functionality",
+                        "TestMiddleware - Decorators and route protection",
+                        "TestRateLimiting - Rate limiting mechanisms",
+                        "TestCSRFProtection - CSRF token handling",
+                        "TestIntegration - Complete authentication flow",
                     ],
-                    'coverage_areas': [
-                        'JWT token generation and validation',
-                        'Password hashing and verification',
-                        'Role-based access control',
-                        'Permission-based access control',
-                        'Rate limiting',
-                        'CSRF protection',
-                        'Token refresh mechanism',
-                        'Password reset flow',
-                        'Email validation',
-                        'Password strength checking'
+                    "coverage_areas": [
+                        "JWT token generation and validation",
+                        "Password hashing and verification",
+                        "Role-based access control",
+                        "Permission-based access control",
+                        "Rate limiting",
+                        "CSRF protection",
+                        "Token refresh mechanism",
+                        "Password reset flow",
+                        "Email validation",
+                        "Password strength checking",
                     ],
-                    'security_tests': [
-                        'Token expiration handling',
-                        'Invalid token rejection',
-                        'Token revocation',
-                        'Rate limit enforcement',
-                        'CSRF token validation',
-                        'Role-based access denial',
-                        'Permission-based access denial'
-                    ]
+                    "security_tests": [
+                        "Token expiration handling",
+                        "Invalid token rejection",
+                        "Token revocation",
+                        "Rate limit enforcement",
+                        "CSRF token validation",
+                        "Role-based access denial",
+                        "Permission-based access denial",
+                    ],
                 }
             }
 
@@ -541,5 +519,5 @@ def store_test_results():
 store_test_results()
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

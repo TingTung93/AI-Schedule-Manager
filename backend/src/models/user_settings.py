@@ -1,6 +1,7 @@
 """
 UserSettings model for storing user preferences and configuration
 """
+
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import String, Integer, ForeignKey, CheckConstraint, Index
@@ -20,70 +21,37 @@ class UserSettings(Base):
 
     # Foreign key to user/employee
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("employees.id", ondelete="CASCADE"),
-        nullable=False,
-        unique=True,
-        index=True
+        ForeignKey("employees.id", ondelete="CASCADE"), nullable=False, unique=True, index=True
     )
 
     # Notification settings
     notifications: Mapped[Optional[dict]] = mapped_column(
-        JSONB,
-        nullable=True,
-        default={
-            "email": True,
-            "push": False,
-            "scheduleReminders": True,
-            "overtimeAlerts": True
-        }
+        JSONB, nullable=True, default={"email": True, "push": False, "scheduleReminders": True, "overtimeAlerts": True}
     )
 
     # Appearance settings
     appearance: Mapped[Optional[dict]] = mapped_column(
-        JSONB,
-        nullable=True,
-        default={
-            "theme": "light",
-            "language": "en",
-            "timezone": "America/New_York"
-        }
+        JSONB, nullable=True, default={"theme": "light", "language": "en", "timezone": "America/New_York"}
     )
 
     # Scheduling preferences
     scheduling: Mapped[Optional[dict]] = mapped_column(
         JSONB,
         nullable=True,
-        default={
-            "defaultShiftLength": 8,
-            "maxOvertimeHours": 10,
-            "breakDuration": 30,
-            "autoApproveRequests": False
-        }
+        default={"defaultShiftLength": 8, "maxOvertimeHours": 10, "breakDuration": 30, "autoApproveRequests": False},
     )
 
     # Security settings
     security: Mapped[Optional[dict]] = mapped_column(
-        JSONB,
-        nullable=True,
-        default={
-            "twoFactorAuth": False,
-            "sessionTimeout": 60
-        }
+        JSONB, nullable=True, default={"twoFactorAuth": False, "sessionTimeout": 60}
     )
 
     # Audit fields
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationship
-    user: Mapped["Employee"] = relationship(
-        "Employee",
-        back_populates="settings"
-    )
+    user: Mapped["Employee"] = relationship("Employee", back_populates="settings")
 
     # Constraints and indexes
     __table_args__ = (

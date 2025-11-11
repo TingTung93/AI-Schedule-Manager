@@ -20,6 +20,7 @@ from ..models.user import User
 
 logger = logging.getLogger(__name__)
 
+
 class ConnectionManager:
     """Manages WebSocket connections with rooms and authentication"""
 
@@ -38,7 +39,7 @@ class ConnectionManager:
             "rules": set(),
             "shifts": set(),
             "conflicts": set(),
-            "presence": set()
+            "presence": set(),
         }
 
         # Connection metadata
@@ -69,7 +70,7 @@ class ConnectionManager:
                 "connected_at": time.time(),
                 "last_activity": time.time(),
                 "rooms": set(),
-                "status": "online"
+                "status": "online",
             }
 
             # Initialize heartbeat
@@ -84,11 +85,11 @@ class ConnectionManager:
             logger.info(f"User {user_id} connected with connection {connection_id}")
 
             # Notify presence update
-            await self.broadcast_to_room("presence", {
-                "type": "user_connected",
-                "user_id": user_id,
-                "timestamp": datetime.now().isoformat()
-            }, exclude={connection_id})
+            await self.broadcast_to_room(
+                "presence",
+                {"type": "user_connected", "user_id": user_id, "timestamp": datetime.now().isoformat()},
+                exclude={connection_id},
+            )
 
             return True
 
@@ -130,11 +131,9 @@ class ConnectionManager:
 
         # Notify presence update if user is completely offline
         if user_id and user_id not in self.user_connections:
-            await self.broadcast_to_room("presence", {
-                "type": "user_disconnected",
-                "user_id": user_id,
-                "timestamp": datetime.now().isoformat()
-            })
+            await self.broadcast_to_room(
+                "presence", {"type": "user_disconnected", "user_id": user_id, "timestamp": datetime.now().isoformat()}
+            )
 
     async def join_room(self, connection_id: str, room: str) -> bool:
         """Add connection to a room"""
@@ -167,10 +166,7 @@ class ConnectionManager:
             # Queue message for when user comes online
             if user_id not in self.message_queue:
                 self.message_queue[user_id] = []
-            self.message_queue[user_id].append({
-                **message,
-                "queued_at": datetime.now().isoformat()
-            })
+            self.message_queue[user_id].append({**message, "queued_at": datetime.now().isoformat()})
             return
 
         # Send to all user's connections
@@ -229,10 +225,7 @@ class ConnectionManager:
 
         messages = self.message_queue[user_id]
         for message in messages:
-            await self.send_message(connection_id, {
-                **message,
-                "was_queued": True
-            })
+            await self.send_message(connection_id, {**message, "was_queued": True})
 
         # Clear queue
         del self.message_queue[user_id]
@@ -245,10 +238,7 @@ class ConnectionManager:
             self.connection_meta[connection_id]["last_activity"] = time.time()
 
         # Send pong response
-        await self.send_message(connection_id, {
-            "type": "pong",
-            "timestamp": datetime.now().isoformat()
-        })
+        await self.send_message(connection_id, {"type": "pong", "timestamp": datetime.now().isoformat()})
 
     async def cleanup_stale_connections(self):
         """Remove connections that haven't sent heartbeat recently"""
@@ -272,13 +262,15 @@ class ConnectionManager:
         for connection_id in self.rooms[room]:
             if connection_id in self.connection_meta:
                 meta = self.connection_meta[connection_id]
-                members.append({
-                    "connection_id": connection_id,
-                    "user_id": meta["user_id"],
-                    "connected_at": meta["connected_at"],
-                    "last_activity": meta["last_activity"],
-                    "status": meta["status"]
-                })
+                members.append(
+                    {
+                        "connection_id": connection_id,
+                        "user_id": meta["user_id"],
+                        "connected_at": meta["connected_at"],
+                        "last_activity": meta["last_activity"],
+                        "status": meta["status"],
+                    }
+                )
 
         return members
 
@@ -292,11 +284,13 @@ class ConnectionManager:
             "total_connections": len(self.active_connections),
             "unique_users": len(self.user_connections),
             "rooms": {room: len(connections) for room, connections in self.rooms.items()},
-            "queued_messages": sum(len(msgs) for msgs in self.message_queue.values())
+            "queued_messages": sum(len(msgs) for msgs in self.message_queue.values()),
         }
+
 
 # Global connection manager instance
 manager = ConnectionManager()
+
 
 async def authenticate_websocket(websocket: WebSocket, token: str) -> Optional[User]:
     """Authenticate WebSocket connection using JWT token"""
@@ -317,6 +311,7 @@ async def authenticate_websocket(websocket: WebSocket, token: str) -> Optional[U
         logger.error(f"WebSocket authentication error: {e}")
         await websocket.close(code=4001, reason="Authentication failed")
         return None
+
 
 async def heartbeat_task():
     """Background task to cleanup stale connections"""

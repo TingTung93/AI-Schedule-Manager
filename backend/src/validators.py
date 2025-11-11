@@ -12,6 +12,7 @@ from phonenumbers import NumberParseException
 
 class ValidationError(Exception):
     """Custom validation error."""
+
     def __init__(self, message: str, field: str = None):
         self.message = message
         self.field = field
@@ -251,7 +252,7 @@ class BusinessLogicValidator:
         shift_start: time,
         shift_end: time,
         existing_schedules: List[Dict[str, Any]],
-        exclude_schedule_id: Optional[int] = None
+        exclude_schedule_id: Optional[int] = None,
     ) -> bool:
         """Check for schedule conflicts."""
         from datetime import datetime, timedelta
@@ -269,50 +270,39 @@ class BusinessLogicValidator:
                 continue
 
             # Only check schedules for the same employee and date
-            if (schedule.get("employee_id") != employee_id or
-                schedule.get("date") != shift_date):
+            if schedule.get("employee_id") != employee_id or schedule.get("date") != shift_date:
                 continue
 
             existing_start = datetime.combine(shift_date, schedule.get("start_time"))
             existing_end = datetime.combine(shift_date, schedule.get("end_time"))
 
             # Check for overlap
-            if (shift_start_datetime < existing_end and shift_end_datetime > existing_start):
+            if shift_start_datetime < existing_end and shift_end_datetime > existing_start:
                 raise ValidationError(
                     f"Schedule conflicts with existing shift from {schedule.get('start_time')} to {schedule.get('end_time')}",
-                    field="schedule_conflict"
+                    field="schedule_conflict",
                 )
 
         return True
 
     @staticmethod
-    def validate_employee_qualifications(
-        employee_qualifications: List[str],
-        required_qualifications: List[str]
-    ) -> bool:
+    def validate_employee_qualifications(employee_qualifications: List[str], required_qualifications: List[str]) -> bool:
         """Check if employee meets required qualifications."""
         if not required_qualifications:
             return True
 
-        missing_qualifications = [
-            qual for qual in required_qualifications
-            if qual not in employee_qualifications
-        ]
+        missing_qualifications = [qual for qual in required_qualifications if qual not in employee_qualifications]
 
         if missing_qualifications:
             raise ValidationError(
-                f"Employee is missing required qualifications: {', '.join(missing_qualifications)}",
-                field="qualifications"
+                f"Employee is missing required qualifications: {', '.join(missing_qualifications)}", field="qualifications"
             )
 
         return True
 
     @staticmethod
     def validate_employee_availability(
-        employee_availability: Dict[str, Any],
-        shift_date: date,
-        shift_start: time,
-        shift_end: time
+        employee_availability: Dict[str, Any], shift_date: date, shift_start: time, shift_end: time
     ) -> bool:
         """Check if shift is within employee's availability."""
         if not employee_availability:
@@ -325,10 +315,7 @@ class BusinessLogicValidator:
             return True
 
         if not day_availability.get("available", False):
-            raise ValidationError(
-                f"Employee is not available on {day_of_week}s",
-                field="availability"
-            )
+            raise ValidationError(f"Employee is not available on {day_of_week}s", field="availability")
 
         available_start = validate_time_format(day_availability.get("start", "00:00"))
         available_end = validate_time_format(day_availability.get("end", "23:59"))
@@ -336,7 +323,7 @@ class BusinessLogicValidator:
         if shift_start < available_start or shift_end > available_end:
             raise ValidationError(
                 f"Shift time ({shift_start}-{shift_end}) is outside employee availability ({available_start}-{available_end})",
-                field="availability"
+                field="availability",
             )
 
         return True
@@ -349,7 +336,7 @@ class BusinessLogicValidator:
         new_shift_hours: float,
         max_hours_per_week: int,
         existing_schedules: List[Dict[str, Any]],
-        exclude_schedule_id: Optional[int] = None
+        exclude_schedule_id: Optional[int] = None,
     ) -> bool:
         """Check if adding shift would exceed max hours per week."""
         total_hours = new_shift_hours
@@ -365,8 +352,7 @@ class BusinessLogicValidator:
 
             # Only count schedules for this employee in this week
             schedule_date = schedule.get("date")
-            if (schedule.get("employee_id") != employee_id or
-                schedule_date < week_start or schedule_date > week_end):
+            if schedule.get("employee_id") != employee_id or schedule_date < week_start or schedule_date > week_end:
                 continue
 
             # Calculate shift duration
@@ -381,7 +367,7 @@ class BusinessLogicValidator:
         if total_hours > max_hours_per_week:
             raise ValidationError(
                 f"Adding this shift would exceed maximum hours per week ({total_hours:.1f} > {max_hours_per_week})",
-                field="max_hours"
+                field="max_hours",
             )
 
         return True
@@ -394,7 +380,7 @@ class BusinessLogicValidator:
         shift_end: time,
         existing_schedules: List[Dict[str, Any]],
         minimum_rest_hours: int = 8,
-        exclude_schedule_id: Optional[int] = None
+        exclude_schedule_id: Optional[int] = None,
     ) -> bool:
         """Check minimum rest period between shifts."""
         from datetime import datetime, timedelta
@@ -424,7 +410,7 @@ class BusinessLogicValidator:
             if timedelta(0) <= time_between < timedelta(hours=minimum_rest_hours):
                 raise ValidationError(
                     f"Insufficient rest period ({time_between.total_seconds()/3600:.1f} hours) between shifts. Minimum {minimum_rest_hours} hours required.",
-                    field="rest_period"
+                    field="rest_period",
                 )
 
             # Check rest period after new shift
@@ -432,7 +418,7 @@ class BusinessLogicValidator:
             if timedelta(0) <= time_between < timedelta(hours=minimum_rest_hours):
                 raise ValidationError(
                     f"Insufficient rest period ({time_between.total_seconds()/3600:.1f} hours) between shifts. Minimum {minimum_rest_hours} hours required.",
-                    field="rest_period"
+                    field="rest_period",
                 )
 
         return True
@@ -440,17 +426,17 @@ class BusinessLogicValidator:
 
 # Export validators for use in schemas
 __all__ = [
-    'validate_phone_number',
-    'validate_password_strength',
-    'validate_time_format',
-    'validate_time_range',
-    'validate_employee_name',
-    'validate_hourly_rate',
-    'validate_max_hours_per_week',
-    'validate_availability_pattern',
-    'validate_qualifications',
-    'validate_constraints',
-    'validate_shift_requirements',
-    'BusinessLogicValidator',
-    'ValidationError'
+    "validate_phone_number",
+    "validate_password_strength",
+    "validate_time_format",
+    "validate_time_range",
+    "validate_employee_name",
+    "validate_hourly_rate",
+    "validate_max_hours_per_week",
+    "validate_availability_pattern",
+    "validate_qualifications",
+    "validate_constraints",
+    "validate_shift_requirements",
+    "BusinessLogicValidator",
+    "ValidationError",
 ]

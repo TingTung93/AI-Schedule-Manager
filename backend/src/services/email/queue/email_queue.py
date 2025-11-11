@@ -8,18 +8,14 @@ from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass
 from enum import Enum
 
-from .celery_tasks import (
-    send_email_task,
-    send_batch_emails_task,
-    process_scheduled_emails,
-    send_test_email
-)
+from .celery_tasks import send_email_task, send_batch_emails_task, process_scheduled_emails, send_test_email
 
 logger = logging.getLogger(__name__)
 
 
 class EmailPriority(Enum):
     """Email priority levels."""
+
     LOW = 0
     NORMAL = 1
     HIGH = 2
@@ -29,6 +25,7 @@ class EmailPriority(Enum):
 @dataclass
 class QueuedEmail:
     """Queued email data structure."""
+
     to_email: str
     subject: str
     html_content: Optional[str] = None
@@ -85,10 +82,7 @@ class EmailQueue:
                 task_result = send_email_task.delay(**task_data)
             else:
                 # Schedule for future
-                task_result = send_email_task.apply_async(
-                    kwargs=task_data,
-                    countdown=delay_seconds
-                )
+                task_result = send_email_task.apply_async(kwargs=task_data, countdown=delay_seconds)
 
             self.logger.info(f"Scheduled email to {email.to_email} for {send_at} with task ID {task_result.id}")
             return task_result.id
@@ -107,10 +101,7 @@ class EmailQueue:
                 email_batch.append(task_data)
 
             # Queue batch task
-            task_result = send_batch_emails_task.delay(
-                email_batch=email_batch,
-                batch_name=batch_name
-            )
+            task_result = send_batch_emails_task.delay(email_batch=email_batch, batch_name=batch_name)
 
             self.logger.info(f"Queued batch of {len(emails)} emails with task ID {task_result.id}")
             return task_result.id
@@ -119,18 +110,14 @@ class EmailQueue:
             self.logger.error(f"Failed to queue email batch: {e}")
             raise
 
-    def send_recurring(
-        self,
-        email: QueuedEmail,
-        schedule: Dict[str, Any]
-    ) -> str:
+    def send_recurring(self, email: QueuedEmail, schedule: Dict[str, Any]) -> str:
         """Set up recurring email sending."""
         try:
             # This would typically integrate with Celery Beat for periodic tasks
             # For now, we'll create a simple scheduling mechanism
 
             task_data = self._prepare_task_data(email)
-            task_data['schedule'] = schedule
+            task_data["schedule"] = schedule
 
             # You could implement this with Celery Beat dynamic scheduling
             # or use a custom scheduling system
@@ -146,29 +133,27 @@ class EmailQueue:
         """Get status of queued task."""
         try:
             from celery.result import AsyncResult
+
             result = AsyncResult(task_id, app=send_email_task.app)
 
             return {
-                'task_id': task_id,
-                'status': result.status,
-                'result': result.result if result.ready() else None,
-                'info': result.info,
-                'successful': result.successful() if result.ready() else None,
-                'failed': result.failed() if result.ready() else None
+                "task_id": task_id,
+                "status": result.status,
+                "result": result.result if result.ready() else None,
+                "info": result.info,
+                "successful": result.successful() if result.ready() else None,
+                "failed": result.failed() if result.ready() else None,
             }
 
         except Exception as e:
             self.logger.error(f"Failed to get task status: {e}")
-            return {
-                'task_id': task_id,
-                'status': 'UNKNOWN',
-                'error': str(e)
-            }
+            return {"task_id": task_id, "status": "UNKNOWN", "error": str(e)}
 
     def cancel_task(self, task_id: str) -> bool:
         """Cancel queued task."""
         try:
             from celery.result import AsyncResult
+
             result = AsyncResult(task_id, app=send_email_task.app)
 
             if not result.ready():
@@ -187,6 +172,7 @@ class EmailQueue:
         """Get queue statistics."""
         try:
             from celery import current_app
+
             inspect = current_app.control.inspect()
 
             # Get active tasks
@@ -195,29 +181,23 @@ class EmailQueue:
             reserved_tasks = inspect.reserved()
 
             stats = {
-                'active_tasks': len(active_tasks) if active_tasks else 0,
-                'scheduled_tasks': len(scheduled_tasks) if scheduled_tasks else 0,
-                'reserved_tasks': len(reserved_tasks) if reserved_tasks else 0,
-                'workers': list(active_tasks.keys()) if active_tasks else [],
-                'timestamp': datetime.now(timezone.utc).isoformat()
+                "active_tasks": len(active_tasks) if active_tasks else 0,
+                "scheduled_tasks": len(scheduled_tasks) if scheduled_tasks else 0,
+                "reserved_tasks": len(reserved_tasks) if reserved_tasks else 0,
+                "workers": list(active_tasks.keys()) if active_tasks else [],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             return stats
 
         except Exception as e:
             self.logger.error(f"Failed to get queue stats: {e}")
-            return {
-                'error': str(e),
-                'timestamp': datetime.now(timezone.utc).isoformat()
-            }
+            return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
 
-    def send_test_email(self, to_email: str, test_type: str = 'basic') -> str:
+    def send_test_email(self, to_email: str, test_type: str = "basic") -> str:
         """Send test email."""
         try:
-            task_result = send_test_email.delay(
-                to_email=to_email,
-                test_type=test_type
-            )
+            task_result = send_test_email.delay(to_email=to_email, test_type=test_type)
 
             self.logger.info(f"Queued test email to {to_email} with task ID {task_result.id}")
             return task_result.id
@@ -240,38 +220,38 @@ class EmailQueue:
     def _prepare_task_data(self, email: QueuedEmail) -> Dict[str, Any]:
         """Prepare email data for task queue."""
         task_data = {
-            'to_email': email.to_email,
-            'subject': email.subject,
-            'priority': email.priority.value,
-            'user_id': email.user_id
+            "to_email": email.to_email,
+            "subject": email.subject,
+            "priority": email.priority.value,
+            "user_id": email.user_id,
         }
 
         # Add content
         if email.html_content:
-            task_data['html_content'] = email.html_content
+            task_data["html_content"] = email.html_content
         if email.text_content:
-            task_data['text_content'] = email.text_content
+            task_data["text_content"] = email.text_content
 
         # Add template info
         if email.template_name:
-            task_data['template_name'] = email.template_name
-            task_data['template_variables'] = email.template_variables or {}
+            task_data["template_name"] = email.template_name
+            task_data["template_variables"] = email.template_variables or {}
 
         # Add sender info
         if email.from_email:
-            task_data['from_email'] = email.from_email
+            task_data["from_email"] = email.from_email
         if email.from_name:
-            task_data['from_name'] = email.from_name
+            task_data["from_name"] = email.from_name
 
         # Add recipients
         if email.cc:
-            task_data['cc'] = email.cc
+            task_data["cc"] = email.cc
         if email.bcc:
-            task_data['bcc'] = email.bcc
+            task_data["bcc"] = email.bcc
 
         # Add attachments
         if email.attachments:
-            task_data['attachments'] = email.attachments
+            task_data["attachments"] = email.attachments
 
         return task_data
 
@@ -290,19 +270,11 @@ class EmailQueue:
                 message = "Purged all queues"
 
             self.logger.warning(message)
-            return {
-                'success': True,
-                'message': message,
-                'timestamp': datetime.now(timezone.utc).isoformat()
-            }
+            return {"success": True, "message": message, "timestamp": datetime.now(timezone.utc).isoformat()}
 
         except Exception as e:
             self.logger.error(f"Failed to purge queue: {e}")
-            return {
-                'success': False,
-                'error': str(e),
-                'timestamp': datetime.now(timezone.utc).isoformat()
-            }
+            return {"success": False, "error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
 
     def get_failed_tasks(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get information about failed tasks."""
@@ -319,6 +291,7 @@ class EmailQueue:
         """Retry a failed task."""
         try:
             from celery.result import AsyncResult
+
             result = AsyncResult(task_id, app=send_email_task.app)
 
             if result.failed():

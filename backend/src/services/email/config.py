@@ -10,6 +10,7 @@ from enum import Enum
 
 class EmailProvider(Enum):
     """Available email providers."""
+
     SENDGRID = "sendgrid"
     AWS_SES = "aws_ses"
     SMTP = "smtp"
@@ -75,9 +76,9 @@ class EmailConfig:
     test_email_recipient: Optional[str] = None
 
     @classmethod
-    def from_env(cls) -> 'EmailConfig':
+    def from_env(cls) -> "EmailConfig":
         """Create configuration from environment variables."""
-        provider_str = os.getenv('EMAIL_PROVIDER', 'sendgrid').lower()
+        provider_str = os.getenv("EMAIL_PROVIDER", "sendgrid").lower()
         try:
             provider = EmailProvider(provider_str)
         except ValueError:
@@ -85,27 +86,27 @@ class EmailConfig:
 
         return cls(
             provider=provider,
-            sendgrid_api_key=os.getenv('SENDGRID_API_KEY'),
-            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-            aws_region=os.getenv('AWS_REGION', 'us-east-1'),
-            smtp_host=os.getenv('SMTP_HOST'),
-            smtp_port=int(os.getenv('SMTP_PORT', '587')),
-            smtp_username=os.getenv('SMTP_USERNAME'),
-            smtp_password=os.getenv('SMTP_PASSWORD'),
-            smtp_use_tls=os.getenv('SMTP_USE_TLS', 'true').lower() == 'true',
-            default_from_email=os.getenv('DEFAULT_FROM_EMAIL', 'noreply@aischedulemanager.com'),
-            default_from_name=os.getenv('DEFAULT_FROM_NAME', 'AI Schedule Manager'),
-            reply_to_email=os.getenv('REPLY_TO_EMAIL'),
-            use_celery=os.getenv('USE_CELERY', 'true').lower() == 'true',
-            redis_url=os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
-            max_retries=int(os.getenv('EMAIL_MAX_RETRIES', '3')),
-            retry_delay=int(os.getenv('EMAIL_RETRY_DELAY', '60')),
-            enable_tracking=os.getenv('EMAIL_ENABLE_TRACKING', 'true').lower() == 'true',
-            track_opens=os.getenv('EMAIL_TRACK_OPENS', 'true').lower() == 'true',
-            track_clicks=os.getenv('EMAIL_TRACK_CLICKS', 'true').lower() == 'true',
-            test_mode=os.getenv('EMAIL_TEST_MODE', 'false').lower() == 'true',
-            test_email_recipient=os.getenv('EMAIL_TEST_RECIPIENT')
+            sendgrid_api_key=os.getenv("SENDGRID_API_KEY"),
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            aws_region=os.getenv("AWS_REGION", "us-east-1"),
+            smtp_host=os.getenv("SMTP_HOST"),
+            smtp_port=int(os.getenv("SMTP_PORT", "587")),
+            smtp_username=os.getenv("SMTP_USERNAME"),
+            smtp_password=os.getenv("SMTP_PASSWORD"),
+            smtp_use_tls=os.getenv("SMTP_USE_TLS", "true").lower() == "true",
+            default_from_email=os.getenv("DEFAULT_FROM_EMAIL", "noreply@aischedulemanager.com"),
+            default_from_name=os.getenv("DEFAULT_FROM_NAME", "AI Schedule Manager"),
+            reply_to_email=os.getenv("REPLY_TO_EMAIL"),
+            use_celery=os.getenv("USE_CELERY", "true").lower() == "true",
+            redis_url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+            max_retries=int(os.getenv("EMAIL_MAX_RETRIES", "3")),
+            retry_delay=int(os.getenv("EMAIL_RETRY_DELAY", "60")),
+            enable_tracking=os.getenv("EMAIL_ENABLE_TRACKING", "true").lower() == "true",
+            track_opens=os.getenv("EMAIL_TRACK_OPENS", "true").lower() == "true",
+            track_clicks=os.getenv("EMAIL_TRACK_CLICKS", "true").lower() == "true",
+            test_mode=os.getenv("EMAIL_TEST_MODE", "false").lower() == "true",
+            test_email_recipient=os.getenv("EMAIL_TEST_RECIPIENT"),
         )
 
     def validate(self) -> None:
