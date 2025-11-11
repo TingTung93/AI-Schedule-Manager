@@ -14,9 +14,9 @@ const mockGenerateSchedule = jest.fn();
 
 // Mock axios for employee API calls
 jest.mock('../services/api', () => {
-  const actualApi = jest.requireActual('../services/api');
+  const mockActualApi = require.requireActual('../services/api');
   return {
-    ...actualApi,
+    ...mockActualApi,
     scheduleService: {
       getSchedules: jest.fn(),
       updateShift: jest.fn(),
@@ -33,9 +33,9 @@ jest.mock('../services/api', () => {
 
 // Mock date-fns functions
 jest.mock('date-fns', () => {
-  const actualDateFns = jest.requireActual('date-fns');
+  const mockActualDateFns = require.requireActual('date-fns');
   return {
-    ...actualDateFns,
+    ...mockActualDateFns,
     startOfWeek: jest.fn(() => new Date('2024-01-15')), // Monday
     format: jest.fn((date, formatStr) => {
       if (formatStr === 'yyyy-MM-dd') return '2024-01-15';
