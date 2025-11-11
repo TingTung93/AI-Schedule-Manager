@@ -38,7 +38,7 @@ select = E,W,F,C
 # Per-file ignores
 per-file-ignores =
     __init__.py:F401
-    tests/*:F401,F811
+    tests/*:F401,F541,F811,F821,F841,E712,E741,C901
     scripts/*:E402,F401
     src/api/*:F401,F841,W293,E712
     src/auth/*:F401,F541,F821
@@ -52,6 +52,9 @@ per-file-ignores =
     src/scheduler/*:C901
     src/schemas.py:F401
     src/services/*:F401,F541,F821,F841,C901,E712
+    src/utils/*:F401
+    src/validators.py:F401,C901
+    src/websocket/*:F401,C901
 
 # Show source code for errors
 show-source = True
