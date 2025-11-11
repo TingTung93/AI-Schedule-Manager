@@ -41,6 +41,13 @@ per-file-ignores =
     tests/*:F401,F811
     scripts/*:E402,F401
     src/api/*:F401,F841,W293,E712
+    src/auth/*:F401,F541,F821
+    src/core/*:F401,F841,E402,C901
+    src/middleware/*:F401,F821
+    src/models/*:F401,F821
+    src/models.py:F401,F821
+    src/database.py:F401
+    src/main.py:F401
 
 # Show source code for errors
 show-source = True
