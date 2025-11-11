@@ -11,6 +11,10 @@ import api from '../services/api';
 const mockGetSchedules = jest.fn();
 const mockUpdateShift = jest.fn();
 const mockGenerateSchedule = jest.fn();
+const mockGet = jest.fn();
+const mockPost = jest.fn();
+const mockPatch = jest.fn();
+const mockDelete = jest.fn();
 
 // Mock axios for employee API calls
 jest.mock('../services/api', () => {
@@ -18,15 +22,15 @@ jest.mock('../services/api', () => {
   return {
     ...mockActualApi,
     scheduleService: {
-      getSchedules: jest.fn(),
-      updateShift: jest.fn(),
-      generateSchedule: jest.fn(),
+      getSchedules: mockGetSchedules,
+      updateShift: mockUpdateShift,
+      generateSchedule: mockGenerateSchedule,
     },
     default: {
-      get: jest.fn(),
-      post: jest.fn(),
-      patch: jest.fn(),
-      delete: jest.fn(),
+      get: mockGet,
+      post: mockPost,
+      patch: mockPatch,
+      delete: mockDelete,
     },
   };
 });
@@ -36,8 +40,8 @@ jest.mock('date-fns', () => {
   const mockActualDateFns = require.requireActual('date-fns');
   return {
     ...mockActualDateFns,
-    startOfWeek: jest.fn(() => new Date('2024-01-15')), // Monday
-    format: jest.fn((date, formatStr) => {
+    startOfWeek: () => new Date('2024-01-15'), // Monday
+    format: (date, formatStr) => {
       if (formatStr === 'yyyy-MM-dd') return '2024-01-15';
       if (formatStr === 'MMM d, yyyy') return 'Jan 15, 2024';
       if (formatStr === 'EEE') return 'Mon';
@@ -48,15 +52,15 @@ jest.mock('date-fns', () => {
       if (formatStr === 'EEEE, MMM d, yyyy') return 'Monday, Jan 15, 2024';
       if (formatStr === 'EEEE') return 'Monday';
       return date.toString();
-    }),
-    addDays: jest.fn((date, days) => new Date(date.getTime() + days * 24 * 60 * 60 * 1000)),
-    addWeeks: jest.fn((date, weeks) => new Date(date.getTime() + weeks * 7 * 24 * 60 * 60 * 1000)),
-    subWeeks: jest.fn((date, weeks) => new Date(date.getTime() - weeks * 7 * 24 * 60 * 60 * 1000)),
-    parseISO: jest.fn((str) => new Date(str)),
-    isSameDay: jest.fn(() => true),
-    isWithinInterval: jest.fn(() => true),
-    isToday: jest.fn(() => true),
-    isFuture: jest.fn(() => false),
+    },
+    addDays: (date, days) => new Date(date.getTime() + days * 24 * 60 * 60 * 1000),
+    addWeeks: (date, weeks) => new Date(date.getTime() + weeks * 7 * 24 * 60 * 60 * 1000),
+    subWeeks: (date, weeks) => new Date(date.getTime() - weeks * 7 * 24 * 60 * 60 * 1000),
+    parseISO: (str) => new Date(str),
+    isSameDay: () => true,
+    isWithinInterval: () => true,
+    isToday: () => true,
+    isFuture: () => false,
   };
 });
 
