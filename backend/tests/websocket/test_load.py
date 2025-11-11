@@ -28,7 +28,7 @@ class WebSocketLoadTester:
             "messages_received": 0,
             "connection_times": [],
             "message_latencies": [],
-            "errors": []
+            "errors": [],
         }
 
     async def create_connection(self, token: str, connection_id: str) -> websockets.WebSocketServerProtocol:
@@ -139,14 +139,13 @@ class WebSocketLoadTester:
 
         # Throughput
         stats["connection_success_rate"] = (
-            stats["connections_created"] /
-            (stats["connections_created"] + stats["connections_failed"])
-            if (stats["connections_created"] + stats["connections_failed"]) > 0 else 0
+            stats["connections_created"] / (stats["connections_created"] + stats["connections_failed"])
+            if (stats["connections_created"] + stats["connections_failed"]) > 0
+            else 0
         )
 
         stats["message_success_rate"] = (
-            stats["messages_received"] / stats["messages_sent"]
-            if stats["messages_sent"] > 0 else 0
+            stats["messages_received"] / stats["messages_sent"] if stats["messages_sent"] > 0 else 0
         )
 
         return stats
@@ -172,9 +171,7 @@ class TestWebSocketLoad:
         tasks = []
 
         for i in range(connection_count):
-            task = asyncio.create_task(
-                load_tester.create_connection(mock_token, f"load_test_{i}")
-            )
+            task = asyncio.create_task(load_tester.create_connection(mock_token, f"load_test_{i}"))
             tasks.append(task)
 
         # Wait for all connections with timeout
@@ -192,10 +189,7 @@ class TestWebSocketLoad:
             assert stats["avg_connection_time"] < 5.0  # Should connect within 5 seconds
 
         # Cleanup
-        cleanup_tasks = [
-            asyncio.create_task(load_tester.close_connection(ws))
-            for ws in load_tester.connections
-        ]
+        cleanup_tasks = [asyncio.create_task(load_tester.close_connection(ws)) for ws in load_tester.connections]
         await asyncio.gather(*cleanup_tasks, return_exceptions=True)
 
     async def test_message_throughput(self, load_tester, mock_token):
@@ -218,10 +212,7 @@ class TestWebSocketLoad:
         tasks = []
         for i, ws in enumerate(connections):
             for j in range(messages_per_connection):
-                message = {
-                    "type": "test_message",
-                    "data": {"connection": i, "message": j, "timestamp": time.time()}
-                }
+                message = {"type": "test_message", "data": {"connection": i, "message": j, "timestamp": time.time()}}
                 task = asyncio.create_task(load_tester.send_message(ws, message))
                 tasks.append(task)
 
@@ -243,10 +234,7 @@ class TestWebSocketLoad:
             assert stats["avg_message_latency"] < 1.0  # Average latency under 1 second
 
         # Cleanup
-        cleanup_tasks = [
-            asyncio.create_task(load_tester.close_connection(ws))
-            for ws in connections
-        ]
+        cleanup_tasks = [asyncio.create_task(load_tester.close_connection(ws)) for ws in connections]
         await asyncio.gather(*cleanup_tasks, return_exceptions=True)
 
     async def test_user_session_simulation(self, load_tester, mock_token):
@@ -256,10 +244,7 @@ class TestWebSocketLoad:
 
         # Run user sessions concurrently
         tasks = [
-            asyncio.create_task(
-                load_tester.simulate_user_session(i, mock_token, session_duration)
-            )
-            for i in range(user_count)
+            asyncio.create_task(load_tester.simulate_user_session(i, mock_token, session_duration)) for i in range(user_count)
         ]
 
         start_time = time.time()
@@ -306,24 +291,18 @@ class TestWebSocketLoad:
             ping_tasks = []
             for i, ws in enumerate(connections[:]):  # Copy list to avoid modification during iteration
                 try:
-                    task = asyncio.create_task(
-                        load_tester.send_message(ws, {"type": "ping"})
-                    )
+                    task = asyncio.create_task(load_tester.send_message(ws, {"type": "ping"}))
                     ping_tasks.append((i, task))
                 except Exception:
                     connections.remove(ws)
 
             # Wait for responses
             if ping_tasks:
-                results = await asyncio.gather(
-                    *[task for _, task in ping_tasks],
-                    return_exceptions=True
-                )
+                results = await asyncio.gather(*[task for _, task in ping_tasks], return_exceptions=True)
 
                 # Remove failed connections
                 failed_indices = [
-                    i for (i, _), result in zip(ping_tasks, results)
-                    if isinstance(result, Exception) or result < 0
+                    i for (i, _), result in zip(ping_tasks, results) if isinstance(result, Exception) or result < 0
                 ]
 
                 for i in sorted(failed_indices, reverse=True):
@@ -336,10 +315,7 @@ class TestWebSocketLoad:
         stability_rate = final_connections / initial_connections if initial_connections > 0 else 0
 
         # Cleanup
-        cleanup_tasks = [
-            asyncio.create_task(load_tester.close_connection(ws))
-            for ws in connections
-        ]
+        cleanup_tasks = [asyncio.create_task(load_tester.close_connection(ws)) for ws in connections]
         await asyncio.gather(*cleanup_tasks, return_exceptions=True)
 
         # Assertions
@@ -368,9 +344,7 @@ async def test_memory_usage_under_load():
     tasks = []
 
     for i in range(connection_count):
-        task = asyncio.create_task(
-            load_tester.create_connection(mock_token, f"memory_test_{i}")
-        )
+        task = asyncio.create_task(load_tester.create_connection(mock_token, f"memory_test_{i}"))
         tasks.append(task)
 
     # Monitor memory during connection creation
@@ -383,10 +357,7 @@ async def test_memory_usage_under_load():
     memory_increase = peak_memory - initial_memory
 
     # Cleanup
-    cleanup_tasks = [
-        asyncio.create_task(load_tester.close_connection(ws))
-        for ws in load_tester.connections
-    ]
+    cleanup_tasks = [asyncio.create_task(load_tester.close_connection(ws)) for ws in load_tester.connections]
     await asyncio.gather(*cleanup_tasks, return_exceptions=True)
 
     final_memory = process.memory_info().rss

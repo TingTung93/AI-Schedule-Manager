@@ -73,15 +73,9 @@ def custom_openapi(app: FastAPI) -> Dict[str, Any]:
         """,
         routes=app.routes,
         servers=[
-            {
-                "url": "http://localhost:8000",
-                "description": "Development server"
-            },
-            {
-                "url": "https://api.ai-schedule-manager.com",
-                "description": "Production server"
-            }
-        ]
+            {"url": "http://localhost:8000", "description": "Development server"},
+            {"url": "https://api.ai-schedule-manager.com", "description": "Production server"},
+        ],
     )
 
     # Enhanced security schemes
@@ -90,28 +84,22 @@ def custom_openapi(app: FastAPI) -> Dict[str, Any]:
             "type": "http",
             "scheme": "bearer",
             "bearerFormat": "JWT",
-            "description": "JWT access token obtained from /api/auth/login"
+            "description": "JWT access token obtained from /api/auth/login",
         }
     }
 
     # Add custom extensions
-    openapi_schema["x-logo"] = {
-        "url": "https://ai-schedule-manager.com/logo.png",
-        "altText": "AI Schedule Manager"
-    }
+    openapi_schema["x-logo"] = {"url": "https://ai-schedule-manager.com/logo.png", "altText": "AI Schedule Manager"}
 
     # Add contact information
     openapi_schema["info"]["contact"] = {
         "name": "AI Schedule Manager Support",
         "url": "https://ai-schedule-manager.com/support",
-        "email": "support@ai-schedule-manager.com"
+        "email": "support@ai-schedule-manager.com",
     }
 
     # Add license information
-    openapi_schema["info"]["license"] = {
-        "name": "MIT",
-        "url": "https://opensource.org/licenses/MIT"
-    }
+    openapi_schema["info"]["license"] = {"name": "MIT", "url": "https://opensource.org/licenses/MIT"}
 
     # Enhanced error responses
     if "components" not in openapi_schema:
@@ -132,27 +120,22 @@ def custom_openapi(app: FastAPI) -> Dict[str, Any]:
                                     "properties": {
                                         "loc": {"type": "array"},
                                         "msg": {"type": "string"},
-                                        "type": {"type": "string"}
-                                    }
-                                }
+                                        "type": {"type": "string"},
+                                    },
+                                },
                             }
-                        }
+                        },
                     }
                 }
-            }
+            },
         },
         "Unauthorized": {
             "description": "Authentication required",
             "content": {
                 "application/json": {
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "detail": {"type": "string", "example": "Not authenticated"}
-                        }
-                    }
+                    "schema": {"type": "object", "properties": {"detail": {"type": "string", "example": "Not authenticated"}}}
                 }
-            }
+            },
         },
         "Forbidden": {
             "description": "Insufficient permissions",
@@ -160,12 +143,10 @@ def custom_openapi(app: FastAPI) -> Dict[str, Any]:
                 "application/json": {
                     "schema": {
                         "type": "object",
-                        "properties": {
-                            "detail": {"type": "string", "example": "Insufficient permissions"}
-                        }
+                        "properties": {"detail": {"type": "string", "example": "Insufficient permissions"}},
                     }
                 }
-            }
+            },
         },
         "RateLimitExceeded": {
             "description": "Rate limit exceeded",
@@ -175,12 +156,12 @@ def custom_openapi(app: FastAPI) -> Dict[str, Any]:
                         "type": "object",
                         "properties": {
                             "detail": {"type": "string", "example": "Rate limit exceeded"},
-                            "retry_after": {"type": "integer", "example": 60}
-                        }
+                            "retry_after": {"type": "integer", "example": 60},
+                        },
                     }
                 }
-            }
-        }
+            },
+        },
     }
 
     app.openapi_schema = openapi_schema
@@ -235,17 +216,17 @@ EXAMPLE_RESPONSES = {
                     "tuesday": ["09:00-17:00"],
                     "wednesday": ["09:00-17:00"],
                     "thursday": ["09:00-17:00"],
-                    "friday": ["09:00-17:00"]
+                    "friday": ["09:00-17:00"],
                 },
                 "active": True,
                 "created_at": "2024-01-01T10:00:00Z",
-                "updated_at": "2024-01-01T10:00:00Z"
+                "updated_at": "2024-01-01T10:00:00Z",
             }
         ],
         "total": 25,
         "page": 1,
         "size": 10,
-        "pages": 3
+        "pages": 3,
     },
     "rule_parsed": {
         "id": 1,
@@ -255,19 +236,14 @@ EXAMPLE_RESPONSES = {
             "employee_name": "John",
             "days_off": ["sunday"],
             "preferred_shifts": ["morning"],
-            "shift_preference_weight": 0.8
+            "shift_preference_weight": 0.8,
         },
         "priority": 2,
         "employee_id": 1,
         "active": True,
         "created_at": "2024-01-01T10:00:00Z",
         "updated_at": "2024-01-01T10:00:00Z",
-        "employee": {
-            "id": 1,
-            "name": "John Doe",
-            "email": "john.doe@example.com",
-            "role": "server"
-        }
+        "employee": {"id": 1, "name": "John Doe", "email": "john.doe@example.com", "role": "server"},
     },
     "schedule_optimized": {
         "status": "optimized",
@@ -276,15 +252,10 @@ EXAMPLE_RESPONSES = {
             "coverage": "95%",
             "satisfaction": "88%",
             "optimization_time": "2.3s",
-            "conflicts_resolved": 3
+            "conflicts_resolved": 3,
         },
-        "metrics": {
-            "total_hours": 320,
-            "labor_cost": 4800,
-            "coverage_ratio": 1.2,
-            "employee_satisfaction": 0.88
-        },
-        "message": "Schedule optimized successfully using AI"
+        "metrics": {"total_hours": 320, "labor_cost": 4800, "coverage_ratio": 1.2, "employee_satisfaction": 0.88},
+        "message": "Schedule optimized successfully using AI",
     },
     "analytics_overview": {
         "total_employees": 25,
@@ -293,46 +264,25 @@ EXAMPLE_RESPONSES = {
         "avg_hours_per_week": 35.5,
         "labor_cost_trend": "decreasing",
         "optimization_score": 85,
-        "coverage_metrics": {
-            "current_week": 0.95,
-            "next_week": 0.92,
-            "average": 0.94
-        },
-        "cost_metrics": {
-            "current_week": 12500.00,
-            "last_week": 13200.00,
-            "savings": 700.00
-        }
-    }
+        "coverage_metrics": {"current_week": 0.95, "next_week": 0.92, "average": 0.94},
+        "cost_metrics": {"current_week": 12500.00, "last_week": 13200.00, "savings": 700.00},
+    },
 }
 
 # Common error examples
 ERROR_EXAMPLES = {
     "validation_error": {
         "detail": [
-            {
-                "loc": ["body", "email"],
-                "msg": "field required",
-                "type": "value_error.missing"
-            },
+            {"loc": ["body", "email"], "msg": "field required", "type": "value_error.missing"},
             {
                 "loc": ["body", "hourly_rate"],
                 "msg": "ensure this value is greater than or equal to 0",
-                "type": "value_error.number.not_ge"
-            }
+                "type": "value_error.number.not_ge",
+            },
         ]
     },
-    "authentication_error": {
-        "detail": "Could not validate credentials"
-    },
-    "authorization_error": {
-        "detail": "Not enough permissions"
-    },
-    "not_found_error": {
-        "detail": "Employee not found"
-    },
-    "rate_limit_error": {
-        "detail": "Rate limit exceeded. Try again in 60 seconds.",
-        "retry_after": 60
-    }
+    "authentication_error": {"detail": "Could not validate credentials"},
+    "authorization_error": {"detail": "Not enough permissions"},
+    "not_found_error": {"detail": "Employee not found"},
+    "rate_limit_error": {"detail": "Rate limit exceeded. Try again in 60 seconds.", "retry_after": 60},
 }

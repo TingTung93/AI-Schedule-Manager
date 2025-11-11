@@ -1,6 +1,7 @@
 """
 ScheduleAssignment model for linking employees to shifts within schedules
 """
+
 from datetime import datetime, timedelta
 from typing import Optional, List
 from sqlalchemy import String, Integer, ForeignKey, CheckConstraint, Index, UniqueConstraint
@@ -18,52 +19,25 @@ class ScheduleAssignment(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     # Foreign keys
-    schedule_id: Mapped[int] = mapped_column(
-        ForeignKey("schedules.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
-    )
+    schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    employee_id: Mapped[int] = mapped_column(
-        ForeignKey("employees.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
-    )
+    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    shift_id: Mapped[int] = mapped_column(
-        ForeignKey("shifts.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
-    )
+    shift_id: Mapped[int] = mapped_column(ForeignKey("shifts.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Assignment status and metadata
-    status: Mapped[str] = mapped_column(
-        String(50),
-        nullable=False,
-        default="assigned",
-        index=True
-    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="assigned", index=True)
 
     # Assignment priority/preference
-    priority: Mapped[int] = mapped_column(
-        Integer,
-        default=1,
-        nullable=False
-    )
+    priority: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
     # Notes and comments
     notes: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
 
     # Assignment history
-    assigned_by: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("employees.id"),
-        nullable=True
-    )
+    assigned_by: Mapped[Optional[int]] = mapped_column(ForeignKey("employees.id"), nullable=True)
 
-    assigned_at: Mapped[datetime] = mapped_column(
-        nullable=False,
-        default=datetime.utcnow
-    )
+    assigned_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow)
 
     # Conflict resolution
     conflicts_resolved: Mapped[bool] = mapped_column(default=False, nullable=False)
@@ -73,45 +47,23 @@ class ScheduleAssignment(Base):
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow)
 
     # Relationships
-    schedule: Mapped["Schedule"] = relationship(
-        "Schedule",
-        back_populates="assignments"
-    )
+    schedule: Mapped["Schedule"] = relationship("Schedule", back_populates="assignments")
 
-    employee: Mapped["Employee"] = relationship(
-        "Employee",
-        back_populates="schedule_assignments",
-        foreign_keys=[employee_id]
-    )
+    employee: Mapped["Employee"] = relationship("Employee", back_populates="schedule_assignments", foreign_keys=[employee_id])
 
-    shift: Mapped["Shift"] = relationship(
-        "Shift",
-        back_populates="schedule_assignments"
-    )
+    shift: Mapped["Shift"] = relationship("Shift", back_populates="schedule_assignments")
 
-    assigner: Mapped[Optional["Employee"]] = relationship(
-        "Employee",
-        foreign_keys=[assigned_by]
-    )
+    assigner: Mapped[Optional["Employee"]] = relationship("Employee", foreign_keys=[assigned_by])
 
     # Constraints and indexes
     __table_args__ = (
         # Unique constraint to prevent duplicate assignments
-        UniqueConstraint(
-            "schedule_id", "employee_id", "shift_id",
-            name="uq_schedule_employee_shift"
-        ),
-
+        UniqueConstraint("schedule_id", "employee_id", "shift_id", name="uq_schedule_employee_shift"),
         CheckConstraint(
             "status IN ('assigned', 'pending', 'confirmed', 'declined', 'cancelled', 'completed')",
-            name="valid_assignment_status"
+            name="valid_assignment_status",
         ),
-
-        CheckConstraint(
-            "priority BETWEEN 1 AND 10",
-            name="valid_assignment_priority"
-        ),
-
+        CheckConstraint("priority BETWEEN 1 AND 10", name="valid_assignment_priority"),
         # Composite indexes for common queries
         Index("ix_assignments_schedule_status", "schedule_id", "status"),
         Index("ix_assignments_employee_status", "employee_id", "status"),
@@ -213,10 +165,12 @@ class ScheduleAssignment(Base):
 
         # Check for overlapping assignments
         for other_assignment in self.employee.schedule_assignments:
-            if (other_assignment.id != self.id and
-                other_assignment.status in ["assigned", "confirmed"] and
-                other_assignment.shift.date == self.shift.date and
-                self.shift.conflicts_with(other_assignment.shift)):
+            if (
+                other_assignment.id != self.id
+                and other_assignment.status in ["assigned", "confirmed"]
+                and other_assignment.shift.date == self.shift.date
+                and self.shift.conflicts_with(other_assignment.shift)
+            ):
                 conflicts.append(f"Conflicts with shift {other_assignment.shift.id}")
 
         # Check qualifications
@@ -251,5 +205,5 @@ class ScheduleAssignment(Base):
             "priority": self.priority,
             "auto_assigned": self.auto_assigned,
             "conflicts": self.check_conflicts(),
-            "needs_confirmation": self.needs_confirmation
+            "needs_confirmation": self.needs_confirmation,
         }

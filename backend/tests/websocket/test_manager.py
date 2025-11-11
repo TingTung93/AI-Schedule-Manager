@@ -205,7 +205,7 @@ class TestEventHandler:
     @pytest.fixture
     def mock_manager(self):
         """Mock the global manager"""
-        with patch('backend.src.websocket.events.manager') as mock:
+        with patch("backend.src.websocket.events.manager") as mock:
             mock.send_message = AsyncMock()
             mock.broadcast_to_room = AsyncMock()
             mock.handle_heartbeat = AsyncMock()
@@ -271,7 +271,7 @@ class TestScheduleEvents:
     @pytest.fixture
     def mock_manager(self):
         """Mock the global manager"""
-        with patch('backend.src.websocket.events.manager') as mock:
+        with patch("backend.src.websocket.events.manager") as mock:
             mock.broadcast_to_room = AsyncMock()
             yield mock
 
@@ -317,7 +317,7 @@ class TestEmployeeEvents:
     @pytest.fixture
     def mock_manager(self):
         """Mock the global manager"""
-        with patch('backend.src.websocket.events.manager') as mock:
+        with patch("backend.src.websocket.events.manager") as mock:
             mock.broadcast_to_room = AsyncMock()
             mock.send_personal_message = AsyncMock()
             yield mock
@@ -366,7 +366,7 @@ async def test_authenticate_websocket():
     mock_websocket.close = AsyncMock()
 
     # Test with invalid token
-    with patch('backend.src.websocket.manager.decode_token') as mock_decode:
+    with patch("backend.src.websocket.manager.decode_token") as mock_decode:
         mock_decode.side_effect = Exception("Invalid token")
 
         result = await authenticate_websocket(mock_websocket, "invalid_token")
@@ -376,12 +376,8 @@ async def test_authenticate_websocket():
 
     # Test with valid token
     mock_websocket.reset_mock()
-    with patch('backend.src.websocket.manager.decode_token') as mock_decode:
-        mock_decode.return_value = {
-            "sub": "123",
-            "email": "test@example.com",
-            "username": "testuser"
-        }
+    with patch("backend.src.websocket.manager.decode_token") as mock_decode:
+        mock_decode.return_value = {"sub": "123", "email": "test@example.com", "username": "testuser"}
 
         result = await authenticate_websocket(mock_websocket, "valid_token")
 

@@ -30,13 +30,13 @@ class TemplateCache:
                 cache_item = self._cache[key]
 
                 # Check if expired
-                if time.time() > cache_item['expires_at']:
+                if time.time() > cache_item["expires_at"]:
                     del self._cache[key]
                     return None
 
                 # Update access time
-                cache_item['accessed_at'] = time.time()
-                return cache_item['value']
+                cache_item["accessed_at"] = time.time()
+                return cache_item["value"]
 
         except Exception as e:
             logger.error(f"Cache get error: {e}")
@@ -53,10 +53,10 @@ class TemplateCache:
                 expires_at = time.time() + (ttl or self.ttl)
 
                 self._cache[key] = {
-                    'value': value,
-                    'created_at': time.time(),
-                    'accessed_at': time.time(),
-                    'expires_at': expires_at
+                    "value": value,
+                    "created_at": time.time(),
+                    "accessed_at": time.time(),
+                    "expires_at": expires_at,
                 }
 
                 return True
@@ -95,10 +95,7 @@ class TemplateCache:
             return
 
         # Find oldest accessed item
-        oldest_key = min(
-            self._cache.keys(),
-            key=lambda k: self._cache[k]['accessed_at']
-        )
+        oldest_key = min(self._cache.keys(), key=lambda k: self._cache[k]["accessed_at"])
 
         del self._cache[oldest_key]
 
@@ -107,10 +104,7 @@ class TemplateCache:
         try:
             with self._lock:
                 current_time = time.time()
-                expired_keys = [
-                    key for key, item in self._cache.items()
-                    if current_time > item['expires_at']
-                ]
+                expired_keys = [key for key, item in self._cache.items() if current_time > item["expires_at"]]
 
                 for key in expired_keys:
                     del self._cache[key]
@@ -129,27 +123,20 @@ class TemplateCache:
                 current_time = time.time()
 
                 total_items = len(self._cache)
-                expired_items = sum(
-                    1 for item in self._cache.values()
-                    if current_time > item['expires_at']
-                )
+                expired_items = sum(1 for item in self._cache.values() if current_time > item["expires_at"])
 
                 return {
-                    'total_items': total_items,
-                    'expired_items': expired_items,
-                    'active_items': total_items - expired_items,
-                    'max_size': self.max_size,
-                    'utilization': total_items / self.max_size if self.max_size > 0 else 0,
-                    'ttl': self.ttl
+                    "total_items": total_items,
+                    "expired_items": expired_items,
+                    "active_items": total_items - expired_items,
+                    "max_size": self.max_size,
+                    "utilization": total_items / self.max_size if self.max_size > 0 else 0,
+                    "ttl": self.ttl,
                 }
 
         except Exception as e:
             logger.error(f"Cache stats error: {e}")
-            return {
-                'error': str(e),
-                'total_items': 0,
-                'active_items': 0
-            }
+            return {"error": str(e), "total_items": 0, "active_items": 0}
 
     def exists(self, key: str) -> bool:
         """Check if key exists and is not expired."""
@@ -159,7 +146,7 @@ class TemplateCache:
                     return False
 
                 # Check if expired
-                if time.time() > self._cache[key]['expires_at']:
+                if time.time() > self._cache[key]["expires_at"]:
                     del self._cache[key]
                     return False
 
@@ -179,11 +166,11 @@ class TemplateCache:
                 cache_item = self._cache[key]
 
                 # Check if not already expired
-                if time.time() > cache_item['expires_at']:
+                if time.time() > cache_item["expires_at"]:
                     del self._cache[key]
                     return False
 
-                cache_item['expires_at'] += additional_seconds
+                cache_item["expires_at"] += additional_seconds
                 return True
 
         except Exception as e:

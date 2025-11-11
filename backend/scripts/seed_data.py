@@ -1,6 +1,7 @@
 """
 Seed data script for development environment
 """
+
 import asyncio
 import sys
 from datetime import date, datetime, time, timedelta
@@ -13,14 +14,7 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import AsyncSessionLocal, create_tables
-from src.models import (
-    Employee,
-    Shift,
-    Schedule,
-    ScheduleAssignment,
-    Rule,
-    Notification
-)
+from src.models import Employee, Shift, Schedule, ScheduleAssignment, Rule, Notification
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -48,8 +42,8 @@ async def create_sample_employees(session: AsyncSession) -> list[Employee]:
                 "thursday": {"available": True, "time_slots": [{"start": "08:00", "end": "18:00"}]},
                 "friday": {"available": True, "time_slots": [{"start": "08:00", "end": "18:00"}]},
                 "saturday": {"available": False},
-                "sunday": {"available": False}
-            }
+                "sunday": {"available": False},
+            },
         },
         {
             "name": "Alice Supervisor",
@@ -64,8 +58,8 @@ async def create_sample_employees(session: AsyncSession) -> list[Employee]:
                 "thursday": {"available": True, "time_slots": [{"start": "06:00", "end": "20:00"}]},
                 "friday": {"available": True, "time_slots": [{"start": "06:00", "end": "20:00"}]},
                 "saturday": {"available": True, "time_slots": [{"start": "08:00", "end": "16:00"}]},
-                "sunday": {"available": False}
-            }
+                "sunday": {"available": False},
+            },
         },
         {
             "name": "Bob Worker",
@@ -80,8 +74,8 @@ async def create_sample_employees(session: AsyncSession) -> list[Employee]:
                 "thursday": {"available": True, "time_slots": [{"start": "09:00", "end": "17:00"}]},
                 "friday": {"available": True, "time_slots": [{"start": "09:00", "end": "17:00"}]},
                 "saturday": {"available": True, "time_slots": [{"start": "10:00", "end": "18:00"}]},
-                "sunday": {"available": False}
-            }
+                "sunday": {"available": False},
+            },
         },
         {
             "name": "Carol Specialist",
@@ -96,8 +90,8 @@ async def create_sample_employees(session: AsyncSession) -> list[Employee]:
                 "thursday": {"available": True, "time_slots": [{"start": "10:00", "end": "19:00"}]},
                 "friday": {"available": True, "time_slots": [{"start": "10:00", "end": "19:00"}]},
                 "saturday": {"available": False},
-                "sunday": {"available": True, "time_slots": [{"start": "12:00", "end": "20:00"}]}
-            }
+                "sunday": {"available": True, "time_slots": [{"start": "12:00", "end": "20:00"}]},
+            },
         },
         {
             "name": "David Night",
@@ -112,9 +106,9 @@ async def create_sample_employees(session: AsyncSession) -> list[Employee]:
                 "thursday": {"available": True, "time_slots": [{"start": "22:00", "end": "06:00"}]},
                 "friday": {"available": True, "time_slots": [{"start": "22:00", "end": "06:00"}]},
                 "saturday": {"available": False},
-                "sunday": {"available": False}
-            }
-        }
+                "sunday": {"available": False},
+            },
+        },
     ]
 
     employees = []
@@ -145,7 +139,7 @@ async def create_sample_shifts(session: AsyncSession) -> list[Shift]:
             required_staff=2,
             description="Morning shift - general operations",
             priority=3,
-            requirements={"qualifications": ["general"]}
+            requirements={"qualifications": ["general"]},
         )
         session.add(morning_shift)
         shifts.append(morning_shift)
@@ -159,7 +153,7 @@ async def create_sample_shifts(session: AsyncSession) -> list[Shift]:
             required_staff=2,
             description="Afternoon shift - general operations",
             priority=2,
-            requirements={"qualifications": ["general"]}
+            requirements={"qualifications": ["general"]},
         )
         session.add(afternoon_shift)
         shifts.append(afternoon_shift)
@@ -174,7 +168,7 @@ async def create_sample_shifts(session: AsyncSession) -> list[Shift]:
                 required_staff=1,
                 description="Night shift - security and maintenance",
                 priority=4,
-                requirements={"qualifications": ["night_shift"]}
+                requirements={"qualifications": ["night_shift"]},
             )
             session.add(night_shift)
             shifts.append(night_shift)
@@ -189,7 +183,7 @@ async def create_sample_shifts(session: AsyncSession) -> list[Shift]:
                 required_staff=1,
                 description="Specialized operations requiring advanced qualifications",
                 priority=5,
-                requirements={"qualifications": ["specialist", "certified"]}
+                requirements={"qualifications": ["specialist", "certified"]},
             )
             session.add(specialized_shift)
             shifts.append(specialized_shift)
@@ -211,7 +205,7 @@ async def create_sample_schedule(session: AsyncSession, creator_id: int, shifts:
         title=f"Weekly Schedule - {week_start.strftime('%B %d')} to {week_end.strftime('%B %d, %Y')}",
         description="Standard weekly schedule with morning, afternoon, and specialized shifts",
         created_by=creator_id,
-        published_at=datetime.utcnow()
+        published_at=datetime.utcnow(),
     )
 
     session.add(schedule)
@@ -220,10 +214,7 @@ async def create_sample_schedule(session: AsyncSession, creator_id: int, shifts:
 
 
 async def create_sample_assignments(
-    session: AsyncSession,
-    schedule: Schedule,
-    employees: list[Employee],
-    shifts: list[Shift]
+    session: AsyncSession, schedule: Schedule, employees: list[Employee], shifts: list[Shift]
 ) -> list[ScheduleAssignment]:
     """Create sample schedule assignments"""
     assignments = []
@@ -245,14 +236,16 @@ async def create_sample_assignments(
                     status="confirmed",
                     priority=5,
                     auto_assigned=True,
-                    assigned_by=manager.id
+                    assigned_by=manager.id,
                 )
                 session.add(assignment)
                 assignments.append(assignment)
 
         elif shift.shift_type == "general":
             # Assign general workers to general shifts
-            available_workers = [w for w in workers if w not in [a.employee for a in assignments if a.shift.date == shift.date]]
+            available_workers = [
+                w for w in workers if w not in [a.employee for a in assignments if a.shift.date == shift.date]
+            ]
             if available_workers:
                 for i in range(min(shift.required_staff, len(available_workers))):
                     worker = available_workers[i]
@@ -263,7 +256,7 @@ async def create_sample_assignments(
                         status="assigned" if i == 0 else "confirmed",
                         priority=3,
                         auto_assigned=True,
-                        assigned_by=supervisor.id
+                        assigned_by=supervisor.id,
                     )
                     session.add(assignment)
                     assignments.append(assignment)
@@ -282,48 +275,38 @@ async def create_sample_rules(session: AsyncSession, employees: list[Employee]) 
             "rule_text": "No employee should work more than 40 hours per week",
             "rule_type": "workload",
             "employee_id": None,
-            "constraints": {
-                "max_weekly_hours": 40,
-                "overtime_threshold": 40
-            },
+            "constraints": {"max_weekly_hours": 40, "overtime_threshold": 40},
             "priority": 8,
             "strict": True,
-            "description": "Legal limit on weekly working hours"
+            "description": "Legal limit on weekly working hours",
         },
         {
             "rule_text": "Minimum 8 hours rest between shifts",
             "rule_type": "rest_period",
             "employee_id": None,
-            "constraints": {
-                "min_rest_hours": 8
-            },
+            "constraints": {"min_rest_hours": 8},
             "priority": 9,
             "strict": True,
-            "description": "Mandatory rest period between consecutive shifts"
+            "description": "Mandatory rest period between consecutive shifts",
         },
         {
             "rule_text": "Maximum 5 consecutive working days",
             "rule_type": "consecutive_days",
             "employee_id": None,
-            "constraints": {
-                "max_consecutive_days": 5
-            },
+            "constraints": {"max_consecutive_days": 5},
             "priority": 7,
             "strict": True,
-            "description": "Prevent employee burnout with mandatory days off"
+            "description": "Prevent employee burnout with mandatory days off",
         },
         {
             "rule_text": "Maximum 12 hours overtime per week",
             "rule_type": "overtime",
             "employee_id": None,
-            "constraints": {
-                "max_weekly_overtime": 12,
-                "standard_weekly_hours": 40
-            },
+            "constraints": {"max_weekly_overtime": 12, "standard_weekly_hours": 40},
             "priority": 6,
             "strict": False,
-            "description": "Limit overtime to prevent fatigue"
-        }
+            "description": "Limit overtime to prevent fatigue",
+        },
     ]
 
     for rule_data in global_rules:
@@ -338,13 +321,10 @@ async def create_sample_rules(session: AsyncSession, employees: list[Employee]) 
             rule_text=f"{night_worker.name} prefers night shifts",
             rule_type="preference",
             employee_id=night_worker.id,
-            constraints={
-                "preferred_shift_types": ["general"],
-                "preferred_times": ["22:00-06:00"]
-            },
+            constraints={"preferred_shift_types": ["general"], "preferred_times": ["22:00-06:00"]},
             priority=4,
             strict=False,
-            description="Employee preference for night shifts"
+            description="Employee preference for night shifts",
         )
         session.add(night_rule)
         rules.append(night_rule)
@@ -356,13 +336,10 @@ async def create_sample_rules(session: AsyncSession, employees: list[Employee]) 
             rule_text="Specialized shifts require certified specialists",
             rule_type="qualification",
             employee_id=None,
-            constraints={
-                "required_qualifications": ["specialist", "certified"],
-                "shift_types": ["specialized"]
-            },
+            constraints={"required_qualifications": ["specialist", "certified"], "shift_types": ["specialized"]},
             priority=10,
             strict=True,
-            description="Quality assurance for specialized operations"
+            description="Quality assurance for specialized operations",
         )
         session.add(specialist_rule)
         rules.append(specialist_rule)
@@ -383,7 +360,7 @@ async def create_sample_notifications(session: AsyncSession, employees: list[Emp
             user_id=employee.id,
             alert_message=f"Welcome to the AI Schedule Manager, {employee.name}! Your account has been set up successfully.",
             priority="normal",
-            category="welcome"
+            category="welcome",
         )
         session.add(welcome_notif)
         notifications.append(welcome_notif)
@@ -395,7 +372,7 @@ async def create_sample_notifications(session: AsyncSession, employees: list[Emp
             notification_type="schedule_update",
             title="New Schedule Published",
             message="Your schedule for next week has been published. Please review your assignments.",
-            priority="high"
+            priority="high",
         )
         session.add(schedule_notif)
         notifications.append(schedule_notif)
@@ -403,11 +380,7 @@ async def create_sample_notifications(session: AsyncSession, employees: list[Emp
     # Manager gets approval notification
     manager = next((e for e in employees if e.role == "manager"), None)
     if manager:
-        approval_notif = Notification.create_approval_notification(
-            user_id=manager.id,
-            schedule_id=1,
-            action_required="review"
-        )
+        approval_notif = Notification.create_approval_notification(user_id=manager.id, schedule_id=1, action_required="review")
         session.add(approval_notif)
         notifications.append(approval_notif)
 
@@ -447,7 +420,8 @@ async def main():
             # Commit all changes
             await session.commit()
 
-            print(f"""
+            print(
+                f"""
 ✅ Database seeding completed successfully!
 
 📊 Created:
@@ -464,7 +438,8 @@ async def main():
    Worker: bob.worker@company.com / worker123
    Specialist: carol.specialist@company.com / specialist123
    Night Worker: david.night@company.com / night123
-            """)
+            """
+            )
 
         except Exception as e:
             await session.rollback()

@@ -1,6 +1,7 @@
 """
 Employee model for user management and authentication
 """
+
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy import String, Text, Boolean, Index, CheckConstraint
@@ -28,16 +29,12 @@ class Employee(Base):
 
     # Work-related fields
     qualifications: Mapped[Optional[List[str]]] = mapped_column(
-        ARRAY(String),
-        nullable=True,
-        comment="List of employee qualifications/certifications"
+        ARRAY(String), nullable=True, comment="List of employee qualifications/certifications"
     )
 
     # Availability as JSON structure for flexible scheduling
     availability: Mapped[Optional[dict]] = mapped_column(
-        JSONB,
-        nullable=True,
-        comment="JSON structure defining available time slots by day"
+        JSONB, nullable=True, comment="JSON structure defining available time slots by day"
     )
 
     # Status tracking
@@ -46,51 +43,32 @@ class Employee(Base):
 
     # Audit fields
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     schedule_assignments: Mapped[List["ScheduleAssignment"]] = relationship(
-        "ScheduleAssignment",
-        back_populates="employee",
-        cascade="all, delete-orphan"
+        "ScheduleAssignment", back_populates="employee", cascade="all, delete-orphan"
     )
 
     created_schedules: Mapped[List["Schedule"]] = relationship(
-        "Schedule",
-        back_populates="creator",
-        foreign_keys="Schedule.created_by"
+        "Schedule", back_populates="creator", foreign_keys="Schedule.created_by"
     )
 
-    rules: Mapped[List["Rule"]] = relationship(
-        "Rule",
-        back_populates="employee",
-        cascade="all, delete-orphan"
-    )
+    rules: Mapped[List["Rule"]] = relationship("Rule", back_populates="employee", cascade="all, delete-orphan")
 
     notifications: Mapped[List["Notification"]] = relationship(
-        "Notification",
-        back_populates="user",
-        cascade="all, delete-orphan"
+        "Notification", back_populates="user", cascade="all, delete-orphan"
+    )
+
+    settings: Mapped[Optional["UserSettings"]] = relationship(
+        "UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
 
     # Constraints
     __table_args__ = (
-        CheckConstraint(
-            "role IN ('admin', 'manager', 'supervisor', 'employee')",
-            name="valid_role"
-        ),
-        CheckConstraint(
-            "email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'",
-            name="valid_email_format"
-        ),
-        CheckConstraint(
-            "char_length(name) >= 2",
-            name="name_min_length"
-        ),
+        CheckConstraint("role IN ('admin', 'manager', 'supervisor', 'employee')", name="valid_role"),
+        CheckConstraint("email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'", name="valid_email_format"),
+        CheckConstraint("char_length(name) >= 2", name="name_min_length"),
         Index("ix_employees_role_active", "role", "is_active"),
         Index("ix_employees_qualifications", "qualifications", postgresql_using="gin"),
         Index("ix_employees_availability", "availability", postgresql_using="gin"),
@@ -130,7 +108,7 @@ class Employee(Base):
         shift_requirements = {
             "management": ["supervisor", "manager"],
             "specialized": ["certified", "specialist"],
-            "general": []  # No specific requirements
+            "general": [],  # No specific requirements
         }
 
         required_quals = shift_requirements.get(shift_type, [])

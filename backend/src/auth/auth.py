@@ -18,13 +18,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class AuthenticationError(Exception):
     """Custom exception for authentication errors"""
+
     pass
+
 
 class AuthorizationError(Exception):
     """Custom exception for authorization errors"""
+
     pass
+
 
 class AuthService:
     """
@@ -34,7 +39,7 @@ class AuthService:
 
     def __init__(self, app=None, redis_client=None):
         self.app = app
-        self.redis_client = redis_client or redis.Redis(host='localhost', port=6379, db=0)
+        self.redis_client = redis_client or redis.Redis(host="localhost", port=6379, db=0)
         self.secret_key = None
         self.refresh_secret_key = None
         self.access_token_expires = timedelta(minutes=15)
@@ -47,12 +52,12 @@ class AuthService:
     def init_app(self, app):
         """Initialize the authentication service with Flask app"""
         self.app = app
-        self.secret_key = app.config.get('JWT_SECRET_KEY', secrets.token_urlsafe(32))
-        self.refresh_secret_key = app.config.get('JWT_REFRESH_SECRET_KEY', secrets.token_urlsafe(32))
+        self.secret_key = app.config.get("JWT_SECRET_KEY", secrets.token_urlsafe(32))
+        self.refresh_secret_key = app.config.get("JWT_REFRESH_SECRET_KEY", secrets.token_urlsafe(32))
 
         # Store secrets in app config for consistency
-        app.config['JWT_SECRET_KEY'] = self.secret_key
-        app.config['JWT_REFRESH_SECRET_KEY'] = self.refresh_secret_key
+        app.config["JWT_SECRET_KEY"] = self.secret_key
+        app.config["JWT_REFRESH_SECRET_KEY"] = self.refresh_secret_key
 
     def hash_password(self, password: str) -> str:
         """
@@ -67,8 +72,8 @@ class AuthService:
         try:
             # Generate salt and hash password
             salt = bcrypt.gensalt(rounds=12)
-            hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-            return hashed.decode('utf-8')
+            hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
+            return hashed.decode("utf-8")
         except Exception as e:
             logger.error(f"Password hashing failed: {e}")
             raise AuthenticationError("Password hashing failed")
@@ -85,7 +90,7 @@ class AuthService:
             True if password matches, False otherwise
         """
         try:
-            return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+            return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
         except Exception as e:
             logger.error(f"Password verification failed: {e}")
             return False
@@ -102,16 +107,16 @@ class AuthService:
         """
         try:
             payload = {
-                'user_id': user_data['id'],
-                'email': user_data['email'],
-                'role': user_data.get('role', 'user'),
-                'permissions': user_data.get('permissions', []),
-                'exp': datetime.now(timezone.utc) + self.access_token_expires,
-                'iat': datetime.now(timezone.utc),
-                'type': 'access'
+                "user_id": user_data["id"],
+                "email": user_data["email"],
+                "role": user_data.get("role", "user"),
+                "permissions": user_data.get("permissions", []),
+                "exp": datetime.now(timezone.utc) + self.access_token_expires,
+                "iat": datetime.now(timezone.utc),
+                "type": "access",
             }
 
-            return jwt.encode(payload, self.secret_key, algorithm='HS256')
+            return jwt.encode(payload, self.secret_key, algorithm="HS256")
         except Exception as e:
             logger.error(f"Access token generation failed: {e}")
             raise AuthenticationError("Token generation failed")
@@ -128,21 +133,17 @@ class AuthService:
         """
         try:
             payload = {
-                'user_id': user_id,
-                'exp': datetime.now(timezone.utc) + self.refresh_token_expires,
-                'iat': datetime.now(timezone.utc),
-                'type': 'refresh',
-                'jti': secrets.token_urlsafe(32)  # Unique token ID
+                "user_id": user_id,
+                "exp": datetime.now(timezone.utc) + self.refresh_token_expires,
+                "iat": datetime.now(timezone.utc),
+                "type": "refresh",
+                "jti": secrets.token_urlsafe(32),  # Unique token ID
             }
 
-            token = jwt.encode(payload, self.refresh_secret_key, algorithm='HS256')
+            token = jwt.encode(payload, self.refresh_secret_key, algorithm="HS256")
 
             # Store refresh token in Redis for revocation capability
-            self.redis_client.setex(
-                f"refresh_token:{payload['jti']}",
-                self.refresh_token_expires,
-                user_id
-            )
+            self.redis_client.setex(f"refresh_token:{payload['jti']}", self.refresh_token_expires, user_id)
 
             return token
         except Exception as e:
@@ -163,9 +164,9 @@ class AuthService:
             AuthenticationError: If token is invalid
         """
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
+            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
 
-            if payload.get('type') != 'access':
+            if payload.get("type") != "access":
                 raise AuthenticationError("Invalid token type")
 
             return payload
@@ -188,13 +189,13 @@ class AuthService:
             AuthenticationError: If token is invalid
         """
         try:
-            payload = jwt.decode(token, self.refresh_secret_key, algorithms=['HS256'])
+            payload = jwt.decode(token, self.refresh_secret_key, algorithms=["HS256"])
 
-            if payload.get('type') != 'refresh':
+            if payload.get("type") != "refresh":
                 raise AuthenticationError("Invalid token type")
 
             # Check if token is revoked
-            jti = payload.get('jti')
+            jti = payload.get("jti")
             if not self.redis_client.exists(f"refresh_token:{jti}"):
                 raise AuthenticationError("Token has been revoked")
 
@@ -215,8 +216,8 @@ class AuthService:
             True if successfully revoked
         """
         try:
-            payload = jwt.decode(token, self.refresh_secret_key, algorithms=['HS256'])
-            jti = payload.get('jti')
+            payload = jwt.decode(token, self.refresh_secret_key, algorithms=["HS256"])
+            jti = payload.get("jti")
 
             if jti:
                 self.redis_client.delete(f"refresh_token:{jti}")
@@ -239,22 +240,18 @@ class AuthService:
         """
         try:
             payload = {
-                'user_id': user_id,
-                'email': email,
-                'exp': datetime.now(timezone.utc) + self.password_reset_expires,
-                'iat': datetime.now(timezone.utc),
-                'type': 'password_reset',
-                'jti': secrets.token_urlsafe(32)
+                "user_id": user_id,
+                "email": email,
+                "exp": datetime.now(timezone.utc) + self.password_reset_expires,
+                "iat": datetime.now(timezone.utc),
+                "type": "password_reset",
+                "jti": secrets.token_urlsafe(32),
             }
 
-            token = jwt.encode(payload, self.secret_key, algorithm='HS256')
+            token = jwt.encode(payload, self.secret_key, algorithm="HS256")
 
             # Store reset token in Redis
-            self.redis_client.setex(
-                f"reset_token:{payload['jti']}",
-                self.password_reset_expires,
-                user_id
-            )
+            self.redis_client.setex(f"reset_token:{payload['jti']}", self.password_reset_expires, user_id)
 
             return token
         except Exception as e:
@@ -272,13 +269,13 @@ class AuthService:
             Decoded token payload
         """
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
+            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
 
-            if payload.get('type') != 'password_reset':
+            if payload.get("type") != "password_reset":
                 raise AuthenticationError("Invalid token type")
 
             # Check if token is still valid in Redis
-            jti = payload.get('jti')
+            jti = payload.get("jti")
             if not self.redis_client.exists(f"reset_token:{jti}"):
                 raise AuthenticationError("Reset token has been used or expired")
 
@@ -299,8 +296,8 @@ class AuthService:
             True if successfully invalidated
         """
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-            jti = payload.get('jti')
+            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+            jti = payload.get("jti")
 
             if jti:
                 self.redis_client.delete(f"reset_token:{jti}")
@@ -355,8 +352,10 @@ class AuthService:
 
         return len(issues) == 0, issues
 
+
 # Global auth service instance
 auth_service = AuthService()
+
 
 def init_auth(app, redis_client=None):
     """Initialize authentication service"""

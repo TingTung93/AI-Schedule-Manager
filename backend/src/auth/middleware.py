@@ -12,6 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def extract_token_from_request() -> str:
     """
     Extract JWT token from request headers or cookies
@@ -23,16 +24,17 @@ def extract_token_from_request() -> str:
         AuthenticationError: If no token found
     """
     # Try Authorization header first
-    auth_header = request.headers.get('Authorization')
-    if auth_header and auth_header.startswith('Bearer '):
-        return auth_header.split(' ')[1]
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        return auth_header.split(" ")[1]
 
     # Try cookies as fallback
-    token = request.cookies.get('access_token')
+    token = request.cookies.get("access_token")
     if token:
         return token
 
     raise AuthenticationError("No authentication token provided")
+
 
 def token_required(f):
     """
@@ -44,6 +46,7 @@ def token_required(f):
         def protected_route():
             return {'user_id': g.current_user['user_id']}
     """
+
     @wraps(f)
     def decorated(*args, **kwargs):
         try:
@@ -55,26 +58,21 @@ def token_required(f):
 
             # Store user info in Flask's g object
             g.current_user = payload
-            g.user_id = payload['user_id']
-            g.user_email = payload['email']
-            g.user_role = payload.get('role', 'user')
-            g.user_permissions = payload.get('permissions', [])
+            g.user_id = payload["user_id"]
+            g.user_email = payload["email"]
+            g.user_role = payload.get("role", "user")
+            g.user_permissions = payload.get("permissions", [])
 
             return f(*args, **kwargs)
 
         except AuthenticationError as e:
-            return jsonify({
-                'error': 'Authentication failed',
-                'message': str(e)
-            }), 401
+            return jsonify({"error": "Authentication failed", "message": str(e)}), 401
         except Exception as e:
             logger.error(f"Token validation error: {e}")
-            return jsonify({
-                'error': 'Authentication failed',
-                'message': 'Invalid token'
-            }), 401
+            return jsonify({"error": "Authentication failed", "message": "Invalid token"}), 401
 
     return decorated
+
 
 def require_role(*allowed_roles):
     """
@@ -90,37 +88,34 @@ def require_role(*allowed_roles):
         def admin_route():
             return {'message': 'Admin access granted'}
     """
+
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
             try:
                 # Check if user is authenticated (should be called after @token_required)
-                if not hasattr(g, 'current_user'):
-                    return jsonify({
-                        'error': 'Authorization failed',
-                        'message': 'User not authenticated'
-                    }), 401
+                if not hasattr(g, "current_user"):
+                    return jsonify({"error": "Authorization failed", "message": "User not authenticated"}), 401
 
                 user_role = g.user_role
 
                 # Check if user has required role
                 if user_role not in allowed_roles:
-                    return jsonify({
-                        'error': 'Authorization failed',
-                        'message': f'Required role: {" or ".join(allowed_roles)}'
-                    }), 403
+                    return (
+                        jsonify({"error": "Authorization failed", "message": f'Required role: {" or ".join(allowed_roles)}'}),
+                        403,
+                    )
 
                 return f(*args, **kwargs)
 
             except Exception as e:
                 logger.error(f"Role validation error: {e}")
-                return jsonify({
-                    'error': 'Authorization failed',
-                    'message': 'Access denied'
-                }), 403
+                return jsonify({"error": "Authorization failed", "message": "Access denied"}), 403
 
         return decorated
+
     return decorator
+
 
 def require_permission(*required_permissions):
     """
@@ -136,38 +131,40 @@ def require_permission(*required_permissions):
         def delete_user_route():
             return {'message': 'User deleted'}
     """
+
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
             try:
                 # Check if user is authenticated
-                if not hasattr(g, 'current_user'):
-                    return jsonify({
-                        'error': 'Authorization failed',
-                        'message': 'User not authenticated'
-                    }), 401
+                if not hasattr(g, "current_user"):
+                    return jsonify({"error": "Authorization failed", "message": "User not authenticated"}), 401
 
                 user_permissions = set(g.user_permissions)
                 required_perms = set(required_permissions)
 
                 # Check if user has any of the required permissions
                 if not required_perms.intersection(user_permissions):
-                    return jsonify({
-                        'error': 'Authorization failed',
-                        'message': f'Required permission: {" or ".join(required_permissions)}'
-                    }), 403
+                    return (
+                        jsonify(
+                            {
+                                "error": "Authorization failed",
+                                "message": f'Required permission: {" or ".join(required_permissions)}',
+                            }
+                        ),
+                        403,
+                    )
 
                 return f(*args, **kwargs)
 
             except Exception as e:
                 logger.error(f"Permission validation error: {e}")
-                return jsonify({
-                    'error': 'Authorization failed',
-                    'message': 'Access denied'
-                }), 403
+                return jsonify({"error": "Authorization failed", "message": "Access denied"}), 403
 
         return decorated
+
     return decorator
+
 
 def optional_auth(f):
     """
@@ -184,6 +181,7 @@ def optional_auth(f):
                 return {'message': f'Hello {g.user_email}'}
             return {'message': 'Hello anonymous user'}
     """
+
     @wraps(f)
     def decorated(*args, **kwargs):
         try:
@@ -193,10 +191,10 @@ def optional_auth(f):
 
             # Set user info if token is valid
             g.current_user = payload
-            g.user_id = payload['user_id']
-            g.user_email = payload['email']
-            g.user_role = payload.get('role', 'user')
-            g.user_permissions = payload.get('permissions', [])
+            g.user_id = payload["user_id"]
+            g.user_email = payload["email"]
+            g.user_role = payload.get("role", "user")
+            g.user_permissions = payload.get("permissions", [])
 
         except (AuthenticationError, Exception):
             # Continue without authentication if token is missing or invalid
@@ -205,6 +203,7 @@ def optional_auth(f):
         return f(*args, **kwargs)
 
     return decorated
+
 
 class RateLimiter:
     """
@@ -270,6 +269,7 @@ class RateLimiter:
             logger.error(f"Error getting remaining attempts: {e}")
             return limit
 
+
 def rate_limit(limit: int = 5, window: int = 300, key_func=None):
     """
     Rate limiting decorator
@@ -285,6 +285,7 @@ def rate_limit(limit: int = 5, window: int = 300, key_func=None):
         def login():
             return login_logic()
     """
+
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
@@ -293,22 +294,29 @@ def rate_limit(limit: int = 5, window: int = 300, key_func=None):
                 key = key_func()
             else:
                 # Use IP address as default key
-                key = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+                key = request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr)
 
             rate_limiter = RateLimiter()
 
             if rate_limiter.is_rate_limited(key, limit, window):
                 remaining = rate_limiter.get_remaining_attempts(key, limit)
-                return jsonify({
-                    'error': 'Rate limit exceeded',
-                    'message': f'Too many requests. Try again later.',
-                    'remaining_attempts': remaining
-                }), 429
+                return (
+                    jsonify(
+                        {
+                            "error": "Rate limit exceeded",
+                            "message": f"Too many requests. Try again later.",
+                            "remaining_attempts": remaining,
+                        }
+                    ),
+                    429,
+                )
 
             return f(*args, **kwargs)
 
         return decorated
+
     return decorator
+
 
 class CSRFProtection:
     """
@@ -321,6 +329,7 @@ class CSRFProtection:
     def generate_csrf_token(self, session_id: str) -> str:
         """Generate CSRF token for session"""
         import secrets
+
         token = secrets.token_urlsafe(32)
 
         # Store token with 1 hour expiration
@@ -334,10 +343,11 @@ class CSRFProtection:
             if not stored_token:
                 return False
 
-            return stored_token.decode('utf-8') == token
+            return stored_token.decode("utf-8") == token
         except Exception as e:
             logger.error(f"CSRF validation error: {e}")
             return False
+
 
 def csrf_protect(f):
     """
@@ -350,31 +360,23 @@ def csrf_protect(f):
         def sensitive_endpoint():
             return {'message': 'Success'}
     """
+
     @wraps(f)
     def decorated(*args, **kwargs):
-        if request.method in ['POST', 'PUT', 'DELETE', 'PATCH']:
+        if request.method in ["POST", "PUT", "DELETE", "PATCH"]:
             # Get CSRF token from header
-            csrf_token = request.headers.get('X-CSRF-Token')
+            csrf_token = request.headers.get("X-CSRF-Token")
             if not csrf_token:
-                return jsonify({
-                    'error': 'CSRF token missing',
-                    'message': 'CSRF token required for this request'
-                }), 400
+                return jsonify({"error": "CSRF token missing", "message": "CSRF token required for this request"}), 400
 
             # Get session ID (could be from user ID or session)
-            session_id = getattr(g, 'user_id', request.session.get('id'))
+            session_id = getattr(g, "user_id", request.session.get("id"))
             if not session_id:
-                return jsonify({
-                    'error': 'Invalid session',
-                    'message': 'Valid session required'
-                }), 400
+                return jsonify({"error": "Invalid session", "message": "Valid session required"}), 400
 
             csrf_protection = CSRFProtection()
             if not csrf_protection.validate_csrf_token(str(session_id), csrf_token):
-                return jsonify({
-                    'error': 'Invalid CSRF token',
-                    'message': 'CSRF token validation failed'
-                }), 403
+                return jsonify({"error": "Invalid CSRF token", "message": "CSRF token validation failed"}), 403
 
         return f(*args, **kwargs)
 

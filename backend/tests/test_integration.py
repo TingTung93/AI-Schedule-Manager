@@ -33,9 +33,7 @@ class TestDatabaseIntegration:
         """Create test database engine."""
         # Use in-memory SQLite for testing
         engine = create_async_engine(
-            "sqlite+aiosqlite:///:memory:",
-            poolclass=StaticPool,
-            connect_args={"check_same_thread": False}
+            "sqlite+aiosqlite:///:memory:", poolclass=StaticPool, connect_args={"check_same_thread": False}
         )
 
         # Create tables
@@ -50,11 +48,7 @@ class TestDatabaseIntegration:
         """Create test database session."""
         from sqlalchemy.ext.asyncio import async_sessionmaker
 
-        async_session = async_sessionmaker(
-            test_db_engine,
-            class_=AsyncSession,
-            expire_on_commit=False
-        )
+        async_session = async_sessionmaker(test_db_engine, class_=AsyncSession, expire_on_commit=False)
 
         async with async_session() as session:
             yield session
@@ -63,27 +57,9 @@ class TestDatabaseIntegration:
     async def sample_employees_in_db(self, test_db_session):
         """Create sample employees in test database."""
         employees = [
-            Employee(
-                name="John Doe",
-                email="john@example.com",
-                role="Server",
-                hourly_rate=15.50,
-                is_active=True
-            ),
-            Employee(
-                name="Jane Smith",
-                email="jane@example.com",
-                role="Cook",
-                hourly_rate=18.00,
-                is_active=True
-            ),
-            Employee(
-                name="Bob Wilson",
-                email="bob@example.com",
-                role="Manager",
-                hourly_rate=22.00,
-                is_active=True
-            )
+            Employee(name="John Doe", email="john@example.com", role="Server", hourly_rate=15.50, is_active=True),
+            Employee(name="Jane Smith", email="jane@example.com", role="Cook", hourly_rate=18.00, is_active=True),
+            Employee(name="Bob Wilson", email="bob@example.com", role="Manager", hourly_rate=22.00, is_active=True),
         ]
 
         for employee in employees:
@@ -101,6 +77,7 @@ class TestDatabaseIntegration:
         """Test complete CRUD operations for employees."""
         # Read - Get all employees
         from sqlalchemy import select
+
         result = await test_db_session.execute(select(Employee))
         employees = result.scalars().all()
 
@@ -134,7 +111,7 @@ class TestDatabaseIntegration:
             start_date=datetime(2024, 1, 15).date(),
             end_date=datetime(2024, 1, 21).date(),
             status="draft",
-            created_by="manager-123"
+            created_by="manager-123",
         )
 
         test_db_session.add(schedule)
@@ -150,7 +127,7 @@ class TestDatabaseIntegration:
                 start_time=datetime.strptime("09:00", "%H:%M").time(),
                 end_time=datetime.strptime("17:00", "%H:%M").time(),
                 position="Server",
-                required_employees=2
+                required_employees=2,
             )
             shifts.append(shift)
             test_db_session.add(shift)
@@ -166,10 +143,7 @@ class TestDatabaseIntegration:
         for i, shift in enumerate(shifts[:3]):  # Assign first 3 shifts
             employee = sample_employees_in_db[i % len(sample_employees_in_db)]
             assignment = ShiftAssignment(
-                shift_id=shift.id,
-                employee_id=employee.id,
-                assigned_at=datetime.utcnow(),
-                status="confirmed"
+                shift_id=shift.id, employee_id=employee.id, assigned_at=datetime.utcnow(), status="confirmed"
             )
             assignments.append(assignment)
             test_db_session.add(assignment)
@@ -178,10 +152,9 @@ class TestDatabaseIntegration:
 
         # Verify complete schedule
         from sqlalchemy.orm import selectinload
+
         result = await test_db_session.execute(
-            select(Schedule)
-            .options(selectinload(Schedule.shifts))
-            .where(Schedule.id == schedule.id)
+            select(Schedule).options(selectinload(Schedule.shifts)).where(Schedule.id == schedule.id)
         )
         loaded_schedule = result.scalar_one()
 
@@ -199,7 +172,7 @@ class TestDatabaseIntegration:
             rule_type="availability",
             employee_id=employee.id,
             priority=8,
-            is_active=True
+            is_active=True,
         )
 
         test_db_session.add(rule)
@@ -209,11 +182,8 @@ class TestDatabaseIntegration:
         # Create constraint for the rule
         constraint = Constraint(
             constraint_type="time_restriction",
-            parameters={
-                "max_end_time": "17:00",
-                "days": ["monday", "tuesday", "wednesday", "thursday", "friday"]
-            },
-            description="Cannot work after 5pm on weekdays"
+            parameters={"max_end_time": "17:00", "days": ["monday", "tuesday", "wednesday", "thursday", "friday"]},
+            description="Cannot work after 5pm on weekdays",
         )
 
         test_db_session.add(constraint)
@@ -221,21 +191,15 @@ class TestDatabaseIntegration:
         await test_db_session.refresh(constraint)
 
         # Link rule to constraint
-        rule_constraint = RuleConstraint(
-            rule_id=rule.id,
-            constraint_id=constraint.id
-        )
+        rule_constraint = RuleConstraint(rule_id=rule.id, constraint_id=constraint.id)
 
         test_db_session.add(rule_constraint)
         await test_db_session.commit()
 
         # Verify relationships
         from sqlalchemy.orm import selectinload
-        result = await test_db_session.execute(
-            select(Rule)
-            .options(selectinload(Rule.constraints))
-            .where(Rule.id == rule.id)
-        )
+
+        result = await test_db_session.execute(select(Rule).options(selectinload(Rule.constraints)).where(Rule.id == rule.id))
         loaded_rule = result.scalar_one()
 
         assert len(loaded_rule.constraints) == 1
@@ -249,11 +213,7 @@ class TestDatabaseIntegration:
         employees = []
         for i in range(100):
             employee = Employee(
-                name=f"Employee {i}",
-                email=f"emp{i}@example.com",
-                role="Staff",
-                hourly_rate=15.00 + (i % 10),
-                is_active=True
+                name=f"Employee {i}", email=f"emp{i}@example.com", role="Staff", hourly_rate=15.00 + (i % 10), is_active=True
             )
             employees.append(employee)
             test_db_session.add(employee)
@@ -264,24 +224,18 @@ class TestDatabaseIntegration:
         start_time = time.time()
 
         from sqlalchemy import func, and_
-        query = select(
-            Employee.id,
-            Employee.name,
-            Employee.hourly_rate,
-            func.count(EmployeeAvailability.id).label('availability_count')
-        ).outerjoin(
-            EmployeeAvailability
-        ).where(
-            and_(
-                Employee.is_active == True,
-                Employee.hourly_rate >= 15.00
+
+        query = (
+            select(
+                Employee.id,
+                Employee.name,
+                Employee.hourly_rate,
+                func.count(EmployeeAvailability.id).label("availability_count"),
             )
-        ).group_by(
-            Employee.id,
-            Employee.name,
-            Employee.hourly_rate
-        ).order_by(
-            Employee.hourly_rate.desc()
+            .outerjoin(EmployeeAvailability)
+            .where(and_(Employee.is_active == True, Employee.hourly_rate >= 15.00))
+            .group_by(Employee.id, Employee.name, Employee.hourly_rate)
+            .order_by(Employee.hourly_rate.desc())
         )
 
         result = await test_db_session.execute(query)
@@ -295,22 +249,14 @@ class TestDatabaseIntegration:
     async def test_transaction_rollback(self, test_db_session):
         """Test transaction rollback on errors."""
         # Start transaction
-        employee = Employee(
-            name="Test Employee",
-            email="test@example.com",
-            role="Tester",
-            hourly_rate=15.00
-        )
+        employee = Employee(name="Test Employee", email="test@example.com", role="Tester", hourly_rate=15.00)
 
         test_db_session.add(employee)
 
         try:
             # Create constraint that will cause an error
             invalid_employee = Employee(
-                name="Another Employee",
-                email="test@example.com",  # Duplicate email
-                role="Tester",
-                hourly_rate=15.00
+                name="Another Employee", email="test@example.com", role="Tester", hourly_rate=15.00  # Duplicate email
             )
 
             test_db_session.add(invalid_employee)
@@ -321,6 +267,7 @@ class TestDatabaseIntegration:
 
         # Verify rollback - no employees should be added
         from sqlalchemy import select
+
         result = await test_db_session.execute(select(Employee))
         employees = result.scalars().all()
 
@@ -330,30 +277,24 @@ class TestDatabaseIntegration:
 
     async def test_concurrent_database_access(self, test_db_engine):
         """Test concurrent database access."""
+
         async def create_employee(session, name, email):
-            employee = Employee(
-                name=name,
-                email=email,
-                role="Staff",
-                hourly_rate=15.00
-            )
+            employee = Employee(name=name, email=email, role="Staff", hourly_rate=15.00)
             session.add(employee)
             await session.commit()
             return employee
 
         # Create multiple concurrent sessions
         from sqlalchemy.ext.asyncio import async_sessionmaker
+
         SessionLocal = async_sessionmaker(test_db_engine, class_=AsyncSession)
 
         tasks = []
         for i in range(10):
+
             async def create_concurrent_employee(i=i):
                 async with SessionLocal() as session:
-                    return await create_employee(
-                        session,
-                        f"Concurrent Employee {i}",
-                        f"concurrent{i}@example.com"
-                    )
+                    return await create_employee(session, f"Concurrent Employee {i}", f"concurrent{i}@example.com")
 
             tasks.append(create_concurrent_employee())
 
@@ -384,10 +325,7 @@ class TestAPIIntegration:
         # Register user (if endpoint exists)
         # For now, test login with mock data
 
-        login_data = {
-            "email": "integration@example.com",
-            "password": "testpassword123"
-        }
+        login_data = {"email": "integration@example.com", "password": "testpassword123"}
 
         response = await app_client.post("/api/auth/login", json=login_data)
         assert response.status_code == 200
@@ -411,15 +349,12 @@ class TestAPIIntegration:
         rules_to_parse = [
             "Sarah can't work past 5pm on weekdays",
             "John prefers morning shifts",
-            "We need at least 2 people during lunch hours"
+            "We need at least 2 people during lunch hours",
         ]
 
         parsed_rules = []
         for rule_text in rules_to_parse:
-            response = await app_client.post(
-                "/api/rules/parse",
-                json={"rule_text": rule_text}
-            )
+            response = await app_client.post("/api/rules/parse", json={"rule_text": rule_text})
             assert response.status_code == 200
             parsed_rules.append(response.json())
 
@@ -431,15 +366,9 @@ class TestAPIIntegration:
         assert len(rules_data["rules"]) >= len(parsed_rules)
 
         # Step 3: Generate schedule considering rules
-        schedule_request = {
-            "start_date": "2024-01-15",
-            "end_date": "2024-01-21"
-        }
+        schedule_request = {"start_date": "2024-01-15", "end_date": "2024-01-21"}
 
-        schedule_response = await app_client.post(
-            "/api/schedule/generate",
-            json=schedule_request
-        )
+        schedule_response = await app_client.post("/api/schedule/generate", json=schedule_request)
         assert schedule_response.status_code == 200
 
         schedule_data = schedule_response.json()
@@ -448,9 +377,7 @@ class TestAPIIntegration:
 
         # Step 4: Optimize the generated schedule
         schedule_id = schedule_data["id"]
-        optimize_response = await app_client.post(
-            f"/api/schedule/optimize?schedule_id={schedule_id}"
-        )
+        optimize_response = await app_client.post(f"/api/schedule/optimize?schedule_id={schedule_id}")
         assert optimize_response.status_code == 200
 
         optimization_data = optimize_response.json()
@@ -460,11 +387,7 @@ class TestAPIIntegration:
     async def test_employee_management_workflow(self, app_client):
         """Test complete employee management workflow."""
         # Create new employee
-        new_employee = {
-            "name": "Integration Test Employee",
-            "email": "integration.test@example.com",
-            "role": "Server"
-        }
+        new_employee = {"name": "Integration Test Employee", "email": "integration.test@example.com", "role": "Server"}
 
         create_response = await app_client.post("/api/employees", json=new_employee)
         assert create_response.status_code == 200
@@ -477,19 +400,13 @@ class TestAPIIntegration:
         assert list_response.status_code == 200
 
         employees_list = list_response.json()["employees"]
-        created_emp = next(
-            (emp for emp in employees_list if emp["id"] == employee_id),
-            None
-        )
+        created_emp = next((emp for emp in employees_list if emp["id"] == employee_id), None)
         assert created_emp is not None
         assert created_emp["name"] == new_employee["name"]
 
         # Update employee (if endpoint exists)
         update_data = {"role": "Lead Server"}
-        update_response = await app_client.patch(
-            f"/api/employees/{employee_id}",
-            json=update_data
-        )
+        update_response = await app_client.patch(f"/api/employees/{employee_id}", json=update_data)
         # May not exist yet, so accept 404
         assert update_response.status_code in [200, 404]
 
@@ -498,22 +415,16 @@ class TestAPIIntegration:
         # Step 1: Create employees first
         employees = [
             {"name": "Alice", "email": "alice@test.com", "role": "Server"},
-            {"name": "Bob", "email": "bob@test.com", "role": "Cook"}
+            {"name": "Bob", "email": "bob@test.com", "role": "Cook"},
         ]
 
         for emp in employees:
             await app_client.post("/api/employees", json=emp)
 
         # Step 2: Generate initial schedule
-        schedule_request = {
-            "start_date": "2024-02-01",
-            "end_date": "2024-02-07"
-        }
+        schedule_request = {"start_date": "2024-02-01", "end_date": "2024-02-07"}
 
-        schedule_response = await app_client.post(
-            "/api/schedule/generate",
-            json=schedule_request
-        )
+        schedule_response = await app_client.post("/api/schedule/generate", json=schedule_request)
         assert schedule_response.status_code == 200
 
         schedule = schedule_response.json()
@@ -524,9 +435,7 @@ class TestAPIIntegration:
         assert len(schedule["shifts"]) > 0
 
         # Step 4: Optimize schedule
-        optimize_response = await app_client.post(
-            f"/api/schedule/optimize?schedule_id={schedule_id}"
-        )
+        optimize_response = await app_client.post(f"/api/schedule/optimize?schedule_id={schedule_id}")
         assert optimize_response.status_code == 200
 
         # Step 5: Check analytics
@@ -539,17 +448,13 @@ class TestAPIIntegration:
     async def test_error_handling_integration(self, app_client):
         """Test error handling across the application."""
         # Test invalid rule parsing
-        invalid_rule_response = await app_client.post(
-            "/api/rules/parse",
-            json={"rule_text": ""}
-        )
+        invalid_rule_response = await app_client.post("/api/rules/parse", json={"rule_text": ""})
         # Should handle gracefully
         assert invalid_rule_response.status_code in [200, 400, 422]
 
         # Test invalid schedule generation
         invalid_schedule_response = await app_client.post(
-            "/api/schedule/generate",
-            json={"start_date": "invalid-date", "end_date": "2024-01-21"}
+            "/api/schedule/generate", json={"start_date": "invalid-date", "end_date": "2024-01-21"}
         )
         assert invalid_schedule_response.status_code in [200, 400, 422]
 
@@ -588,18 +493,15 @@ class TestAPIIntegration:
             headers={
                 "Origin": "http://localhost:3000",
                 "Access-Control-Request-Method": "GET",
-                "Access-Control-Request-Headers": "Content-Type"
-            }
+                "Access-Control-Request-Headers": "Content-Type",
+            },
         )
 
         # Should handle CORS preflight
         assert preflight_response.status_code in [200, 204]
 
         # Test actual request with CORS headers
-        response = client.get(
-            "/api/employees",
-            headers={"Origin": "http://localhost:3000"}
-        )
+        response = client.get("/api/employees", headers={"Origin": "http://localhost:3000"})
 
         assert response.status_code == 200
 
@@ -610,9 +512,11 @@ class TestSystemIntegration:
     @pytest.fixture
     def mock_external_services(self):
         """Mock external services for testing."""
-        with patch('src.services.email_service.EmailService') as mock_email, \
-             patch('src.services.notification_service.NotificationService') as mock_notification, \
-             patch('src.core.cache.RedisCache') as mock_cache:
+        with (
+            patch("src.services.email_service.EmailService") as mock_email,
+            patch("src.services.notification_service.NotificationService") as mock_notification,
+            patch("src.core.cache.RedisCache") as mock_cache,
+        ):
 
             # Configure mocks
             mock_email.return_value.send_email = AsyncMock(return_value=True)
@@ -620,11 +524,7 @@ class TestSystemIntegration:
             mock_cache.return_value.get = AsyncMock(return_value=None)
             mock_cache.return_value.set = AsyncMock(return_value=True)
 
-            yield {
-                'email': mock_email,
-                'notification': mock_notification,
-                'cache': mock_cache
-            }
+            yield {"email": mock_email, "notification": mock_notification, "cache": mock_cache}
 
     async def test_email_notification_integration(self, mock_external_services):
         """Test email notification integration."""
@@ -635,26 +535,18 @@ class TestSystemIntegration:
         # Test sending schedule notification
         result = await email_service.send_schedule_notification(
             employee_email="test@example.com",
-            schedule_data={
-                "week": "Jan 15-21, 2024",
-                "shifts": [
-                    {"date": "2024-01-15", "start": "09:00", "end": "17:00"}
-                ]
-            }
+            schedule_data={"week": "Jan 15-21, 2024", "shifts": [{"date": "2024-01-15", "start": "09:00", "end": "17:00"}]},
         )
 
         assert result is True
-        mock_external_services['email'].return_value.send_email.assert_called_once()
+        mock_external_services["email"].return_value.send_email.assert_called_once()
 
     async def test_cache_integration(self, mock_external_services):
         """Test cache integration."""
         from src.core.cache import cache_manager
 
         # Test caching schedule data
-        schedule_data = {
-            "id": "schedule-123",
-            "shifts": [{"date": "2024-01-15", "employee": "John"}]
-        }
+        schedule_data = {"id": "schedule-123", "shifts": [{"date": "2024-01-15", "employee": "John"}]}
 
         # Cache the data
         await cache_manager.set("schedule:123", schedule_data, ttl=3600)
@@ -663,8 +555,8 @@ class TestSystemIntegration:
         cached_data = await cache_manager.get("schedule:123")
 
         # Should call cache service
-        mock_external_services['cache'].return_value.set.assert_called_once()
-        mock_external_services['cache'].return_value.get.assert_called_once()
+        mock_external_services["cache"].return_value.set.assert_called_once()
+        mock_external_services["cache"].return_value.get.assert_called_once()
 
     async def test_backup_and_recovery_integration(self):
         """Test backup and recovery procedures."""
@@ -676,10 +568,7 @@ class TestSystemIntegration:
         backup_service = BackupService()
 
         # Test backup creation
-        backup_id = await backup_service.create_backup(
-            tables=["employees", "schedules", "rules"],
-            compress=True
-        )
+        backup_id = await backup_service.create_backup(tables=["employees", "schedules", "rules"], compress=True)
 
         assert backup_id is not None
         assert isinstance(backup_id, str)
@@ -696,9 +585,7 @@ class TestSystemIntegration:
 
         # Test metric recording
         await monitoring.record_metric(
-            metric_name="schedule_generation_time",
-            value=1.5,
-            tags={"status": "success", "employees": 25}
+            metric_name="schedule_generation_time", value=1.5, tags={"status": "success", "employees": 25}
         )
 
         # Test health check
@@ -736,7 +623,7 @@ class TestSystemIntegration:
         # Test that configuration is loaded
         assert settings.database_url is not None
         assert settings.secret_key is not None
-        assert hasattr(settings, 'cors_origins')
+        assert hasattr(settings, "cors_origins")
 
         # Test environment-specific settings
         if settings.environment == "test":
@@ -759,20 +646,12 @@ class TestSystemIntegration:
         security = SecurityManager()
 
         # Test rate limiting
-        is_allowed = await security.check_rate_limit(
-            identifier="test_user",
-            action="login",
-            limit=5,
-            window=300  # 5 minutes
-        )
+        is_allowed = await security.check_rate_limit(identifier="test_user", action="login", limit=5, window=300)  # 5 minutes
 
         assert isinstance(is_allowed, bool)
 
         # Test input validation
-        is_valid = security.validate_input(
-            data={"email": "test@example.com", "name": "John Doe"},
-            schema="employee_create"
-        )
+        is_valid = security.validate_input(data={"email": "test@example.com", "name": "John Doe"}, schema="employee_create")
 
         assert isinstance(is_valid, bool)
 
@@ -793,13 +672,12 @@ class TestEndToEndWorkflows:
             "email": "manager@newbusiness.com",
             "password": "SecurePassword123!",
             "business_name": "Test Restaurant",
-            "role": "owner"
+            "role": "owner",
         }
 
         # For now, just test login since registration may not exist
         login_response = await e2e_client.post(
-            "/api/auth/login",
-            json={"email": manager_data["email"], "password": manager_data["password"]}
+            "/api/auth/login", json={"email": manager_data["email"], "password": manager_data["password"]}
         )
         assert login_response.status_code == 200
 
@@ -810,7 +688,7 @@ class TestEndToEndWorkflows:
         employees = [
             {"name": "Sarah Johnson", "email": "sarah@test.com", "role": "Server"},
             {"name": "Mike Chen", "email": "mike@test.com", "role": "Cook"},
-            {"name": "Lisa Brown", "email": "lisa@test.com", "role": "Cashier"}
+            {"name": "Lisa Brown", "email": "lisa@test.com", "role": "Cashier"},
         ]
 
         created_employees = []
@@ -824,22 +702,16 @@ class TestEndToEndWorkflows:
             "Sarah can't work past 5pm on weekdays due to childcare",
             "Mike prefers morning shifts and can work up to 50 hours per week",
             "We need at least 2 people during lunch hours (11am-2pm)",
-            "No one should work more than 8 hours in a single day"
+            "No one should work more than 8 hours in a single day",
         ]
 
         for rule_text in rules:
-            response = await e2e_client.post(
-                "/api/rules/parse",
-                json={"rule_text": rule_text},
-                headers=headers
-            )
+            response = await e2e_client.post("/api/rules/parse", json={"rule_text": rule_text}, headers=headers)
             assert response.status_code == 200
 
         # Step 4: Generate first schedule
         schedule_response = await e2e_client.post(
-            "/api/schedule/generate",
-            json={"start_date": "2024-01-15", "end_date": "2024-01-21"},
-            headers=headers
+            "/api/schedule/generate", json={"start_date": "2024-01-15", "end_date": "2024-01-21"}, headers=headers
         )
         assert schedule_response.status_code == 200
 
@@ -870,8 +742,7 @@ class TestEndToEndWorkflows:
         next_week_end = (datetime.now() + timedelta(days=13)).strftime("%Y-%m-%d")
 
         schedule_response = await e2e_client.post(
-            "/api/schedule/generate",
-            json={"start_date": next_week_start, "end_date": next_week_end}
+            "/api/schedule/generate", json={"start_date": next_week_start, "end_date": next_week_end}
         )
         assert schedule_response.status_code == 200
 
@@ -879,9 +750,7 @@ class TestEndToEndWorkflows:
         schedule_id = schedule["id"]
 
         # Step 4: Optimize schedule
-        optimize_response = await e2e_client.post(
-            f"/api/schedule/optimize?schedule_id={schedule_id}"
-        )
+        optimize_response = await e2e_client.post(f"/api/schedule/optimize?schedule_id={schedule_id}")
         assert optimize_response.status_code == 200
 
         optimization = optimize_response.json()
@@ -896,10 +765,7 @@ class TestEndToEndWorkflows:
         # Simulate employee workflow
 
         # Step 1: Employee login
-        login_response = await e2e_client.post(
-            "/api/auth/login",
-            json={"email": "employee@test.com", "password": "password"}
-        )
+        login_response = await e2e_client.post("/api/auth/login", json={"email": "employee@test.com", "password": "password"})
         assert login_response.status_code == 200
 
         # Step 2: View personal schedule
@@ -919,8 +785,8 @@ class TestEndToEndWorkflows:
             json={
                 "preferred_days": ["monday", "tuesday", "wednesday"],
                 "preferred_shifts": ["morning"],
-                "unavailable_dates": ["2024-01-20"]
-            }
+                "unavailable_dates": ["2024-01-20"],
+            },
         )
         # May not exist yet, accept 404
         assert preference_response.status_code in [200, 404]
@@ -932,20 +798,16 @@ class TestEndToEndWorkflows:
             "John needs Monday off every week",
             "We must have John working Monday lunch shifts",
             "John can only work 20 hours per week",
-            "John must work 40 hours per week"
+            "John must work 40 hours per week",
         ]
 
         for rule_text in conflicting_rules:
-            response = await e2e_client.post(
-                "/api/rules/parse",
-                json={"rule_text": rule_text}
-            )
+            response = await e2e_client.post("/api/rules/parse", json={"rule_text": rule_text})
             assert response.status_code == 200
 
         # Step 2: Attempt schedule generation
         schedule_response = await e2e_client.post(
-            "/api/schedule/generate",
-            json={"start_date": "2024-01-22", "end_date": "2024-01-28"}
+            "/api/schedule/generate", json={"start_date": "2024-01-22", "end_date": "2024-01-28"}
         )
         assert schedule_response.status_code == 200
 
@@ -965,10 +827,7 @@ class TestEndToEndWorkflows:
             start_date = (datetime.now() + timedelta(weeks=week)).strftime("%Y-%m-%d")
             end_date = (datetime.now() + timedelta(weeks=week, days=6)).strftime("%Y-%m-%d")
 
-            response = await e2e_client.post(
-                "/api/schedule/generate",
-                json={"start_date": start_date, "end_date": end_date}
-            )
+            response = await e2e_client.post("/api/schedule/generate", json={"start_date": start_date, "end_date": end_date})
             assert response.status_code == 200
 
         # Step 2: Review analytics

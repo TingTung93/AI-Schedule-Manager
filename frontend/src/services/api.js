@@ -538,7 +538,30 @@ export const userService = {
   }
 };
 
-// Error handling utilities
+/**
+ * SERVICE WRAPPERS REMOVED - Use axios 'api' instance directly
+ *
+ * Previous version had 373 lines of service wrapper methods (employeeService,
+ * ruleService, analyticsService, notificationService, shiftService, settingsService)
+ * that added no value - just wrapped axios calls with identical try-catch blocks.
+ *
+ * This violates KISS and DRY principles. Instead, use the axios instance directly:
+ *
+ * Example:
+ *   import api, { getErrorMessage } from './services/api';
+ *
+ *   const response = await api.get('/api/employees');
+ *   const response = await api.post('/api/employees', data);
+ *   const response = await api.patch(`/api/employees/${id}`, data);
+ *   const response = await api.delete(`/api/employees/${id}`);
+ *
+ * Error logging is centralized in the response interceptor (line 74).
+ * For user-friendly error messages, use: getErrorMessage(error)
+ */
+
+// Kept services: authService, scheduleService, taskService, userService
+// These contain authentication logic and are worth keeping
+
 export const errorHandler = {
   /**
    * Extract user-friendly error message
@@ -634,5 +657,8 @@ const storeApiImplementation = () => {
 
 // Store implementation details
 storeApiImplementation();
+
+// Convenient named export for error message extraction
+export const getErrorMessage = errorHandler.getErrorMessage;
 
 export default api;

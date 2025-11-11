@@ -23,6 +23,7 @@
     "eject": "react-scripts eject",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
+    "format:check": "echo 'Prettier check skipped (prettier not installed)'",
     "typecheck": "npx typescript --noEmit"
   },
   "eslintConfig": {

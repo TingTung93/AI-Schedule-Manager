@@ -11,14 +11,7 @@ from fastapi.testclient import TestClient
 from fastapi import HTTPException
 
 from src.main import app
-from src.core.security import (
-    create_access_token,
-    verify_token,
-    get_current_user,
-    hash_password,
-    verify_password,
-    TokenData
-)
+from src.core.security import create_access_token, verify_token, get_current_user, hash_password, verify_password, TokenData
 
 
 class TestAuthentication:
@@ -39,7 +32,7 @@ class TestAuthentication:
             "role": "employee",
             "is_active": True,
             "created_at": datetime.utcnow(),
-            "last_login": None
+            "last_login": None,
         }
 
     @pytest.fixture
@@ -52,7 +45,7 @@ class TestAuthentication:
             "role": "manager",
             "is_active": True,
             "created_at": datetime.utcnow(),
-            "last_login": datetime.utcnow()
+            "last_login": datetime.utcnow(),
         }
 
     @pytest.fixture
@@ -64,7 +57,7 @@ class TestAuthentication:
             "role": "employee",
             "exp": datetime.utcnow() + timedelta(hours=24),
             "iat": datetime.utcnow(),
-            "type": "access"
+            "type": "access",
         }
 
     @pytest.fixture
@@ -76,7 +69,7 @@ class TestAuthentication:
             "role": "employee",
             "exp": datetime.utcnow() - timedelta(hours=1),
             "iat": datetime.utcnow() - timedelta(hours=25),
-            "type": "access"
+            "type": "access",
         }
 
     # Token creation and validation tests
@@ -88,21 +81,14 @@ class TestAuthentication:
         assert len(token) > 0
 
         # Token should be decodable
-        decoded = jwt.decode(
-            token,
-            "test-secret-key",
-            algorithms=["HS256"]
-        )
+        decoded = jwt.decode(token, "test-secret-key", algorithms=["HS256"])
         assert decoded["sub"] == valid_token_payload["sub"]
         assert decoded["email"] == valid_token_payload["email"]
 
     def test_create_token_with_custom_expiry(self, mock_user_data):
         """Test token creation with custom expiration."""
         custom_expires = timedelta(hours=2)
-        token_data = {
-            "sub": mock_user_data["id"],
-            "email": mock_user_data["email"]
-        }
+        token_data = {"sub": mock_user_data["id"], "email": mock_user_data["email"]}
 
         token = create_access_token(token_data, expires_delta=custom_expires)
         decoded = jwt.decode(token, "test-secret-key", algorithms=["HS256"])
@@ -127,11 +113,7 @@ class TestAuthentication:
 
     def test_verify_expired_token(self, expired_token_payload):
         """Test verification of expired token."""
-        token = jwt.encode(
-            expired_token_payload,
-            "test-secret-key",
-            algorithm="HS256"
-        )
+        token = jwt.encode(expired_token_payload, "test-secret-key", algorithm="HS256")
 
         with pytest.raises(HTTPException) as exc_info:
             verify_token(token)
@@ -161,11 +143,7 @@ class TestAuthentication:
     def test_verify_token_with_wrong_secret(self, valid_token_payload):
         """Test token verification with wrong secret key."""
         # Create token with different secret
-        wrong_token = jwt.encode(
-            valid_token_payload,
-            "wrong-secret",
-            algorithm="HS256"
-        )
+        wrong_token = jwt.encode(valid_token_payload, "wrong-secret", algorithm="HS256")
 
         with pytest.raises(HTTPException) as exc_info:
             verify_token(wrong_token)
@@ -210,8 +188,8 @@ class TestAuthentication:
         assert verify_password(long_password, hashed) is True
 
     # User authentication flow tests
-    @patch('src.core.security.get_user_by_email')
-    @patch('src.core.security.verify_password')
+    @patch("src.core.security.get_user_by_email")
+    @patch("src.core.security.verify_password")
     def test_authenticate_user_success(self, mock_verify_password, mock_get_user, mock_user_data):
         """Test successful user authentication."""
         mock_get_user.return_value = mock_user_data
@@ -225,7 +203,7 @@ class TestAuthentication:
         mock_get_user.assert_called_once_with("test@example.com")
         mock_verify_password.assert_called_once()
 
-    @patch('src.core.security.get_user_by_email')
+    @patch("src.core.security.get_user_by_email")
     def test_authenticate_user_not_found(self, mock_get_user):
         """Test authentication with non-existent user."""
         mock_get_user.return_value = None
@@ -236,8 +214,8 @@ class TestAuthentication:
 
         assert user is None
 
-    @patch('src.core.security.get_user_by_email')
-    @patch('src.core.security.verify_password')
+    @patch("src.core.security.get_user_by_email")
+    @patch("src.core.security.verify_password")
     def test_authenticate_user_wrong_password(self, mock_verify_password, mock_get_user, mock_user_data):
         """Test authentication with wrong password."""
         mock_get_user.return_value = mock_user_data
@@ -249,7 +227,7 @@ class TestAuthentication:
 
         assert user is None
 
-    @patch('src.core.security.get_user_by_email')
+    @patch("src.core.security.get_user_by_email")
     def test_authenticate_inactive_user(self, mock_get_user, mock_user_data):
         """Test authentication with inactive user."""
         mock_user_data["is_active"] = False
@@ -262,7 +240,7 @@ class TestAuthentication:
         assert user is None
 
     # Current user retrieval tests
-    @patch('src.core.security.get_user_by_id')
+    @patch("src.core.security.get_user_by_id")
     def test_get_current_user_success(self, mock_get_user, mock_user_data, valid_token_payload):
         """Test getting current user with valid token."""
         mock_get_user.return_value = mock_user_data
@@ -273,7 +251,7 @@ class TestAuthentication:
         assert user == mock_user_data
         mock_get_user.assert_called_once_with(valid_token_payload["sub"])
 
-    @patch('src.core.security.get_user_by_id')
+    @patch("src.core.security.get_user_by_id")
     def test_get_current_user_not_found(self, mock_get_user, valid_token_payload):
         """Test getting current user when user doesn't exist."""
         mock_get_user.return_value = None
@@ -295,7 +273,7 @@ class TestAuthentication:
         assert exc_info.value.status_code == 401
 
     # Role-based access control tests
-    @patch('src.core.security.get_current_user')
+    @patch("src.core.security.get_current_user")
     def test_require_role_success(self, mock_get_current_user, mock_admin_user):
         """Test role requirement with correct role."""
         mock_get_current_user.return_value = mock_admin_user
@@ -309,7 +287,7 @@ class TestAuthentication:
         result = protected_function("valid_token")
         assert result == mock_admin_user
 
-    @patch('src.core.security.get_current_user')
+    @patch("src.core.security.get_current_user")
     def test_require_role_insufficient_privileges(self, mock_get_current_user, mock_user_data):
         """Test role requirement with insufficient privileges."""
         mock_get_current_user.return_value = mock_user_data  # employee role
@@ -348,10 +326,7 @@ class TestAuthentication:
     # API endpoint authentication tests
     def test_login_endpoint_success(self, client):
         """Test login endpoint with valid credentials."""
-        response = client.post("/api/auth/login", json={
-            "email": "test@example.com",
-            "password": "password123"
-        })
+        response = client.post("/api/auth/login", json={"email": "test@example.com", "password": "password123"})
 
         assert response.status_code == 200
         data = response.json()
@@ -361,10 +336,7 @@ class TestAuthentication:
 
     def test_login_endpoint_invalid_credentials(self, client):
         """Test login endpoint with invalid credentials."""
-        response = client.post("/api/auth/login", json={
-            "email": "invalid@example.com",
-            "password": "wrongpassword"
-        })
+        response = client.post("/api/auth/login", json={"email": "invalid@example.com", "password": "wrongpassword"})
 
         assert response.status_code == 401
 
@@ -410,11 +382,7 @@ class TestAuthentication:
     def test_algorithm_confusion_attack(self, valid_token_payload):
         """Test protection against algorithm confusion attacks."""
         # Create token with 'none' algorithm
-        none_token = jwt.encode(
-            valid_token_payload,
-            "",
-            algorithm="none"
-        )
+        none_token = jwt.encode(valid_token_payload, "", algorithm="none")
 
         with pytest.raises(HTTPException):
             verify_token(none_token)
@@ -445,33 +413,20 @@ class TestAuthentication:
         from src.core.security import validate_password_strength
 
         # Weak passwords should fail
-        weak_passwords = [
-            "123456",
-            "password",
-            "abc",
-            "qwerty",
-            "password123"
-        ]
+        weak_passwords = ["123456", "password", "abc", "qwerty", "password123"]
 
         for weak_pwd in weak_passwords:
             assert validate_password_strength(weak_pwd) is False
 
         # Strong passwords should pass
-        strong_passwords = [
-            "MyStr0ngP@ssw0rd!",
-            "C0mpl3x_P4ssw0rd#2024",
-            "SecureP@ss123word!"
-        ]
+        strong_passwords = ["MyStr0ngP@ssw0rd!", "C0mpl3x_P4ssw0rd#2024", "SecureP@ss123word!"]
 
         for strong_pwd in strong_passwords:
             assert validate_password_strength(strong_pwd) is True
 
     def test_rate_limiting_login_attempts(self, client):
         """Test rate limiting on login attempts."""
-        login_data = {
-            "email": "test@example.com",
-            "password": "wrongpassword"
-        }
+        login_data = {"email": "test@example.com", "password": "wrongpassword"}
 
         # Make multiple failed login attempts
         for i in range(10):
@@ -502,10 +457,7 @@ class TestAuthentication:
         results = []
 
         def login_request():
-            response = client.post("/api/auth/login", json={
-                "email": "test@example.com",
-                "password": "password123"
-            })
+            response = client.post("/api/auth/login", json={"email": "test@example.com", "password": "password123"})
             results.append(response.status_code)
 
         # Create 5 concurrent login requests

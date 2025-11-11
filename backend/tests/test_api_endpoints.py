@@ -31,42 +31,27 @@ class TestApiEndpoints:
     @pytest.fixture
     def auth_headers(self):
         """Mock authentication headers."""
-        return {
-            "Authorization": "Bearer test-token-123456789",
-            "Content-Type": "application/json"
-        }
+        return {"Authorization": "Bearer test-token-123456789", "Content-Type": "application/json"}
 
     @pytest.fixture
     def sample_login_data(self):
         """Sample login credentials."""
-        return {
-            "email": "test@example.com",
-            "password": "securepassword123"
-        }
+        return {"email": "test@example.com", "password": "securepassword123"}
 
     @pytest.fixture
     def sample_rule_data(self):
         """Sample rule data for testing."""
-        return {
-            "rule_text": "Sarah can't work past 5pm on weekdays due to childcare"
-        }
+        return {"rule_text": "Sarah can't work past 5pm on weekdays due to childcare"}
 
     @pytest.fixture
     def sample_employee_data(self):
         """Sample employee data for testing."""
-        return {
-            "name": "John Doe",
-            "email": "john.doe@example.com",
-            "role": "Cashier"
-        }
+        return {"name": "John Doe", "email": "john.doe@example.com", "role": "Cashier"}
 
     @pytest.fixture
     def sample_schedule_data(self):
         """Sample schedule generation data."""
-        return {
-            "start_date": "2024-01-15",
-            "end_date": "2024-01-21"
-        }
+        return {"start_date": "2024-01-15", "end_date": "2024-01-21"}
 
     # Root and health endpoints
     def test_root_endpoint(self, client):
@@ -99,10 +84,7 @@ class TestApiEndpoints:
 
     def test_login_invalid_credentials(self, client):
         """Test login with invalid credentials."""
-        response = client.post("/api/auth/login", json={
-            "email": "",
-            "password": ""
-        })
+        response = client.post("/api/auth/login", json={"email": "", "password": ""})
         assert response.status_code == 401
         assert "Invalid credentials" in response.json()["detail"]
 
@@ -113,10 +95,7 @@ class TestApiEndpoints:
 
     def test_login_admin_role_assignment(self, client):
         """Test admin role assignment for admin emails."""
-        response = client.post("/api/auth/login", json={
-            "email": "admin@example.com",
-            "password": "password"
-        })
+        response = client.post("/api/auth/login", json={"email": "admin@example.com", "password": "password"})
         assert response.status_code == 200
         data = response.json()
         assert data["user"]["role"] == "manager"
@@ -136,9 +115,7 @@ class TestApiEndpoints:
 
     def test_parse_rule_availability_detection(self, client):
         """Test detection of availability rules."""
-        response = client.post("/api/rules/parse", json={
-            "rule_text": "John can't work past 5pm"
-        })
+        response = client.post("/api/rules/parse", json={"rule_text": "John can't work past 5pm"})
         assert response.status_code == 200
         data = response.json()
         assert data["rule_type"] == "availability"
@@ -146,27 +123,21 @@ class TestApiEndpoints:
 
     def test_parse_rule_preference_detection(self, client):
         """Test detection of preference rules."""
-        response = client.post("/api/rules/parse", json={
-            "rule_text": "Sarah prefers morning shifts"
-        })
+        response = client.post("/api/rules/parse", json={"rule_text": "Sarah prefers morning shifts"})
         assert response.status_code == 200
         data = response.json()
         assert data["rule_type"] == "preference"
 
     def test_parse_rule_requirement_detection(self, client):
         """Test detection of requirement rules."""
-        response = client.post("/api/rules/parse", json={
-            "rule_text": "We need at least 3 people during lunch"
-        })
+        response = client.post("/api/rules/parse", json={"rule_text": "We need at least 3 people during lunch"})
         assert response.status_code == 200
         data = response.json()
         assert data["rule_type"] == "requirement"
 
     def test_parse_rule_constraint_extraction(self, client):
         """Test constraint extraction from rules."""
-        response = client.post("/api/rules/parse", json={
-            "rule_text": "John prefers morning shifts and can't work evening"
-        })
+        response = client.post("/api/rules/parse", json={"rule_text": "John prefers morning shifts and can't work evening"})
         assert response.status_code == 200
         data = response.json()
 
@@ -176,9 +147,7 @@ class TestApiEndpoints:
 
     def test_parse_rule_time_constraint(self, client):
         """Test time constraint extraction."""
-        response = client.post("/api/rules/parse", json={
-            "rule_text": "Sarah can't work past 5pm due to childcare"
-        })
+        response = client.post("/api/rules/parse", json={"rule_text": "Sarah can't work past 5pm due to childcare"})
         assert response.status_code == 200
         data = response.json()
 
@@ -194,6 +163,7 @@ class TestApiEndpoints:
         """Test getting rules when none exist."""
         # Clear rules database
         from src.main import rules_db
+
         rules_db.clear()
 
         response = client.get("/api/rules")
@@ -248,10 +218,7 @@ class TestApiEndpoints:
 
     def test_generate_schedule_date_validation(self, client):
         """Test schedule generation with invalid dates."""
-        response = client.post("/api/schedule/generate", json={
-            "start_date": "invalid-date",
-            "end_date": "2024-01-21"
-        })
+        response = client.post("/api/schedule/generate", json={"start_date": "invalid-date", "end_date": "2024-01-21"})
         # Should handle gracefully or return validation error
         assert response.status_code in [200, 422]
 
@@ -310,10 +277,13 @@ class TestApiEndpoints:
 
     def test_create_employee_validation(self, client):
         """Test employee creation with missing fields."""
-        response = client.post("/api/employees", json={
-            "name": "John Doe"
-            # Missing email and role
-        })
+        response = client.post(
+            "/api/employees",
+            json={
+                "name": "John Doe"
+                # Missing email and role
+            },
+        )
         assert response.status_code == 422  # Validation error
 
     def test_create_employee_persistence(self, client, sample_employee_data):
@@ -428,11 +398,7 @@ class TestApiEndpoints:
 
     def test_employee_id_uniqueness(self, client):
         """Test that employee IDs are unique."""
-        employee_data = {
-            "name": "Test Employee",
-            "email": "test@example.com",
-            "role": "Tester"
-        }
+        employee_data = {"name": "Test Employee", "email": "test@example.com", "role": "Tester"}
 
         # Create multiple employees
         ids = []

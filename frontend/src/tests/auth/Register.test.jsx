@@ -606,7 +606,9 @@ describe('Register Component', () => {
         </TestWrapper>
       );
 
-      expect(screen.getByRole('form')).toBeInTheDocument();
+      // Form element doesn't have implicit 'form' role, check for presence differently
+      const form = document.querySelector('form');
+      expect(form).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: /create account/i })).toBeInTheDocument();
     });
   });
@@ -624,7 +626,7 @@ describe('Register Component', () => {
 
       // Both inputs should be in the same form row
       const formRow = firstNameInput.closest('.form-row');
-      expect(formRow).toContain(lastNameInput);
+      expect(formRow).toContainElement(lastNameInput);
     });
   });
 });

@@ -10,10 +10,10 @@ import sys
 import os
 
 # Add project root to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Configure async test support
-pytest_plugins = ('pytest_asyncio',)
+pytest_plugins = ("pytest_asyncio",)
 
 
 @pytest.fixture(scope="session")
@@ -65,8 +65,8 @@ def sample_employee_data():
             "tuesday": [{"start": "09:00", "end": "17:00"}],
             "wednesday": [{"start": "09:00", "end": "17:00"}],
             "thursday": [{"start": "09:00", "end": "17:00"}],
-            "friday": [{"start": "09:00", "end": "17:00"}]
-        }
+            "friday": [{"start": "09:00", "end": "17:00"}],
+        },
     }
 
 
@@ -81,10 +81,10 @@ def sample_rule_data():
         "parsed_constraint": {
             "type": "time_restriction",
             "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-            "end_time": "17:00"
+            "end_time": "17:00",
         },
         "priority": 10,
-        "active": True
+        "active": True,
     }
 
 
@@ -99,7 +99,7 @@ def sample_shift_data():
         "end_time": "17:00",
         "position": "Cashier",
         "status": "scheduled",
-        "break_duration": 30
+        "break_duration": 30,
     }
 
 
@@ -141,21 +141,13 @@ async def mock_celery_task():
 @pytest.fixture
 def auth_headers():
     """Mock authentication headers for API testing."""
-    return {
-        "Authorization": "Bearer test-token-123456789",
-        "Content-Type": "application/json"
-    }
+    return {"Authorization": "Bearer test-token-123456789", "Content-Type": "application/json"}
 
 
 @pytest.fixture
 def mock_jwt_payload():
     """Mock JWT payload for testing."""
-    return {
-        "sub": "user-001",
-        "email": "test@example.com",
-        "role": "manager",
-        "exp": 9999999999
-    }
+    return {"sub": "user-001", "email": "test@example.com", "role": "manager", "exp": 9999999999}
 
 
 # Test configuration

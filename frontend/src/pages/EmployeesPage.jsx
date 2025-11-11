@@ -20,13 +20,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
+  CircularProgress,
+  Alert,
+  Snackbar,
   Tabs,
   Tab
 } from '@mui/material';
@@ -42,14 +38,17 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/routeConfig';
+import api, { getErrorMessage } from '../services/api';
 
 const EmployeesPage = () => {
   const { user } = useAuth();
   const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [notification, setNotification] = useState(null);
   const [employeeForm, setEmployeeForm] = useState({
     firstName: '',
     lastName: '',
@@ -60,47 +59,22 @@ const EmployeesPage = () => {
     hireDate: ''
   });
 
+  // Load employees from API
   useEffect(() => {
-    // Simulate loading employees
-    setEmployees([
-      {
-        id: 1,
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@company.com',
-        phone: '+1-555-0123',
-        role: 'manager',
-        department: 'Operations',
-        hireDate: '2023-01-15',
-        status: 'active',
-        avatar: null
-      },
-      {
-        id: 2,
-        firstName: 'Jane',
-        lastName: 'Smith',
-        email: 'jane.smith@company.com',
-        phone: '+1-555-0124',
-        role: 'employee',
-        department: 'Customer Service',
-        hireDate: '2023-03-20',
-        status: 'active',
-        avatar: null
-      },
-      {
-        id: 3,
-        firstName: 'Mike',
-        lastName: 'Johnson',
-        email: 'mike.johnson@company.com',
-        phone: '+1-555-0125',
-        role: 'employee',
-        department: 'Operations',
-        hireDate: '2023-02-10',
-        status: 'inactive',
-        avatar: null
-      }
-    ]);
+    loadEmployees();
   }, []);
+
+  const loadEmployees = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/api/employees');
+      setEmployees(response.data.employees || []);
+    } catch (error) {
+      setNotification({ type: 'error', message: getErrorMessage(error) });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMenuOpen = (event, employee) => {
     setAnchorEl(event.currentTarget);
@@ -126,32 +100,47 @@ const EmployeesPage = () => {
   };
 
   const handleEditEmployee = (employee) => {
-    setEmployeeForm(employee);
+    setEmployeeForm({
+      id: employee.id,
+      firstName: employee.firstName || employee.first_name,
+      lastName: employee.lastName || employee.last_name,
+      email: employee.email,
+      phone: employee.phone,
+      role: employee.role,
+      department: employee.department,
+      hireDate: employee.hireDate || employee.hire_date
+    });
     setDialogOpen(true);
     handleMenuClose();
   };
 
-  const handleDeleteEmployee = (employeeId) => {
-    setEmployees(prev => prev.filter(emp => emp.id !== employeeId));
+  const handleDeleteEmployee = async (employeeId) => {
+    try {
+      await api.delete(`/api/employees/${employeeId}`);
+      setNotification({ type: 'success', message: 'Employee deleted successfully' });
+      loadEmployees();
+    } catch (error) {
+      setNotification({ type: 'error', message: getErrorMessage(error) });
+    }
     handleMenuClose();
   };
 
-  const handleFormSubmit = () => {
-    if (employeeForm.id) {
-      // Update existing employee
-      setEmployees(prev => prev.map(emp =>
-        emp.id === employeeForm.id ? employeeForm : emp
-      ));
-    } else {
-      // Add new employee
-      const newEmployee = {
-        ...employeeForm,
-        id: Math.max(...employees.map(e => e.id), 0) + 1,
-        status: 'active'
-      };
-      setEmployees(prev => [...prev, newEmployee]);
+  const handleFormSubmit = async () => {
+    try {
+      if (employeeForm.id) {
+        // Update existing employee
+        await api.patch(`/api/employees/${employeeForm.id}`, employeeForm);
+        setNotification({ type: 'success', message: 'Employee updated successfully' });
+      } else {
+        // Add new employee
+        await api.post('/api/employees', employeeForm);
+        setNotification({ type: 'success', message: 'Employee created successfully' });
+      }
+      setDialogOpen(false);
+      loadEmployees();
+    } catch (error) {
+      setNotification({ type: 'error', message: getErrorMessage(error) });
     }
-    setDialogOpen(false);
   };
 
   const getRoleColor = (role) => {
@@ -166,8 +155,16 @@ const EmployeesPage = () => {
     return status === 'active' ? 'success' : 'default';
   };
 
-  const activeEmployees = employees.filter(emp => emp.status === 'active');
-  const inactiveEmployees = employees.filter(emp => emp.status === 'inactive');
+  const activeEmployees = employees.filter(emp => emp.status === 'active' || emp.isActive !== false || emp.is_active !== false);
+  const inactiveEmployees = employees.filter(emp => emp.status === 'inactive' || emp.isActive === false || emp.is_active === false);
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -212,86 +209,102 @@ const EmployeesPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Grid container spacing={3}>
-          {(tabValue === 0 ? activeEmployees : inactiveEmployees).map((employee, index) => (
-            <Grid item xs={12} sm={6} lg={4} key={employee.id}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <Card
-                  sx={{
-                    height: '100%',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 4
-                    }
-                  }}
-                >
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                      <Box display="flex" alignItems="center" gap={2}>
-                        <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
-                          {employee.firstName[0]}{employee.lastName[0]}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="h6" fontWeight="bold">
-                            {employee.firstName} {employee.lastName}
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            {employee.department}
-                          </Typography>
+        {(tabValue === 0 ? activeEmployees : inactiveEmployees).length === 0 ? (
+          <Alert severity="info">
+            No {tabValue === 0 ? 'active' : 'inactive'} employees found.
+          </Alert>
+        ) : (
+          <Grid container spacing={3}>
+            {(tabValue === 0 ? activeEmployees : inactiveEmployees).map((employee, index) => {
+              const firstName = employee.firstName || employee.first_name || '';
+              const lastName = employee.lastName || employee.last_name || '';
+              const hireDate = employee.hireDate || employee.hire_date;
+
+              return (
+                <Grid item xs={12} sm={6} lg={4} key={employee.id}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <Card
+                      sx={{
+                        height: '100%',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: 4
+                        }
+                      }}
+                    >
+                      <CardContent>
+                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                          <Box display="flex" alignItems="center" gap={2}>
+                            <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
+                              {firstName?.[0]}{lastName?.[0]}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="h6" fontWeight="bold">
+                                {firstName} {lastName}
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                {employee.department}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          {user?.role !== 'employee' && (
+                            <IconButton
+                              size="small"
+                              onClick={(e) => handleMenuOpen(e, employee)}
+                            >
+                              <MoreVert />
+                            </IconButton>
+                          )}
                         </Box>
-                      </Box>
-                      {user?.role !== 'employee' && (
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleMenuOpen(e, employee)}
-                        >
-                          <MoreVert />
-                        </IconButton>
-                      )}
-                    </Box>
 
-                    <Box mb={2}>
-                      <Box display="flex" gap={1} mb={1}>
-                        <Chip
-                          label={employee.role}
-                          color={getRoleColor(employee.role)}
-                          size="small"
-                        />
-                        <Chip
-                          label={employee.status}
-                          color={getStatusColor(employee.status)}
-                          size="small"
-                        />
-                      </Box>
-                    </Box>
+                        <Box mb={2}>
+                          <Box display="flex" gap={1} mb={1}>
+                            <Chip
+                              label={employee.role}
+                              color={getRoleColor(employee.role)}
+                              size="small"
+                            />
+                            <Chip
+                              label={employee.status || (employee.isActive !== false && employee.is_active !== false ? 'active' : 'inactive')}
+                              color={getStatusColor(employee.status || (employee.isActive !== false && employee.is_active !== false ? 'active' : 'inactive'))}
+                              size="small"
+                            />
+                          </Box>
+                        </Box>
 
-                    <Box>
-                      <Box display="flex" alignItems="center" gap={1} mb={1}>
-                        <Email fontSize="small" color="action" />
-                        <Typography variant="body2">{employee.email}</Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={1} mb={1}>
-                        <Phone fontSize="small" color="action" />
-                        <Typography variant="body2">{employee.phone}</Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Badge fontSize="small" color="action" />
-                        <Typography variant="body2">
-                          Hired: {new Date(employee.hireDate).toLocaleDateString()}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </Grid>
-          ))}
-        </Grid>
+                        <Box>
+                          <Box display="flex" alignItems="center" gap={1} mb={1}>
+                            <Email fontSize="small" color="action" />
+                            <Typography variant="body2">{employee.email}</Typography>
+                          </Box>
+                          {employee.phone && (
+                            <Box display="flex" alignItems="center" gap={1} mb={1}>
+                              <Phone fontSize="small" color="action" />
+                              <Typography variant="body2">{employee.phone}</Typography>
+                            </Box>
+                          )}
+                          {hireDate && (
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Badge fontSize="small" color="action" />
+                              <Typography variant="body2">
+                                Hired: {new Date(hireDate).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </Grid>
+              );
+            })}
+          </Grid>
+        )}
       </motion.div>
 
       {/* Context Menu */}
@@ -327,6 +340,7 @@ const EmployeesPage = () => {
                     ...prev,
                     firstName: e.target.value
                   }))}
+                  required
                 />
               </Grid>
               <Grid item xs={6}>
@@ -338,6 +352,7 @@ const EmployeesPage = () => {
                     ...prev,
                     lastName: e.target.value
                   }))}
+                  required
                 />
               </Grid>
               <Grid item xs={12}>
@@ -350,6 +365,7 @@ const EmployeesPage = () => {
                     ...prev,
                     email: e.target.value
                   }))}
+                  required
                 />
               </Grid>
               <Grid item xs={6}>
@@ -414,6 +430,19 @@ const EmployeesPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={!!notification}
+        autoHideDuration={4000}
+        onClose={() => setNotification(null)}
+      >
+        {notification && (
+          <Alert onClose={() => setNotification(null)} severity={notification.type}>
+            {notification.message}
+          </Alert>
+        )}
+      </Snackbar>
     </Box>
   );
 };

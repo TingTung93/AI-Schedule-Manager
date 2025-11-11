@@ -39,6 +39,7 @@ import {
   Notifications
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
+import { userService, authService } from '../services/api';
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -114,10 +115,18 @@ const ProfilePage = () => {
     setEditing(true);
   };
 
-  const handleSave = () => {
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    try {
+      if (user?.id) {
+        await userService.updateUser(user.id, profileData);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+      setEditing(false);
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      alert('Failed to save profile changes');
+    }
   };
 
   const handleCancel = () => {
@@ -143,20 +152,29 @@ const ProfilePage = () => {
     }));
   };
 
-  const handlePasswordSubmit = () => {
+  const handlePasswordSubmit = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    // Simulate password change
-    setPasswordDialogOpen(false);
-    setPasswordForm({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+
+    try {
+      await authService.changePassword(
+        passwordForm.currentPassword,
+        passwordForm.newPassword
+      );
+      setPasswordDialogOpen(false);
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      alert('Failed to change password. Please check your current password.');
+    }
   };
 
   const getRoleColor = (role) => {

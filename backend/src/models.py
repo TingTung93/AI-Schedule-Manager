@@ -15,6 +15,7 @@ Base = declarative_base()
 
 class Employee(Base):
     """Employee model."""
+
     __tablename__ = "employees"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
@@ -37,10 +38,13 @@ class Employee(Base):
 
 class Rule(Base):
     """Scheduling rule model."""
+
     __tablename__ = "rules"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    rule_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)  # availability, preference, requirement, restriction
+    rule_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, index=True
+    )  # availability, preference, requirement, restriction
     original_text: Mapped[str] = mapped_column(Text, nullable=False)
     constraints: Mapped[dict] = mapped_column(JSON, nullable=False, default={})
     priority: Mapped[int] = mapped_column(Integer, default=1)  # 1=low, 5=high
@@ -55,6 +59,7 @@ class Rule(Base):
 
 class Shift(Base):
     """Shift template model."""
+
     __tablename__ = "shifts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
@@ -76,13 +81,16 @@ class Shift(Base):
 
 class Schedule(Base):
     """Schedule assignment model."""
+
     __tablename__ = "schedules"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     employee_id: Mapped[int] = mapped_column(Integer, ForeignKey("employees.id"), nullable=False, index=True)
     shift_id: Mapped[int] = mapped_column(Integer, ForeignKey("shifts.id"), nullable=False, index=True)
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
-    status: Mapped[str] = mapped_column(String(50), default="scheduled", index=True)  # scheduled, completed, cancelled, no_show
+    status: Mapped[str] = mapped_column(
+        String(50), default="scheduled", index=True
+    )  # scheduled, completed, cancelled, no_show
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     overtime_approved: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -95,11 +103,14 @@ class Schedule(Base):
 
 class Notification(Base):
     """Notification model."""
+
     __tablename__ = "notifications"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     employee_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("employees.id"), nullable=True, index=True)
-    notification_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)  # schedule, request, reminder, alert
+    notification_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, index=True
+    )  # schedule, request, reminder, alert
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
@@ -114,6 +125,7 @@ class Notification(Base):
 
 class ScheduleTemplate(Base):
     """Schedule template for recurring schedules."""
+
     __tablename__ = "schedule_templates"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)

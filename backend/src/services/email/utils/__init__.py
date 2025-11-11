@@ -8,10 +8,4 @@ from .cache import TemplateCache
 from .formatter import EmailFormatter
 from .unsubscribe import UnsubscribeManager
 
-__all__ = [
-    'EmailValidator',
-    'RateLimiter',
-    'TemplateCache',
-    'EmailFormatter',
-    'UnsubscribeManager'
-]
+__all__ = ["EmailValidator", "RateLimiter", "TemplateCache", "EmailFormatter", "UnsubscribeManager"]

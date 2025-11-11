@@ -20,7 +20,7 @@ class SendGridProvider(BaseEmailProvider):
 
     def _initialize(self) -> None:
         """Initialize SendGrid client."""
-        api_key = self.config.get('api_key')
+        api_key = self.config.get("api_key")
         if not api_key:
             raise ValueError("SendGrid API key is required")
 
@@ -33,39 +33,28 @@ class SendGridProvider(BaseEmailProvider):
             # Validate message
             validation_errors = self.validate_message(message)
             if validation_errors:
-                return EmailResponse(
-                    success=False,
-                    error_message=f"Validation errors: {', '.join(validation_errors)}"
-                )
+                return EmailResponse(success=False, error_message=f"Validation errors: {', '.join(validation_errors)}")
 
             # Create SendGrid mail object
             mail = self._create_mail_object(message)
 
             # Send email
-            response = await asyncio.get_event_loop().run_in_executor(
-                None, self.client.send, mail
-            )
+            response = await asyncio.get_event_loop().run_in_executor(None, self.client.send, mail)
 
             # Parse response
             if response.status_code in [200, 202]:
                 return EmailResponse(
                     success=True,
-                    message_id=response.headers.get('X-Message-Id'),
-                    provider_response={
-                        'status_code': response.status_code,
-                        'headers': dict(response.headers)
-                    },
-                    status_code=response.status_code
+                    message_id=response.headers.get("X-Message-Id"),
+                    provider_response={"status_code": response.status_code, "headers": dict(response.headers)},
+                    status_code=response.status_code,
                 )
             else:
                 return EmailResponse(
                     success=False,
                     error_message=f"SendGrid returned status {response.status_code}",
-                    provider_response={
-                        'status_code': response.status_code,
-                        'body': response.body
-                    },
-                    status_code=response.status_code
+                    provider_response={"status_code": response.status_code, "body": response.body},
+                    status_code=response.status_code,
                 )
 
         except HTTPError as e:
@@ -73,15 +62,12 @@ class SendGridProvider(BaseEmailProvider):
             return EmailResponse(
                 success=False,
                 error_message=f"SendGrid HTTP error: {str(e)}",
-                provider_response=getattr(e, 'body', None),
-                status_code=getattr(e, 'status_code', None)
+                provider_response=getattr(e, "body", None),
+                status_code=getattr(e, "status_code", None),
             )
         except Exception as e:
             logger.error(f"SendGrid send error: {e}")
-            return EmailResponse(
-                success=False,
-                error_message=f"SendGrid error: {str(e)}"
-            )
+            return EmailResponse(success=False, error_message=f"SendGrid error: {str(e)}")
 
     async def send_batch(self, messages: List[EmailMessage]) -> List[EmailResponse]:
         """Send multiple emails in batch."""
@@ -92,25 +78,18 @@ class SendGridProvider(BaseEmailProvider):
         """Create SendGrid Mail object from EmailMessage."""
         # From email
         from_email = Email(
-            email=message.from_email or self.config.get('default_from_email'),
-            name=message.from_name or self.config.get('default_from_name')
+            email=message.from_email or self.config.get("default_from_email"),
+            name=message.from_name or self.config.get("default_from_name"),
         )
 
         # To email
-        to_email = To(
-            email=message.to_email,
-            name=message.to_name
-        )
+        to_email = To(email=message.to_email, name=message.to_name)
 
         # Subject
         subject = message.subject
 
         # Create mail object
-        mail = Mail(
-            from_email=from_email,
-            to_emails=to_email,
-            subject=subject
-        )
+        mail = Mail(from_email=from_email, to_emails=to_email, subject=subject)
 
         # Add content
         if message.text_content:
@@ -135,10 +114,10 @@ class SendGridProvider(BaseEmailProvider):
         if message.attachments:
             for attachment_data in message.attachments:
                 attachment = Attachment()
-                attachment.file_content = attachment_data.get('content')
-                attachment.file_name = attachment_data.get('filename')
-                attachment.file_type = attachment_data.get('type')
-                attachment.disposition = attachment_data.get('disposition', 'attachment')
+                attachment.file_content = attachment_data.get("content")
+                attachment.file_name = attachment_data.get("filename")
+                attachment.file_type = attachment_data.get("type")
+                attachment.disposition = attachment_data.get("disposition", "attachment")
                 mail.add_attachment(attachment)
 
         # Add headers
@@ -150,12 +129,12 @@ class SendGridProvider(BaseEmailProvider):
         if message.tracking_settings:
             tracking_settings = mail.tracking_settings
 
-            if 'open_tracking' in message.tracking_settings:
-                tracking_settings.open_tracking.enable = message.tracking_settings['open_tracking']
+            if "open_tracking" in message.tracking_settings:
+                tracking_settings.open_tracking.enable = message.tracking_settings["open_tracking"]
 
-            if 'click_tracking' in message.tracking_settings:
-                tracking_settings.click_tracking.enable = message.tracking_settings['click_tracking']
-                tracking_settings.click_tracking.enable_text = message.tracking_settings.get('click_tracking_text', False)
+            if "click_tracking" in message.tracking_settings:
+                tracking_settings.click_tracking.enable = message.tracking_settings["click_tracking"]
+                tracking_settings.click_tracking.enable_text = message.tracking_settings.get("click_tracking_text", False)
 
         return mail
 
@@ -163,17 +142,14 @@ class SendGridProvider(BaseEmailProvider):
         """Verify email address using SendGrid validation API."""
         try:
             url = f"https://api.sendgrid.com/v3/validations/email"
-            headers = {
-                'Authorization': f'Bearer {self.api_key}',
-                'Content-Type': 'application/json'
-            }
-            data = {'email': email}
+            headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+            data = {"email": email}
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, headers=headers, json=data) as response:
                     if response.status == 200:
                         result = await response.json()
-                        return result.get('result', {}).get('verdict') == 'Valid'
+                        return result.get("result", {}).get("verdict") == "Valid"
                     return False
 
         except Exception as e:
@@ -184,9 +160,7 @@ class SendGridProvider(BaseEmailProvider):
         """Get delivery status for a message."""
         try:
             url = f"https://api.sendgrid.com/v3/messages/{message_id}"
-            headers = {
-                'Authorization': f'Bearer {self.api_key}'
-            }
+            headers = {"Authorization": f"Bearer {self.api_key}"}
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
@@ -212,35 +186,33 @@ class SendGridProvider(BaseEmailProvider):
             if processed_event:
                 events.append(processed_event)
 
-        return {'events': events}
+        return {"events": events}
 
     def _process_webhook_event(self, event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Process individual webhook event."""
-        event_type = event.get('event')
+        event_type = event.get("event")
         if not event_type:
             return None
 
         return {
-            'message_id': event.get('sg_message_id'),
-            'email': event.get('email'),
-            'event_type': event_type,
-            'timestamp': event.get('timestamp'),
-            'reason': event.get('reason'),
-            'status': event.get('status'),
-            'response': event.get('response'),
-            'attempt': event.get('attempt'),
-            'url': event.get('url'),  # For click events
-            'user_agent': event.get('useragent'),
-            'ip': event.get('ip')
+            "message_id": event.get("sg_message_id"),
+            "email": event.get("email"),
+            "event_type": event_type,
+            "timestamp": event.get("timestamp"),
+            "reason": event.get("reason"),
+            "status": event.get("status"),
+            "response": event.get("response"),
+            "attempt": event.get("attempt"),
+            "url": event.get("url"),  # For click events
+            "user_agent": event.get("useragent"),
+            "ip": event.get("ip"),
         }
 
     async def get_bounce_list(self) -> List[Dict[str, Any]]:
         """Get list of bounced emails."""
         try:
             url = "https://api.sendgrid.com/v3/suppression/bounces"
-            headers = {
-                'Authorization': f'Bearer {self.api_key}'
-            }
+            headers = {"Authorization": f"Bearer {self.api_key}"}
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
@@ -256,9 +228,7 @@ class SendGridProvider(BaseEmailProvider):
         """Remove email from bounce list."""
         try:
             url = f"https://api.sendgrid.com/v3/suppression/bounces/{email}"
-            headers = {
-                'Authorization': f'Bearer {self.api_key}'
-            }
+            headers = {"Authorization": f"Bearer {self.api_key}"}
 
             async with aiohttp.ClientSession() as session:
                 async with session.delete(url, headers=headers) as response:

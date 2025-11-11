@@ -14,42 +14,45 @@ Provides comprehensive JWT-based authentication system with:
 
 from .auth import auth_service, init_auth, AuthenticationError, AuthorizationError
 from .middleware import (
-    token_required, require_role, require_permission, optional_auth,
-    rate_limit, csrf_protect, RateLimiter, CSRFProtection
+    token_required,
+    require_role,
+    require_permission,
+    optional_auth,
+    rate_limit,
+    csrf_protect,
+    RateLimiter,
+    CSRFProtection,
 )
 from .models import User, Role, Permission, LoginAttempt, RefreshToken, AuditLog
 from .routes import auth_bp
 
 __all__ = [
     # Core authentication
-    'auth_service',
-    'init_auth',
-    'AuthenticationError',
-    'AuthorizationError',
-
+    "auth_service",
+    "init_auth",
+    "AuthenticationError",
+    "AuthorizationError",
     # Middleware and decorators
-    'token_required',
-    'require_role',
-    'require_permission',
-    'optional_auth',
-    'rate_limit',
-    'csrf_protect',
-    'RateLimiter',
-    'CSRFProtection',
-
+    "token_required",
+    "require_role",
+    "require_permission",
+    "optional_auth",
+    "rate_limit",
+    "csrf_protect",
+    "RateLimiter",
+    "CSRFProtection",
     # Database models
-    'User',
-    'Role',
-    'Permission',
-    'LoginAttempt',
-    'RefreshToken',
-    'AuditLog',
-
+    "User",
+    "Role",
+    "Permission",
+    "LoginAttempt",
+    "RefreshToken",
+    "AuditLog",
     # Routes blueprint
-    'auth_bp'
+    "auth_bp",
 ]
 
 # Version info
-__version__ = '1.0.0'
-__author__ = 'AI Schedule Manager Team'
-__description__ = 'JWT Authentication System with RBAC and Security Features'
+__version__ = "1.0.0"
+__author__ = "AI Schedule Manager Team"
+__description__ = "JWT Authentication System with RBAC and Security Features"

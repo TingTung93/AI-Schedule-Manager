@@ -46,12 +46,16 @@ jest.mock('../services/api', () => ({
   scheduleService: {
     getSchedules: jest.fn(),
   },
-  employeeService: {
-    getEmployees: jest.fn(),
-  },
   notificationService: {
     getNotifications: jest.fn(),
   },
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+  getErrorMessage: jest.fn((error) => error.message || 'An error occurred'),
 }));
 
 // Mock date-fns functions
@@ -179,15 +183,15 @@ describe('Dashboard', () => {
   const {
     analyticsService,
     scheduleService,
-    employeeService,
-    notificationService
+    notificationService,
+    default: api
   } = require('../services/api');
 
   beforeEach(() => {
     jest.clearAllMocks();
     analyticsService.getOverview.mockResolvedValue({});
     scheduleService.getSchedules.mockResolvedValue(mockSchedules);
-    employeeService.getEmployees.mockResolvedValue(mockEmployees);
+    api.get.mockResolvedValue({ data: mockEmployees });
     notificationService.getNotifications.mockResolvedValue(mockNotifications);
     analyticsService.getLaborCosts.mockResolvedValue({ data: [] });
   });

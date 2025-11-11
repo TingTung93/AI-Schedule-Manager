@@ -45,7 +45,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO, isWithinInterval } from 'date-fns';
-import { scheduleService, employeeService } from '../services/api';
+import api, { getErrorMessage, scheduleService } from '../services/api';
 import { useApi, useApiMutation } from '../hooks/useApi';
 import { useScheduleUpdates, usePresence, useTypingIndicator, useWebSocket } from '../hooks/useWebSocket';
 import websocketManager from '../services/websocket';
@@ -95,11 +95,11 @@ const ScheduleDisplay = () => {
   );
 
   const { data: employeesData } = useApi(
-    () => employeeService.getEmployees(),
+    () => api.get('/api/employees'),
     [],
     {
       onError: (error) => {
-        setNotification({ type: 'error', message: 'Failed to load employees' });
+        setNotification({ type: 'error', message: getErrorMessage(error) });
       }
     }
   );

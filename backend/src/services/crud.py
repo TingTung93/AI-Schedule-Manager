@@ -8,10 +8,14 @@ from sqlalchemy import select, update, delete, func, or_
 from sqlalchemy.orm import selectinload
 from ..models import Employee, Rule, Schedule, Shift, Notification
 from ..schemas import (
-    EmployeeCreate, EmployeeUpdate,
-    RuleCreate, RuleUpdate,
-    ScheduleCreate, ScheduleUpdate,
-    NotificationCreate, NotificationUpdate
+    EmployeeCreate,
+    EmployeeUpdate,
+    RuleCreate,
+    RuleUpdate,
+    ScheduleCreate,
+    ScheduleUpdate,
+    NotificationCreate,
+    NotificationUpdate,
 )
 import logging
 
@@ -36,7 +40,7 @@ class CRUDBase:
         limit: int = 100,
         filters: Dict[str, Any] = None,
         sort_by: str = "id",
-        sort_order: str = "asc"
+        sort_order: str = "asc",
     ):
         """Get multiple records with pagination and filtering."""
         query = select(self.model)
@@ -132,19 +136,14 @@ class CRUDEmployee(CRUDBase):
         role: str = None,
         active: bool = None,
         sort_by: str = "name",
-        sort_order: str = "asc"
+        sort_order: str = "asc",
     ):
         """Get employees with advanced filtering."""
         query = select(Employee)
 
         # Apply filters
         if search:
-            query = query.where(
-                or_(
-                    Employee.name.ilike(f"%{search}%"),
-                    Employee.email.ilike(f"%{search}%")
-                )
-            )
+            query = query.where(or_(Employee.name.ilike(f"%{search}%"), Employee.email.ilike(f"%{search}%")))
 
         if role:
             query = query.where(Employee.role == role)
@@ -204,7 +203,7 @@ class CRUDRule(CRUDBase):
         employee_id: int = None,
         active: bool = None,
         sort_by: str = "created_at",
-        sort_order: str = "desc"
+        sort_order: str = "desc",
     ):
         """Get rules with filtering."""
         query = select(Rule).options(selectinload(Rule.employee))
@@ -258,13 +257,10 @@ class CRUDSchedule(CRUDBase):
         date_to: str = None,
         status: str = None,
         sort_by: str = "date",
-        sort_order: str = "desc"
+        sort_order: str = "desc",
     ):
         """Get schedules with employee and shift data."""
-        query = select(Schedule).options(
-            selectinload(Schedule.employee),
-            selectinload(Schedule.shift)
-        )
+        query = select(Schedule).options(selectinload(Schedule.employee), selectinload(Schedule.shift))
 
         # Apply filters
         if employee_id:
@@ -340,7 +336,7 @@ class CRUDNotification(CRUDBase):
         read: bool = None,
         priority: str = None,
         sort_by: str = "created_at",
-        sort_order: str = "desc"
+        sort_order: str = "desc",
     ):
         """Get notifications with filtering."""
         query = select(Notification).options(selectinload(Notification.employee))

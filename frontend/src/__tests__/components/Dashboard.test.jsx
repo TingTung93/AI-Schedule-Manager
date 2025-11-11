@@ -11,7 +11,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import userEvent from '@testing-library/user-event';
 
 import Dashboard from '../../components/Dashboard';
-import { analyticsService, scheduleService, employeeService } from '../../services/api';
+import { analyticsService, scheduleService } from '../../services/api';
+import api from '../../services/api';
 
 // Mock the API services
 jest.mock('../../services/api', () => ({
@@ -23,11 +24,14 @@ jest.mock('../../services/api', () => ({
   scheduleService: {
     getSchedules: jest.fn(),
   },
-  employeeService: {
-    getEmployees: jest.fn(),
-  },
   notificationService: {
     getNotifications: jest.fn(),
+  },
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   },
 }));
 
@@ -139,7 +143,7 @@ describe('Dashboard Component', () => {
     });
     analyticsService.getOptimizationMetrics.mockResolvedValue(mockAnalytics.efficiency_metrics);
     scheduleService.getSchedules.mockResolvedValue({ schedules: mockSchedules });
-    employeeService.getEmployees.mockResolvedValue({ employees: mockEmployees });
+    api.get.mockResolvedValue({ data: { employees: mockEmployees } });
   });
 
   it('renders without crashing', () => {

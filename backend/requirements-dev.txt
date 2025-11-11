@@ -1,0 +1,26 @@
+# Development and testing dependencies
+# These are already included in requirements.txt for convenience,
+# but separated here for CI/CD environments that need explicit dev dependencies
+
+# Code formatting and quality
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+mypy==1.7.1
+bandit==1.7.5
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-xdist==3.5.0
+pytest-html==4.1.1
+pytest-mock==3.12.0
+httpx==0.25.2
+
+# Type stubs
+types-redis==4.6.0.11
+types-passlib==1.7.7.20250602
+
+# Debugging
+ipdb==0.13.13

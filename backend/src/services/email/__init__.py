@@ -20,17 +20,17 @@ from .builder import EmailBuilder
 from .models import EmailTemplate, EmailLog, NotificationPreference
 
 __all__ = [
-    'EmailService',
-    'SendGridProvider',
-    'AWSProvider',
-    'SMTPProvider',
-    'EmailTemplateManager',
-    'EmailQueue',
-    'EmailTracker',
-    'EmailBuilder',
-    'EmailTemplate',
-    'EmailLog',
-    'NotificationPreference'
+    "EmailService",
+    "SendGridProvider",
+    "AWSProvider",
+    "SMTPProvider",
+    "EmailTemplateManager",
+    "EmailQueue",
+    "EmailTracker",
+    "EmailBuilder",
+    "EmailTemplate",
+    "EmailLog",
+    "NotificationPreference",
 ]
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

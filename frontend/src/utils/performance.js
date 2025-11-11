@@ -2,8 +2,7 @@
  * Performance optimization utilities for React application
  */
 
-import { lazy, Suspense } from 'react';
-import { memo } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef, memo } from 'react';
 
 /**
  * Lazy load components with loading fallback
@@ -265,9 +264,6 @@ export const usePerformanceMonitor = (componentName) => {
     };
   }, [componentName]);
 };
-
-// Import React hooks
-import { useState, useEffect, useRef } from 'react';
 
 /**
  * Web Worker manager for heavy computations

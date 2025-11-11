@@ -39,7 +39,7 @@ import {
   ValidatedAutoComplete,
   FormErrorSummary
 } from './index';
-import { ruleService, employeeService } from '../../services/api';
+import api, { getErrorMessage } from '../../services/api';
 import { useApi, useApiMutation } from '../../hooks/useApi';
 
 const RuleInputForm = ({
@@ -84,7 +84,7 @@ const RuleInputForm = ({
 
   // Fetch employees
   const { data: employeesData, loading: loadingEmployees } = useApi(
-    () => employeeService.getEmployees(),
+    () => api.get('/api/employees'),
     []
   );
 
@@ -143,7 +143,7 @@ const RuleInputForm = ({
 
   // Parse rule with NLP when text changes
   const { mutate: parseRule } = useApiMutation(
-    ruleService.parseRule,
+    (ruleText) => api.post('/api/rules/parse', { rule_text: ruleText }),
     {
       onSuccess: (data) => {
         setParsedRule(data);
@@ -161,7 +161,7 @@ const RuleInputForm = ({
         }
       },
       onError: (error) => {
-        setParsedError(error.message || 'Failed to parse rule');
+        setParsedError(getErrorMessage(error));
         setParsedRule(null);
       },
       onSettled: () => {

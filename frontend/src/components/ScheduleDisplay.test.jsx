@@ -4,23 +4,27 @@ import userEvent from '@testing-library/user-event';
 import { jest } from '@jest/globals';
 import '@testing-library/jest-dom';
 import ScheduleDisplay from './ScheduleDisplay';
-import { scheduleService, employeeService } from '../services/api';
+import { scheduleService } from '../services/api';
+import api from '../services/api';
 
 // Create mock functions
 const mockGetSchedules = jest.fn();
 const mockUpdateShift = jest.fn();
 const mockGenerateSchedule = jest.fn();
-const mockGetEmployees = jest.fn();
 
-// Mock the API services
+// Mock axios for employee API calls
 jest.mock('../services/api', () => ({
+  ...jest.requireActual('../services/api'),
   scheduleService: {
-    getSchedules: mockGetSchedules,
-    updateShift: mockUpdateShift,
-    generateSchedule: mockGenerateSchedule,
+    getSchedules: jest.fn(),
+    updateShift: jest.fn(),
+    generateSchedule: jest.fn(),
   },
-  employeeService: {
-    getEmployees: mockGetEmployees,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   },
 }));
 
@@ -197,8 +201,10 @@ const mockEmployees = {
 describe('ScheduleDisplay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetSchedules.mockResolvedValue(mockSchedules);
-    mockGetEmployees.mockResolvedValue(mockEmployees);
+    scheduleService.getSchedules.mockResolvedValue(mockSchedules);
+    scheduleService.updateShift.mockResolvedValue({});
+    scheduleService.generateSchedule.mockResolvedValue({ id: '2', name: 'Generated Schedule', shifts: [] });
+    api.get.mockResolvedValue({ data: mockEmployees });
   });
 
   it('renders the schedule display interface', async () => {

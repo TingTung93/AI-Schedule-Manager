@@ -1,6 +1,7 @@
 """
 Script to run database migrations
 """
+
 import asyncio
 import sys
 from pathlib import Path
