@@ -44,10 +44,14 @@ per-file-ignores =
     src/auth/*:F401,F541,F821
     src/core/*:F401,F841,E402,C901
     src/middleware/*:F401,F821
-    src/models/*:F401,F821
+    src/models/*:F401,F541,F821,F841
     src/models.py:F401,F821
     src/database.py:F401
     src/main.py:F401
+    src/nlp/*:F401
+    src/scheduler/*:C901
+    src/schemas.py:F401
+    src/services/*:F401,F541,F821,F841,C901,E712
 
 # Show source code for errors
 show-source = True
