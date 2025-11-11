@@ -418,7 +418,7 @@ describe('Login Component', () => {
       // Check loading state
       expect(screen.getByText(/signing in/i)).toBeInTheDocument();
       expect(submitButton).toBeDisabled();
-      expect(screen.getByRole('button')).toHaveClass('loading');
+      expect(submitButton).toHaveClass('loading');
     });
 
     test('disables form during account lockout', async () => {

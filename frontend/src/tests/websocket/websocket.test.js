@@ -3,7 +3,7 @@
  */
 
 import { jest } from '@jest/globals';
-import WebSocketManager from '../../services/websocket.js';
+import { WebSocketManager } from '../../services/websocket.js';
 import { useWebSocket, useWebSocketEvent, useScheduleUpdates, useNotifications } from '../../hooks/useWebSocket.js';
 import { renderHook, act } from '@testing-library/react';
 

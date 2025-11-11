@@ -484,4 +484,6 @@ if (typeof window !== 'undefined') {
   }
 }
 
+// Export both the class (for testing) and the singleton instance (default)
+export { WebSocketManager };
 export default websocketManager;
