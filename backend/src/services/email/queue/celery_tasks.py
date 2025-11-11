@@ -4,16 +4,17 @@ Celery tasks for email processing.
 
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, List, Optional
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
 from celery import current_task
 from sqlalchemy.orm import sessionmaker
 
-from .celery_config import celery_app
-from ..email_service import EmailService
-from ..models import EmailLog, EmailStatus, EmailBounce
-from ..config import email_config
 from ...database import get_database_session
+from ..config import email_config
+from ..email_service import EmailService
+from ..models import EmailBounce, EmailLog, EmailStatus
+from .celery_config import celery_app
 
 logger = logging.getLogger(__name__)
 

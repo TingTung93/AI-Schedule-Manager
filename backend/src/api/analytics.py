@@ -2,20 +2,22 @@
 Analytics API endpoints with real database queries
 """
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, case
+from datetime import date, datetime, timedelta
 from typing import Optional
-from ..dependencies import get_database_session, get_current_user
-from ..models import Employee, Schedule, Shift, ScheduleAssignment
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import and_, case, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..dependencies import get_current_user, get_database_session
+from ..models import Employee, Schedule, ScheduleAssignment, Shift
 from ..schemas import (
     AnalyticsOverviewResponse,
-    LaborCostsResponse,
-    LaborCostData,
-    PerformanceMetricsResponse,
     EfficiencyMetricsResponse,
+    LaborCostData,
+    LaborCostsResponse,
+    PerformanceMetricsResponse,
 )
-from datetime import datetime, timedelta, date
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 

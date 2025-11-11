@@ -3,15 +3,16 @@ Input validation middleware for AI Schedule Manager.
 Provides request validation, sanitization, and security checks.
 """
 
+import asyncio
+import html
+import json
+import re
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
+
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Dict, Any, List, Optional
-import json
-import re
-import html
-from urllib.parse import urlparse
-import asyncio
 
 from src.core.security import sanitize_input
 

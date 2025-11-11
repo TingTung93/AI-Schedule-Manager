@@ -12,18 +12,18 @@ Provides comprehensive JWT-based authentication system with:
 - Security audit logging
 """
 
-from .auth import auth_service, init_auth, AuthenticationError, AuthorizationError
+from .auth import AuthenticationError, AuthorizationError, auth_service, init_auth
 from .middleware import (
-    token_required,
-    require_role,
-    require_permission,
+    CSRFProtection,
+    RateLimiter,
+    csrf_protect,
     optional_auth,
     rate_limit,
-    csrf_protect,
-    RateLimiter,
-    CSRFProtection,
+    require_permission,
+    require_role,
+    token_required,
 )
-from .models import User, Role, Permission, LoginAttempt, RefreshToken, AuditLog
+from .models import AuditLog, LoginAttempt, Permission, RefreshToken, Role, User
 from .routes import auth_bp
 
 __all__ = [

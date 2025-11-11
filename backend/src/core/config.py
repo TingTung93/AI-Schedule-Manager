@@ -3,11 +3,12 @@ Configuration management for AI Schedule Manager.
 Uses Pydantic Settings for environment variable management.
 """
 
-from typing import List, Optional, Union
-from pydantic import field_validator
-from pydantic_settings import BaseSettings
 import os
 from pathlib import Path
+from typing import List, Optional, Union
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):

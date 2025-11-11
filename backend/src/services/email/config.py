@@ -3,9 +3,9 @@ Email service configuration module.
 """
 
 import os
-from typing import Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, Optional
 
 
 class EmailProvider(Enum):

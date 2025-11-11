@@ -5,10 +5,12 @@ Provides decorators and middleware for protecting routes with JWT authentication
 and role-based access control.
 """
 
-from functools import wraps
-from flask import request, jsonify, g, current_app
-from .auth import auth_service, AuthenticationError, AuthorizationError
 import logging
+from functools import wraps
+
+from flask import current_app, g, jsonify, request
+
+from .auth import AuthenticationError, AuthorizationError, auth_service
 
 logger = logging.getLogger(__name__)
 

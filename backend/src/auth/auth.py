@@ -5,16 +5,17 @@ Provides JWT token generation, validation, and authentication utilities.
 Includes secure password hashing, refresh tokens, and RBAC support.
 """
 
-import jwt
-import bcrypt
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any, Tuple
 from functools import wraps
-from flask import request, jsonify, current_app
+from typing import Any, Dict, Optional, Tuple
+
+import bcrypt
+import jwt
 import redis
-from email_validator import validate_email, EmailNotValidError
-import logging
+from email_validator import EmailNotValidError, validate_email
+from flask import current_app, jsonify, request
 
 logger = logging.getLogger(__name__)
 

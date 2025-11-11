@@ -2,12 +2,13 @@
 Enhanced Pydantic validators and custom business logic validators.
 """
 
-from typing import Any, Dict, List, Optional, Union
-from datetime import datetime, date, time
-from pydantic import BaseModel, Field, validator, root_validator, EmailStr
 import re
+from datetime import date, datetime, time
+from typing import Any, Dict, List, Optional, Union
+
 import phonenumbers
 from phonenumbers import NumberParseException
+from pydantic import BaseModel, EmailStr, Field, root_validator, validator
 
 
 class ValidationError(Exception):

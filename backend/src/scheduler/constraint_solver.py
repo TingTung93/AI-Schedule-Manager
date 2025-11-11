@@ -1,10 +1,10 @@
 """Constraint solver for schedule optimization using OR-Tools."""
 
 import logging
-from typing import List, Dict, Optional, Any, Tuple
 from dataclasses import dataclass, field
-from datetime import datetime, date, time, timedelta
+from datetime import date, datetime, time, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from ortools.sat.python import cp_model

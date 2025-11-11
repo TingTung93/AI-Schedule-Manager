@@ -2,16 +2,17 @@
 Tests for WebSocket Manager
 """
 
-import pytest
 import asyncio
 import json
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 from fastapi.websockets import WebSocket
 
-from backend.src.websocket.manager import ConnectionManager, manager, authenticate_websocket
-from backend.src.websocket.events import EventHandler, ScheduleEvents, EmployeeEvents
 from backend.src.models.user import User
+from backend.src.websocket.events import EmployeeEvents, EventHandler, ScheduleEvents
+from backend.src.websocket.manager import ConnectionManager, authenticate_websocket, manager
 
 
 class TestConnectionManager:

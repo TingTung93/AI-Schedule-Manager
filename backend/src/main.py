@@ -2,41 +2,43 @@
 FastAPI backend for AI Schedule Manager with complete CRUD operations.
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Query, status
+import logging
+import random
+from datetime import date, datetime
+from typing import List, Optional
+
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List
-from datetime import datetime, date
-from .dependencies import get_database_session, get_current_user, get_current_manager
-from .schemas import (
-    EmployeeCreate,
-    EmployeeUpdate,
-    EmployeeResponse,
-    RuleCreate,
-    RuleUpdate,
-    RuleResponse,
-    RuleParseRequest,
-    ScheduleCreate,
-    ScheduleUpdate,
-    ScheduleResponse,
-    NotificationCreate,
-    NotificationUpdate,
-    NotificationResponse,
-    ScheduleGenerateRequest,
-    LoginRequest,
-    TokenResponse,
-    AnalyticsOverview,
-    PaginatedResponse,
-)
-from .services.crud import crud_employee, crud_rule, crud_schedule, crud_notification
-from .nlp.rule_parser import RuleParser
+
+from .api.analytics import router as analytics_router
 from .api.data_io import router as data_io_router
 from .api.notifications import router as notifications_router
-from .api.analytics import router as analytics_router
 from .api.settings import router as settings_router
 from .api_docs import setup_docs
-import random
-import logging
+from .dependencies import get_current_manager, get_current_user, get_database_session
+from .nlp.rule_parser import RuleParser
+from .schemas import (
+    AnalyticsOverview,
+    EmployeeCreate,
+    EmployeeResponse,
+    EmployeeUpdate,
+    LoginRequest,
+    NotificationCreate,
+    NotificationResponse,
+    NotificationUpdate,
+    PaginatedResponse,
+    RuleCreate,
+    RuleParseRequest,
+    RuleResponse,
+    RuleUpdate,
+    ScheduleCreate,
+    ScheduleGenerateRequest,
+    ScheduleResponse,
+    ScheduleUpdate,
+    TokenResponse,
+)
+from .services.crud import crud_employee, crud_notification, crud_rule, crud_schedule
 
 logger = logging.getLogger(__name__)
 

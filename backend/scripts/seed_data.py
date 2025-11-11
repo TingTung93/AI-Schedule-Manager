@@ -14,7 +14,7 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import AsyncSessionLocal, create_tables
-from src.models import Employee, Shift, Schedule, ScheduleAssignment, Rule, Notification
+from src.models import Employee, Notification, Rule, Schedule, ScheduleAssignment, Shift
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

@@ -5,9 +5,10 @@ This module configures the automatic OpenAPI documentation generation
 and customizes the Swagger UI and ReDoc interfaces.
 """
 
+from typing import Any, Dict
+
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
-from typing import Dict, Any
 
 
 def custom_openapi(app: FastAPI) -> Dict[str, Any]:

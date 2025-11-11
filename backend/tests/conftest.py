@@ -2,12 +2,13 @@
 Pytest configuration and shared fixtures for backend tests.
 """
 
-import pytest
 import asyncio
-from typing import Generator, AsyncGenerator
-from unittest.mock import Mock, AsyncMock
-import sys
 import os
+import sys
+from typing import AsyncGenerator, Generator
+from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 # Add project root to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

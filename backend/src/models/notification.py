@@ -4,9 +4,10 @@ Notification model for user messaging and alerts
 
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Boolean, ForeignKey, CheckConstraint, Index, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 

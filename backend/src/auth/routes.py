@@ -5,17 +5,18 @@ Provides REST API endpoints for user authentication, registration,
 password management, and account security features.
 """
 
-from flask import Blueprint, request, jsonify, make_response, current_app, g
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timezone, timedelta
-import logging
 import json
+import logging
+from datetime import datetime, timedelta, timezone
 
-from .auth import auth_service, AuthenticationError
-from .middleware import token_required, rate_limit, csrf_protect, RateLimiter, CSRFProtection
-from .models import User, Role, LoginAttempt, RefreshToken, AuditLog, get_or_create_user_role
+from flask import Blueprint, current_app, g, jsonify, make_response, request
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker
+
 from ..database import get_db_session
+from .auth import AuthenticationError, auth_service
+from .middleware import CSRFProtection, RateLimiter, csrf_protect, rate_limit, token_required
+from .models import AuditLog, LoginAttempt, RefreshToken, Role, User, get_or_create_user_role
 
 # Create blueprint
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")

@@ -2,13 +2,15 @@
 FastAPI dependencies for database sessions, authentication, and validation.
 """
 
-from typing import AsyncGenerator
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.ext.asyncio import AsyncSession
-from .core.database import DatabaseManager
-from .core.config import settings
 import logging
+from typing import AsyncGenerator
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .core.config import settings
+from .core.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 

@@ -6,11 +6,12 @@ import asyncio
 import logging
 import smtplib
 import ssl
-from typing import Dict, Any, List, Optional
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
 from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Any, Dict, List, Optional
+
 import aiosmtplib
 
 from .base import BaseEmailProvider, EmailMessage, EmailResponse

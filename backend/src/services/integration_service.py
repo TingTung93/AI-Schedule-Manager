@@ -4,19 +4,20 @@ Supports calendar integration, payroll systems, and webhook notifications.
 """
 
 import asyncio
-import aiohttp
-import json
-import logging
-from datetime import datetime, date, timedelta
-from typing import Optional, Dict, Any, List
-from urllib.parse import urljoin
 import hashlib
 import hmac
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+import json
+import logging
+from datetime import date, datetime, timedelta
+from typing import Any, Dict, List, Optional
+from urllib.parse import urljoin
 
-from ..models import Employee, Schedule, Rule
+import aiohttp
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from ..exceptions.import_exceptions import IntegrationError
+from ..models import Employee, Rule, Schedule
 
 logger = logging.getLogger(__name__)
 

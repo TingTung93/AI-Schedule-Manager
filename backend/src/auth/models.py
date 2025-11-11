@@ -5,12 +5,13 @@ Defines database models for user authentication, roles, permissions,
 and security features like account lockouts and password resets.
 """
 
+import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, ForeignKey, Table
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.dialects.postgresql import UUID
-import uuid
 
 Base = declarative_base()
 

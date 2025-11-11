@@ -3,12 +3,12 @@ Email queue management for asynchronous email processing.
 """
 
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
-from .celery_tasks import send_email_task, send_batch_emails_task, process_scheduled_emails, send_test_email
+from .celery_tasks import process_scheduled_emails, send_batch_emails_task, send_email_task, send_test_email
 
 logger = logging.getLogger(__name__)
 

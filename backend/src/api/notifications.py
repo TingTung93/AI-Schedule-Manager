@@ -2,13 +2,15 @@
 Notification API endpoints
 """
 
+from datetime import datetime
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List
-from ..dependencies import get_database_session, get_current_user
-from ..schemas import NotificationCreate, NotificationUpdate, NotificationResponse, PaginatedResponse, MessageResponse
+
+from ..dependencies import get_current_user, get_database_session
+from ..schemas import MessageResponse, NotificationCreate, NotificationResponse, NotificationUpdate, PaginatedResponse
 from ..services.crud import crud_notification
-from datetime import datetime
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 

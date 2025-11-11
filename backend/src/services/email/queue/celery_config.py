@@ -3,6 +3,7 @@ Celery configuration for email queue processing.
 """
 
 import os
+
 from celery import Celery
 from kombu import Queue
 

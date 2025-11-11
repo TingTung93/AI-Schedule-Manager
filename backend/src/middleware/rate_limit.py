@@ -3,15 +3,16 @@ Rate limiting middleware for AI Schedule Manager API.
 Implements token bucket algorithm for rate limiting.
 """
 
+import asyncio
+import hashlib
+import ipaddress
+import time
+from collections import defaultdict
+from typing import Dict, Optional, Tuple
+
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Dict, Tuple, Optional
-import time
-import asyncio
-from collections import defaultdict
-import hashlib
-import ipaddress
 
 from src.core.config import settings
 

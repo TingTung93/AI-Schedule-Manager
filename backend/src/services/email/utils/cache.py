@@ -2,10 +2,10 @@
 Template caching utilities.
 """
 
-import time
 import logging
-from typing import Any, Optional, Dict
 import threading
+import time
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 

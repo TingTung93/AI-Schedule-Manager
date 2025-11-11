@@ -5,12 +5,12 @@ Structured logging utility for the AI Schedule Manager backend
 import json
 import logging
 import logging.handlers
+import os
 import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
-import os
 
 from pythonjsonlogger import jsonlogger
 

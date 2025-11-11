@@ -2,15 +2,16 @@
 Validation middleware for FastAPI endpoints with business logic validation.
 """
 
-from typing import Dict, Any, List, Optional
-from fastapi import HTTPException, Depends, Request
+import logging
+from typing import Any, Dict, List, Optional
+
+from fastapi import Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError as PydanticValidationError
-import logging
 
-from ..validators import ValidationError, BusinessLogicValidator
-from ..services.crud import get_employee, get_shift, get_employee_schedules
-from ..schemas_enhanced import ScheduleCreate, ScheduleUpdate, EmployeeCreate, EmployeeUpdate
+from ..schemas_enhanced import EmployeeCreate, EmployeeUpdate, ScheduleCreate, ScheduleUpdate
+from ..services.crud import get_employee, get_employee_schedules, get_shift
+from ..validators import BusinessLogicValidator, ValidationError
 
 logger = logging.getLogger(__name__)
 

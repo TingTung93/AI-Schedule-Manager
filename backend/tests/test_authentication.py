@@ -3,15 +3,16 @@ Comprehensive authentication flow testing.
 Tests JWT tokens, user sessions, role-based access, and security measures.
 """
 
-import pytest
-import jwt
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
-from fastapi.testclient import TestClient
-from fastapi import HTTPException
+from unittest.mock import AsyncMock, Mock, patch
 
+import jwt
+import pytest
+from fastapi import HTTPException
+from fastapi.testclient import TestClient
+
+from src.core.security import TokenData, create_access_token, get_current_user, hash_password, verify_password, verify_token
 from src.main import app
-from src.core.security import create_access_token, verify_token, get_current_user, hash_password, verify_password, TokenData
 
 
 class TestAuthentication:

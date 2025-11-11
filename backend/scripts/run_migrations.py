@@ -11,7 +11,8 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from alembic import command
 from alembic.config import Config
-from src.database import create_tables, DatabaseManager
+
+from src.database import DatabaseManager, create_tables
 
 
 async def run_migrations():

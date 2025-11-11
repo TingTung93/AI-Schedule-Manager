@@ -6,22 +6,22 @@ import logging
 import traceback
 import uuid
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from fastapi import Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
+from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from ..exceptions.custom_exceptions import (
-    ValidationError,
     AuthenticationError,
     AuthorizationError,
-    ResourceNotFoundError,
     BusinessLogicError,
     ExternalServiceError,
     RateLimitError,
+    ResourceNotFoundError,
+    ValidationError,
 )
 from ..utils.logger import get_logger
 

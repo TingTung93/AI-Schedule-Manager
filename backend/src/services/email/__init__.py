@@ -11,13 +11,13 @@ This module provides comprehensive email functionality including:
 - Delivery monitoring and retry logic
 """
 
-from .email_service import EmailService
-from .providers import SendGridProvider, AWSProvider, SMTPProvider
-from .templates import EmailTemplateManager
-from .queue import EmailQueue
-from .tracking import EmailTracker
 from .builder import EmailBuilder
-from .models import EmailTemplate, EmailLog, NotificationPreference
+from .email_service import EmailService
+from .models import EmailLog, EmailTemplate, NotificationPreference
+from .providers import AWSProvider, SendGridProvider, SMTPProvider
+from .queue import EmailQueue
+from .templates import EmailTemplateManager
+from .tracking import EmailTracker
 
 __all__ = [
     "EmailService",

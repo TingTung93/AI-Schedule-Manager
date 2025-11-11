@@ -3,19 +3,20 @@ Comprehensive business logic tests for schedule generation and optimization.
 Tests constraint solving, rule processing, and scheduling algorithms.
 """
 
-import pytest
 import asyncio
-from datetime import datetime, timedelta, time, date
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-from src.scheduler.constraint_solver import ConstraintSolver, ScheduleOptimizer
-from src.nlp.rule_parser import RuleParser, ParsedRule
-from src.services.nlp_optimizer import NLPOptimizer, OptimizationResult
+import pytest
+
 from src.models.employee import Employee, EmployeeAvailability
+from src.models.rule import Constraint, Rule
 from src.models.schedule import Schedule, Shift, ShiftAssignment
-from src.models.rule import Rule, Constraint
+from src.nlp.rule_parser import ParsedRule, RuleParser
+from src.scheduler.constraint_solver import ConstraintSolver, ScheduleOptimizer
+from src.services.nlp_optimizer import NLPOptimizer, OptimizationResult
 
 
 class TestConstraintSolver:

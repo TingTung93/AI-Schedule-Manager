@@ -4,11 +4,12 @@ SendGrid email provider implementation.
 
 import asyncio
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 import aiohttp
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content, Attachment, Header
 from python_http_client.exceptions import HTTPError
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Attachment, Content, Email, Header, Mail, To
 
 from .base import BaseEmailProvider, EmailMessage, EmailResponse
 

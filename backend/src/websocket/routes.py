@@ -7,13 +7,14 @@ import json
 import logging
 import uuid
 from typing import Optional
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, HTTPException, Depends
+
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .manager import manager, authenticate_websocket
-from .events import EventHandler
 from ..database.database import get_async_session
+from .events import EventHandler
+from .manager import authenticate_websocket, manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

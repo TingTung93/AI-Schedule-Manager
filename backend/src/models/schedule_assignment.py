@@ -3,8 +3,9 @@ ScheduleAssignment model for linking employees to shifts within schedules
 """
 
 from datetime import datetime, timedelta
-from typing import Optional, List
-from sqlalchemy import String, Integer, ForeignKey, CheckConstraint, Index, UniqueConstraint
+from typing import List, Optional
+
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base

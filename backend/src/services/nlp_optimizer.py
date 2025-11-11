@@ -1,11 +1,12 @@
 """NLP model optimization for faster loading and inference."""
 
-import spacy
-from typing import Optional, Dict, Any
-import pickle
-import os
-from pathlib import Path
 import logging
+import os
+import pickle
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import spacy
 
 logger = logging.getLogger(__name__)
 

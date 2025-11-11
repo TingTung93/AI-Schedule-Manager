@@ -4,17 +4,18 @@ Main email service orchestrating all email functionality.
 
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
+
 from sqlalchemy.orm import Session
 
-from .config import email_config, EmailProvider
-from .providers import SendGridProvider, AWSProvider, SMTPProvider
+from .config import EmailProvider, email_config
+from .models import EmailLog, EmailStatus, EmailTemplate, NotificationPreference
+from .providers import AWSProvider, SendGridProvider, SMTPProvider
+from .queue.email_queue import EmailPriority, EmailQueue, QueuedEmail
 from .templates.template_manager import EmailTemplateManager
-from .queue.email_queue import EmailQueue, QueuedEmail, EmailPriority
 from .tracking.email_tracker import EmailTracker
-from .models import EmailLog, EmailTemplate, NotificationPreference, EmailStatus
-from .utils.validator import EmailValidator
 from .utils.rate_limiter import RateLimiter
+from .utils.validator import EmailValidator
 
 logger = logging.getLogger(__name__)
 

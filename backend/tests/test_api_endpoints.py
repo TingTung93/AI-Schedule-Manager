@@ -3,13 +3,14 @@ Comprehensive API endpoint tests for all CRUD operations.
 Tests authentication, rule parsing, schedule generation, and employee management.
 """
 
-import pytest
 import asyncio
-from httpx import AsyncClient
-from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch, AsyncMock
 import json
 from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from src.main import app
 

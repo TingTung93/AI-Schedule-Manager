@@ -2,14 +2,16 @@
 Settings API endpoints with database persistence
 """
 
+from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from ..dependencies import get_database_session, get_current_user
-from ..models import UserSettings
-from ..schemas import UserSettingsResponse, MessageResponse, SettingsUpdateResponse
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..dependencies import get_current_user, get_database_session
+from ..models import UserSettings
+from ..schemas import MessageResponse, SettingsUpdateResponse, UserSettingsResponse
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 

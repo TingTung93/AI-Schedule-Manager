@@ -4,9 +4,10 @@ Employee model for user management and authentication
 
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy import String, Text, Boolean, Index, CheckConstraint
+
+from sqlalchemy import Boolean, CheckConstraint, Index, String, Text
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 
 from .base import Base
 

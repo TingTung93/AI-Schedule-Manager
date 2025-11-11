@@ -3,9 +3,10 @@ Email service database models.
 """
 
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, JSON, ForeignKey, Index, UniqueConstraint
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 

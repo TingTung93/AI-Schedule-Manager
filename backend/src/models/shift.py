@@ -2,11 +2,12 @@
 Shift model for defining work periods and requirements
 """
 
-from datetime import datetime, date, time, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import List, Optional
-from sqlalchemy import String, Date, Time, Integer, CheckConstraint, Index
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from sqlalchemy import CheckConstraint, Date, Index, Integer, String, Time
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 

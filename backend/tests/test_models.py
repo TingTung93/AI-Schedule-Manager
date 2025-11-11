@@ -3,20 +3,21 @@ Comprehensive database model testing with fixtures and relationships.
 Tests ORM models, validations, relationships, and database operations.
 """
 
-import pytest
 import asyncio
-from datetime import datetime, timedelta, time
+from datetime import datetime, time, timedelta
 from decimal import Decimal
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError, ValidationError
-from sqlalchemy import select, func, and_, or_
 from unittest.mock import AsyncMock, patch
 
-from src.models.employee import Employee, EmployeeAvailability, EmployeeSkill
-from src.models.schedule import Schedule, Shift, ShiftAssignment
-from src.models.rule import Rule, Constraint, RuleConstraint
-from src.models.base import Base, TimestampMixin, SoftDeleteMixin
+import pytest
+from sqlalchemy import and_, func, or_, select
+from sqlalchemy.exc import IntegrityError, ValidationError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.core.database import DatabaseManager
+from src.models.base import Base, SoftDeleteMixin, TimestampMixin
+from src.models.employee import Employee, EmployeeAvailability, EmployeeSkill
+from src.models.rule import Constraint, Rule, RuleConstraint
+from src.models.schedule import Schedule, Shift, ShiftAssignment
 
 
 class TestBaseModels:

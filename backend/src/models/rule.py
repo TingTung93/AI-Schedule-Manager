@@ -3,10 +3,11 @@ Rule model for defining scheduling constraints and business rules
 """
 
 from datetime import datetime, timedelta
-from typing import Optional, List
-from sqlalchemy import String, Integer, Boolean, ForeignKey, CheckConstraint, Index, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import List, Optional
+
+from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 

@@ -2,10 +2,11 @@
 Unsubscribe management utilities.
 """
 
-import secrets
 import logging
+import secrets
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 from sqlalchemy.orm import Session
 
 from ..models import NotificationPreference

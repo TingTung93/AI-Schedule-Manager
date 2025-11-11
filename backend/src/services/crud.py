@@ -2,22 +2,24 @@
 CRUD operations for all models.
 """
 
-from typing import List, Optional, Dict, Any
+import logging
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, func, or_
 from sqlalchemy.orm import selectinload
-from ..models import Employee, Rule, Schedule, Shift, Notification
+
+from ..models import Employee, Notification, Rule, Schedule, Shift
 from ..schemas import (
     EmployeeCreate,
     EmployeeUpdate,
+    NotificationCreate,
+    NotificationUpdate,
     RuleCreate,
     RuleUpdate,
     ScheduleCreate,
     ScheduleUpdate,
-    NotificationCreate,
-    NotificationUpdate,
 )
-import logging
 
 logger = logging.getLogger(__name__)
 

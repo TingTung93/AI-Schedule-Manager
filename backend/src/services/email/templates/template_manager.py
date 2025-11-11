@@ -2,11 +2,12 @@
 Email template management with Jinja2 templating.
 """
 
-import os
 import logging
-from typing import Dict, Any, Optional, List
+import os
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import jinja2
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from sqlalchemy.orm import Session

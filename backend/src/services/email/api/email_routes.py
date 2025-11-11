@@ -4,17 +4,18 @@ Email API routes for sending and managing emails.
 
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, validator
 from sqlalchemy.orm import Session
 
-from ..email_service import EmailService
-from ..queue.email_queue import EmailPriority
-from ..models import EmailLog, EmailStatus
-from ....core.dependencies import get_db, get_current_user, verify_api_key
+from ....core.dependencies import get_current_user, get_db, verify_api_key
 from ....core.security import require_permissions
+from ..email_service import EmailService
+from ..models import EmailLog, EmailStatus
+from ..queue.email_queue import EmailPriority
 
 logger = logging.getLogger(__name__)
 

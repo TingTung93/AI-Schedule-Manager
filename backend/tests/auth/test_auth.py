@@ -6,28 +6,29 @@ user registration, login, token refresh, password management,
 and security features.
 """
 
-import pytest
 import json
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 from flask import Flask
 from werkzeug.test import Client
 
 from backend.src.auth import (
-    auth_service,
     AuthenticationError,
     AuthorizationError,
-    token_required,
-    require_role,
-    require_permission,
-    rate_limit,
-    User,
-    Role,
-    Permission,
     LoginAttempt,
+    Permission,
+    Role,
+    User,
+    auth_service,
+    rate_limit,
+    require_permission,
+    require_role,
+    token_required,
 )
 from backend.src.auth.auth import AuthService
-from backend.src.auth.middleware import RateLimiter, CSRFProtection
+from backend.src.auth.middleware import CSRFProtection, RateLimiter
 
 
 class TestAuthService:

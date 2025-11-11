@@ -3,11 +3,12 @@ Email rate limiting utilities.
 """
 
 import asyncio
-import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, Optional
-import redis
 import json
+import logging
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
+
+import redis
 
 logger = logging.getLogger(__name__)
 

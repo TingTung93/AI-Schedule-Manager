@@ -3,12 +3,13 @@ Unit tests for the Constraint Solver using Google OR-Tools.
 Tests schedule optimization with various constraints and objectives.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from datetime import date, datetime, timedelta
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 from ortools.sat.python import cp_model
 
-from src.scheduler.constraint_solver import ScheduleOptimizer, ShiftType, Employee, Shift, SchedulingConstraint
+from src.scheduler.constraint_solver import Employee, ScheduleOptimizer, SchedulingConstraint, Shift, ShiftType
 
 
 class TestDataClasses:

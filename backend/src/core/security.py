@@ -3,18 +3,18 @@ Security utilities for AI Schedule Manager.
 Handles authentication, authorization, and security middleware.
 """
 
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from fastapi import HTTPException, Security, Depends, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import secrets
 import hashlib
 import re
+import secrets
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
+
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 
 from src.core.config import settings
-
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

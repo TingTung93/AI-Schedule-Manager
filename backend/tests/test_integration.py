@@ -3,26 +3,27 @@ Comprehensive integration tests for the backend application.
 Tests complete workflows, database integration, and system interactions.
 """
 
-import pytest
 import asyncio
+import json
+import os
+import tempfile
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, Mock, patch
+
 import asyncpg
-from httpx import AsyncClient
+import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import StaticPool
-from unittest.mock import Mock, patch, AsyncMock
-import json
-from datetime import datetime, timedelta
-import tempfile
-import os
 
-from src.main import app
-from src.core.database import DatabaseManager
 from src.core.config import Settings
+from src.core.database import DatabaseManager
+from src.main import app
 from src.models.base import Base
 from src.models.employee import Employee, EmployeeAvailability
+from src.models.rule import Constraint, Rule
 from src.models.schedule import Schedule, Shift, ShiftAssignment
-from src.models.rule import Rule, Constraint
 
 
 class TestDatabaseIntegration:
@@ -223,7 +224,7 @@ class TestDatabaseIntegration:
         # Complex query with joins and filters
         start_time = time.time()
 
-        from sqlalchemy import func, and_
+        from sqlalchemy import and_, func
 
         query = (
             select(
@@ -596,6 +597,7 @@ class TestSystemIntegration:
     def test_logging_integration(self):
         """Test logging integration across the system."""
         import logging
+
         from src.core.logging import setup_logging
 
         # Setup logging configuration

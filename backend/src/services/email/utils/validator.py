@@ -2,11 +2,12 @@
 Email validation utilities.
 """
 
-import re
 import logging
-from typing import List, Dict, Any
+import re
+from typing import Any, Dict, List
+
 import dns.resolver
-from email_validator import validate_email, EmailNotValidError
+from email_validator import EmailNotValidError, validate_email
 
 logger = logging.getLogger(__name__)
 

@@ -2,13 +2,14 @@
 SQLAlchemy models for AI Schedule Manager.
 """
 
-from typing import List, Optional
-from datetime import datetime, date, time
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, Date, Time, ForeignKey, JSON, Float
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
 import uuid
+from datetime import date, datetime, time
+from typing import List, Optional
+
+from sqlalchemy import JSON, Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, String, Text, Time
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 Base = declarative_base()
 

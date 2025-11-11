@@ -3,10 +3,11 @@ Unit tests for the Natural Language Rule Parser.
 Tests parsing of scheduling rules from plain English to structured constraints.
 """
 
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
-import spacy
 from datetime import datetime, time
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+import spacy
 
 from src.nlp.rule_parser import RuleParser, RuleType, TimePattern
 

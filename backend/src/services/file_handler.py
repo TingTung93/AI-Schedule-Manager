@@ -3,17 +3,18 @@ File handling service with security, validation, and progress tracking.
 """
 
 import asyncio
-import aiofiles
 import hashlib
 import logging
-import magic
 import os
 import tempfile
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, Dict, Any, BinaryIO, AsyncGenerator
-from fastapi import UploadFile, HTTPException
+from typing import Any, AsyncGenerator, BinaryIO, Dict, Optional
+
+import aiofiles
+import magic
+from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..exceptions.import_exceptions import FileProcessingError, ImportValidationError

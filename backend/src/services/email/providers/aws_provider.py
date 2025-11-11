@@ -4,9 +4,10 @@ AWS SES email provider implementation.
 
 import asyncio
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 import boto3
-from botocore.exceptions import ClientError, BotoCoreError
+from botocore.exceptions import BotoCoreError, ClientError
 
 from .base import BaseEmailProvider, EmailMessage, EmailResponse
 

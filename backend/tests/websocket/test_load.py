@@ -5,11 +5,12 @@ Tests concurrent connections and message throughput
 
 import asyncio
 import json
-import time
 import statistics
-from typing import List, Dict, Any
+import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Dict, List
 from unittest.mock import AsyncMock, Mock
+
 import pytest
 import websockets
 from websockets.exceptions import ConnectionClosed
@@ -330,8 +331,9 @@ class TestWebSocketLoad:
 @pytest.mark.asyncio
 async def test_memory_usage_under_load():
     """Test memory usage during high load"""
-    import psutil
     import os
+
+    import psutil
 
     process = psutil.Process(os.getpid())
     initial_memory = process.memory_info().rss

@@ -4,9 +4,10 @@ UserSettings model for storing user preferences and configuration
 
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Integer, ForeignKey, CheckConstraint, Index
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 

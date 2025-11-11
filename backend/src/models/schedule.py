@@ -2,9 +2,10 @@
 Schedule model for managing weekly schedules and their lifecycle
 """
 
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import List, Optional
-from sqlalchemy import String, Date, Integer, ForeignKey, CheckConstraint, Index
+
+from sqlalchemy import CheckConstraint, Date, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
