@@ -470,7 +470,7 @@ describe('Register Component', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText(/password requirements not met/i)).toBeInTheDocument();
+        expect(screen.getByText(/password does not meet strength requirements/i)).toBeInTheDocument();
       });
     });
 

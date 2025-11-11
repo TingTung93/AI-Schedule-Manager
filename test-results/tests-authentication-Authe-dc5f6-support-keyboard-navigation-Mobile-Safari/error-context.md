@@ -1,0 +1,183 @@
+# Page snapshot
+
+```yaml
+- main:
+  - heading "TTS WebUI" [level=1]
+  - img
+  - combobox [expanded]
+  - link "GitHub":
+    - /url: https://github.com/rsxdalv/tts-webui
+  - link "Feedback / Bug reports":
+    - /url: https://forms.gle/2L62owhBsGFzdFBC8
+  - link "Home":
+    - /url: /
+  - link "Pipeline":
+    - /url: /pipeline
+  - link "Text-to-Speech":
+    - /url: /text-to-speech
+  - link "Audio/Music Generation":
+    - /url: /audio-music-generation
+  - link "Audio Conversion":
+    - /url: /audio-conversion
+  - link "Outputs":
+    - /url: /outputs
+  - link "Tools":
+    - /url: /tools
+  - heading "Welcome to the TTS Webui!" [level=2]
+  - paragraph: This is a web interface for the TTS project. It allows you to generate audio using the TTS models.
+  - paragraph: To get started, select a tab above to choose a model and generate some audio.
+  - heading "Text-to-Speech Models:" [level=3]
+  - heading "Kokoro" [level=3]
+  - paragraph: Kokoro is a fast and lightweight TTS model with 82 million parameters. Small but comparable in quality to larger models.
+  - link "Run":
+    - /url: /text-to-speech/kokoro
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/hexgrad/kokoro
+    - text: Github
+    - img
+  - heading "Chatterbox" [level=3]
+  - paragraph: Expressive text-to-speech model with reference audio support for voice cloning.
+  - link "Run":
+    - /url: /text-to-speech/chatterbox
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/resemble-ai/chatterbox
+    - text: Github
+    - img
+  - heading "Bark" [level=3]
+  - paragraph: Bark is a text-to-speech model that can generate speech from text.
+  - link "Run":
+    - /url: /text-to-speech/bark/generation
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/suno-ai/bark
+    - text: Github
+    - img
+  - heading "Tortoise" [level=3]
+  - paragraph: Tortoise is a text-to-speech model that can generate speech from text.
+  - link "Run":
+    - /url: /text-to-speech/tortoise
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/neonbjb/tortoise-tts
+    - text: Github
+    - img
+  - heading "Maha TTS" [level=3]
+  - paragraph: Maha TTS is a text-to-speech model that can generate speech from text, supports many Indian languages.
+  - link "Run":
+    - /url: /text-to-speech/maha-tts
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/dubverse-ai/MahaTTS
+    - text: Github
+    - img
+  - heading "MMS" [level=3]
+  - paragraph: Fairseq based text-to-speech model that supports 1000+ languages
+  - link "Run":
+    - /url: /text-to-speech/mms
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/facebookresearch/fairseq/blob/main/examples/mms/README.md
+    - text: Github
+    - img
+  - heading "VALL-E X" [level=3]
+  - paragraph: "Multilingual TTS: Speak in three languages - English, Chinese, and Japanese - with natural and expressive speech synthesis."
+  - link "Run":
+    - /url: /text-to-speech/vallex
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/Plachtaa/VALL-E-X
+    - text: Github
+    - img
+  - heading "Audio/Music Generation Models:" [level=3]
+  - heading "Musicgen" [level=3]
+  - paragraph: MusicGen is a state-of-the-art controllable text-to-music model.
+  - link "Run":
+    - /url: /audio-music-generation/musicgen
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/facebookresearch/audiocraft
+    - text: Github
+    - img
+  - heading "MAGNeT" [level=3]
+  - paragraph: A state-of-the-art non-autoregressive model for text-to-music and text-to-sound.
+  - link "Run":
+    - /url: /audio-music-generation/magnet
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/facebookresearch/audiocraft
+    - text: Github
+    - img
+  - heading "Stable Audio" [level=3]
+  - paragraph: A state-of-the-art non-autoregressive model for text-to-music and text-to-sound.
+  - link "Run":
+    - /url: /audio-music-generation/stable-audio
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/facebookresearch/audiocraft
+    - text: Github
+    - img
+  - heading "ACE-Step" [level=3]
+  - paragraph: "ACE-Step: A Step Towards Music Generation Foundation Model."
+  - link "Run":
+    - /url: /audio-music-generation/ace-step
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/ACE-Step/ACE-Step
+    - text: Github
+    - img
+  - heading "Audio Conversion Models:" [level=3]
+  - heading "RVC" [level=3]
+  - paragraph: An easy-to-use voice conversion framework based on VITS.
+  - link "Run":
+    - /url: /audio-conversion/rvc
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI
+    - text: Github
+    - img
+  - heading "Demucs" [level=3]
+  - paragraph: Demucs is a post-processing model for Music Source Separation.
+  - link "Run":
+    - /url: /audio-conversion/demucs
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/facebookresearch/demucs
+    - text: Github
+    - img
+  - heading "Vocos Wav" [level=3]
+  - paragraph: Vocos Wav is a post-processing model that can refine the output of a text-to-speech model.
+  - link "Run":
+    - /url: /audio-conversion/vocos_wav
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/gemelo-ai/vocos
+    - text: Github
+    - img
+  - heading "Vocos NPZ" [level=3]
+  - paragraph: Vocos NPZ is a post-processing model that can refine the output of a Bark.
+  - link "Run":
+    - /url: /text-to-speech/bark/vocos_npz
+    - text: Run
+    - img
+  - link "Github":
+    - /url: https://github.com/gemelo-ai/vocos
+    - text: Github
+    - img
+- alert
+```

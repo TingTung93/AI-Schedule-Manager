@@ -354,7 +354,6 @@ async def create_sample_notifications(session: AsyncSession, employees: list[Emp
 
     # Create various types of notifications for employees
     for employee in employees[:3]:  # First 3 employees get notifications
-
         # Welcome notification
         welcome_notif = Notification.create_system_alert(
             user_id=employee.id,

@@ -517,7 +517,6 @@ class TestSystemIntegration:
             patch("src.services.notification_service.NotificationService") as mock_notification,
             patch("src.core.cache.RedisCache") as mock_cache,
         ):
-
             # Configure mocks
             mock_email.return_value.send_email = AsyncMock(return_value=True)
             mock_notification.return_value.send_notification = AsyncMock(return_value=True)

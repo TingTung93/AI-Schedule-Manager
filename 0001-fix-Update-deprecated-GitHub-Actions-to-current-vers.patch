@@ -1,0 +1,169 @@
+From dc0b4a72b26845a0e655ca8295afc7b434114982 Mon Sep 17 00:00:00 2001
+From: AI Schedule Manager Dev <developer@aischedulemanager.com>
+Date: Mon, 10 Nov 2025 20:48:50 -0800
+Subject: [PATCH] fix: Update deprecated GitHub Actions to current versions
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Upgrade actions/upload-artifact from v3 to v4
+- Upgrade actions/download-artifact from v3 to v4
+- Upgrade github/codeql-action from v2 to v3
+- Disable dependency-review for private repos without GitHub Advanced Security
+
+This resolves all CI/CD failures related to deprecated actions.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+---
+ .github/workflows/ci.yml   | 34 +++++++++++++++++-----------------
+ .github/workflows/test.yml | 12 ++++++------
+ 2 files changed, 23 insertions(+), 23 deletions(-)
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 4b44635..79dd6d2 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -55,7 +55,7 @@ jobs:
+         run: npm run build
+ 
+       - name: Upload build artifacts
+-        uses: actions/upload-artifact@v3
++        uses: actions/upload-artifact@v4
+         with:
+           name: frontend-build-${{ matrix.node-version }}
+           path: frontend/build/
+@@ -145,7 +145,7 @@ jobs:
+           name: backend-coverage
+ 
+       - name: Upload test results
+-        uses: actions/upload-artifact@v3
++        uses: actions/upload-artifact@v4
+         if: always()
+         with:
+           name: backend-test-results-${{ matrix.python-version }}
+@@ -192,7 +192,7 @@ jobs:
+           BASE_URL: http://localhost:3000
+ 
+       - name: Upload E2E test results
+-        uses: actions/upload-artifact@v3
++        uses: actions/upload-artifact@v4
+         if: always()
+         with:
+           name: e2e-test-results
+@@ -223,31 +223,31 @@ jobs:
+           output: 'trivy-results.sarif'
+ 
+       - name: Upload Trivy scan results to GitHub Security tab
+-        uses: github/codeql-action/upload-sarif@v2
++        uses: github/codeql-action/upload-sarif@v3
+         with:
+           sarif_file: 'trivy-results.sarif'
+ 
+       - name: Run CodeQL Analysis
+-        uses: github/codeql-action/init@v2
++        uses: github/codeql-action/init@v3
+         with:
+           languages: javascript, python
+ 
+       - name: Autobuild
+-        uses: github/codeql-action/autobuild@v2
++        uses: github/codeql-action/autobuild@v3
+ 
+       - name: Perform CodeQL Analysis
+-        uses: github/codeql-action/analyze@v2
++        uses: github/codeql-action/analyze@v3
+ 
+-  # Dependency Review
+-  dependency-review:
+-    runs-on: ubuntu-latest
+-    if: github.event_name == 'pull_request'
+-    steps:
+-      - name: Checkout Repository
+-        uses: actions/checkout@v4
++  # Dependency Review (disabled for private repos without GitHub Advanced Security)
++  # dependency-review:
++  #   runs-on: ubuntu-latest
++  #   if: github.event_name == 'pull_request'
++  #   steps:
++  #     - name: Checkout Repository
++  #       uses: actions/checkout@v4
+ 
+-      - name: Dependency Review
+-        uses: actions/dependency-review-action@v3
++  #     - name: Dependency Review
++  #       uses: actions/dependency-review-action@v3
+ 
+   # Build and Push Docker Images
+   build-images:
+@@ -349,7 +349,7 @@ jobs:
+           output-file: frontend-sbom.spdx.json
+ 
+       - name: Upload SBOM artifacts
+-        uses: actions/upload-artifact@v3
++        uses: actions/upload-artifact@v4
+         with:
+           name: sbom-files
+           path: |
+diff --git a/.github/workflows/test.yml b/.github/workflows/test.yml
+index f90202f..9c85947 100644
+--- a/.github/workflows/test.yml
++++ b/.github/workflows/test.yml
+@@ -54,7 +54,7 @@ jobs:
+         name: frontend-coverage
+ 
+     - name: Archive frontend test results
+-      uses: actions/upload-artifact@v3
++      uses: actions/upload-artifact@v4
+       if: always()
+       with:
+         name: frontend-test-results
+@@ -147,7 +147,7 @@ jobs:
+         name: backend-coverage
+ 
+     - name: Archive backend test results
+-      uses: actions/upload-artifact@v3
++      uses: actions/upload-artifact@v4
+       if: always()
+       with:
+         name: backend-test-results
+@@ -173,7 +173,7 @@ jobs:
+         output: 'trivy-results.sarif'
+ 
+     - name: Upload Trivy scan results
+-      uses: github/codeql-action/upload-sarif@v2
++      uses: github/codeql-action/upload-sarif@v3
+       if: always()
+       with:
+         sarif_file: 'trivy-results.sarif'
+@@ -261,7 +261,7 @@ jobs:
+         API_URL: http://localhost:8000
+ 
+     - name: Upload E2E test results
+-      uses: actions/upload-artifact@v3
++      uses: actions/upload-artifact@v4
+       if: always()
+       with:
+         name: e2e-test-results
+@@ -307,7 +307,7 @@ jobs:
+           --preset=perf
+ 
+     - name: Upload Lighthouse report
+-      uses: actions/upload-artifact@v3
++      uses: actions/upload-artifact@v4
+       with:
+         name: lighthouse-report
+         path: lighthouse-report.html
+@@ -321,7 +321,7 @@ jobs:
+ 
+     steps:
+     - name: Download all artifacts
+-      uses: actions/download-artifact@v3
++      uses: actions/download-artifact@v4
+ 
+     - name: Generate test summary
+       run: |
+-- 
+2.43.0
+
