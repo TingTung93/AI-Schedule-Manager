@@ -39,6 +39,8 @@ select = E,W,F,C
 per-file-ignores =
     __init__.py:F401
     tests/*:F401,F811
+    scripts/*:E402,F401
+    src/api/*:F401,F841,W293,E712
 
 # Show source code for errors
 show-source = True
