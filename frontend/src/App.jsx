@@ -15,9 +15,12 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import EmployeesPage from './pages/EmployeesPage';
+import ShiftManager from './pages/ShiftManager';
 import SchedulePage from './pages/SchedulePage';
+import DepartmentOverview from './pages/DepartmentOverview';
 import RulesPage from './pages/RulesPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import RoleManager from './pages/RoleManager';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -113,9 +116,11 @@ const routeComponents = {
   RegisterPage,
   DashboardPage,
   EmployeesPage,
+  ShiftManager,
   SchedulePage,
   RulesPage,
   AnalyticsPage,
+  RoleManager,
   SettingsPage,
   ProfilePage
 };
@@ -200,10 +205,30 @@ function App() {
                     }
                   />
 
+                  {/* Shift Management */}
+                  <Route
+                    path="shifts"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <ShiftManager />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   {/* Schedule Management */}
                   <Route
                     path="schedule"
                     element={<SchedulePage />}
+                  />
+
+                  {/* Department Overview */}
+                  <Route
+                    path="department-overview"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <DepartmentOverview />
+                      </ProtectedRoute>
+                    }
                   />
 
                   {/* Business Rules */}
@@ -222,6 +247,16 @@ function App() {
                     element={
                       <ProtectedRoute requiredRoles={['admin', 'manager']}>
                         <AnalyticsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Role Management */}
+                  <Route
+                    path="roles"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <RoleManager />
                       </ProtectedRoute>
                     }
                   />
