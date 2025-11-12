@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -23,7 +24,8 @@ import {
   Add,
   Today,
   ViewWeek,
-  ViewModule
+  ViewModule,
+  AutoFixHigh
 } from '@mui/icons-material';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -32,6 +34,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import api, { getErrorMessage, scheduleService } from '../services/api';
 
 const SchedulePage = () => {
+  const navigate = useNavigate();
   const [schedules, setSchedules] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -185,6 +188,14 @@ const SchedulePage = () => {
             </ToggleButtonGroup>
             <Button
               variant="contained"
+              color="primary"
+              startIcon={<AutoFixHigh />}
+              onClick={() => navigate('/schedule/builder')}
+            >
+              Schedule Builder
+            </Button>
+            <Button
+              variant="outlined"
               startIcon={<Add />}
               onClick={() => setDialogOpen(true)}
             >

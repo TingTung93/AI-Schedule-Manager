@@ -18,6 +18,7 @@ import EmployeesPage from './pages/EmployeesPage';
 import DepartmentManager from './pages/DepartmentManager';
 import ShiftManager from './pages/ShiftManager';
 import SchedulePage from './pages/SchedulePage';
+import ScheduleBuilder from './pages/ScheduleBuilder';
 import DepartmentOverview from './pages/DepartmentOverview';
 import RulesPage from './pages/RulesPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -232,6 +233,16 @@ function App() {
                   <Route
                     path="schedule"
                     element={<SchedulePage />}
+                  />
+
+                  {/* Schedule Builder */}
+                  <Route
+                    path="schedule/builder"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <ScheduleBuilder />
+                      </ProtectedRoute>
+                    }
                   />
 
                   {/* Department Overview */}
