@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .api.analytics import router as analytics_router
 from .api.data_io import router as data_io_router
+from .api.departments import router as departments_router
 from .api.notifications import router as notifications_router
 from .api.settings import router as settings_router
 from .api.shifts import router as shifts_router
