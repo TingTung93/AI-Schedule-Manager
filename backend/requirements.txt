@@ -54,6 +54,7 @@ mypy==1.7.1
 # AI/ML (optional)
 openai==1.3.7
 anthropic==0.7.8
+ortools==9.8.3296  # Constraint solver for schedule optimization
 
 # Task Queue (optional)
 celery==5.3.4
