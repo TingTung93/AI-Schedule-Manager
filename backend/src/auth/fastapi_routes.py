@@ -14,10 +14,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ..database import get_db_session
 from .auth import AuthenticationError, auth_service
-from .models import AuditLog, LoginAttempt, User
+from .models import AuditLog, LoginAttempt, Role, User
 
 logger = logging.getLogger(__name__)
 
@@ -251,6 +252,14 @@ async def register(reg_request: RegisterRequest, request: Request, response: Res
         await db.commit()
         await db.refresh(new_user)
 
+        # Eagerly load roles and permissions to avoid lazy loading issues with AsyncSession
+        result = await db.execute(
+            select(User)
+            .options(selectinload(User.roles).selectinload(Role.permissions))
+            .filter_by(id=new_user.id)
+        )
+        new_user = result.scalar_one()
+
         # Log successful registration
         await log_audit_event_async(request, db, "registration", user_id=new_user.id, resource="user", action="create", success=True)
 
@@ -290,8 +299,12 @@ async def login(login_request: LoginRequest, request: Request, response: Respons
         email = login_request.email.lower().strip()
         password = login_request.password
 
-        # Query user using async SQLAlchemy
-        result = await db.execute(select(User).filter_by(email=email))
+        # Query user using async SQLAlchemy with eager loading of roles and permissions
+        result = await db.execute(
+            select(User)
+            .options(selectinload(User.roles).selectinload(Role.permissions))
+            .filter_by(email=email)
+        )
         user = result.scalar_one_or_none()
 
         # Record login attempt
@@ -411,8 +424,12 @@ async def refresh_token(request: Request, response: Response, db: AsyncSession =
         payload = auth_service.verify_refresh_token(refresh_token_value)
         user_id = payload["user_id"]
 
-        # Get user from database using async SQLAlchemy
-        result = await db.execute(select(User).filter_by(id=user_id))
+        # Get user from database using async SQLAlchemy with eager loading of roles and permissions
+        result = await db.execute(
+            select(User)
+            .options(selectinload(User.roles).selectinload(Role.permissions))
+            .filter_by(id=user_id)
+        )
         user = result.scalar_one_or_none()
 
         if not user or not user.is_active:
@@ -522,8 +539,12 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db_s
                 detail="Invalid token"
             )
 
-        # Get user from database using async SQLAlchemy
-        result = await db.execute(select(User).filter_by(id=user_id))
+        # Get user from database using async SQLAlchemy with eager loading of roles and permissions
+        result = await db.execute(
+            select(User)
+            .options(selectinload(User.roles).selectinload(Role.permissions))
+            .filter_by(id=user_id)
+        )
         user = result.scalar_one_or_none()
 
         if not user:
