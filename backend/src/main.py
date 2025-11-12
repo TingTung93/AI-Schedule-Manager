@@ -101,6 +101,33 @@ async def login(request: LoginRequest):
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
+@app.get("/api/auth/me")
+async def get_current_user_info():
+    """Get current user information (mock endpoint)."""
+    # For demo purposes, return a mock user
+    # In production, this would extract user from JWT token
+    return {
+        "user": {
+            "id": 1,
+            "email": "demo@example.com",
+            "full_name": "Demo User",
+            "role": "manager",
+            "roles": ["manager"],
+            "permissions": ["read", "write", "manage"]
+        }
+    }
+
+
+@app.get("/api/auth/csrf-token")
+async def get_csrf_token():
+    """Get CSRF token for state-changing requests."""
+    # Generate a simple CSRF token for demo purposes
+    # In production, use a proper CSRF library
+    import secrets
+    token = secrets.token_urlsafe(32)
+    return {"csrf_token": token}
+
+
 # Rules endpoints
 @app.post("/api/rules/parse", response_model=RuleResponse)
 async def parse_rule(
