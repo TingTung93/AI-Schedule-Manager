@@ -351,7 +351,7 @@ class EmployeeFilters(BaseModel):
     page: int = Field(1, ge=1)
     size: int = Field(10, ge=1, le=100)
     sort_by: Optional[str] = "name"
-    sort_order: Optional[str] = Field("asc", regex="^(asc|desc)$")
+    sort_order: Optional[str] = Field("asc", pattern="^(asc|desc)$")
 
 
 class RuleFilters(BaseModel):
@@ -363,7 +363,7 @@ class RuleFilters(BaseModel):
     page: int = Field(1, ge=1)
     size: int = Field(10, ge=1, le=100)
     sort_by: Optional[str] = "created_at"
-    sort_order: Optional[str] = Field("desc", regex="^(asc|desc)$")
+    sort_order: Optional[str] = Field("desc", pattern="^(asc|desc)$")
 
 
 class ScheduleFilters(BaseModel):
@@ -377,7 +377,7 @@ class ScheduleFilters(BaseModel):
     page: int = Field(1, ge=1)
     size: int = Field(10, ge=1, le=100)
     sort_by: Optional[str] = "date"
-    sort_order: Optional[str] = Field("desc", regex="^(asc|desc)$")
+    sort_order: Optional[str] = Field("desc", pattern="^(asc|desc)$")
 
 
 class NotificationFilters(BaseModel):
@@ -390,7 +390,7 @@ class NotificationFilters(BaseModel):
     page: int = Field(1, ge=1)
     size: int = Field(10, ge=1, le=100)
     sort_by: Optional[str] = "created_at"
-    sort_order: Optional[str] = Field("desc", regex="^(asc|desc)$")
+    sort_order: Optional[str] = Field("desc", pattern="^(asc|desc)$")
 
 
 # Analytics response models

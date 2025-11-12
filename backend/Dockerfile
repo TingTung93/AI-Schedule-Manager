@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y \
     libpq5 \
     curl \
     dumb-init \
+    libmagic1 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
