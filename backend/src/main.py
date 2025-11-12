@@ -69,6 +69,7 @@ app.add_middleware(
 # Include API routers
 app.include_router(auth_router)  # Authentication routes (replaces mock endpoints)
 app.include_router(data_io_router)
+app.include_router(departments_router)
 app.include_router(notifications_router)
 app.include_router(analytics_router)
 app.include_router(settings_router)
