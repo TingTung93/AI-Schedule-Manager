@@ -94,7 +94,8 @@ class Settings(BaseSettings):
     @classmethod
     def build_database_url(cls, v: str) -> str:
         """Build database URL from components if needed."""
-        if v and v.startswith("postgresql://"):
+        # Accept any postgresql URL format (postgresql://, postgresql+asyncpg://, etc.)
+        if v and v.startswith("postgresql"):
             return v
 
         # Build from components if available

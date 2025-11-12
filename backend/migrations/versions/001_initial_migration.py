@@ -63,7 +63,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint('week_start <= week_end', name=op.f('ck_schedules_valid_week_period')),
-        sa.CheckConstraint("week_end - week_start <= INTERVAL '7 days'", name=op.f('ck_schedules_max_week_duration')),
+        sa.CheckConstraint("week_end - week_start <= 7", name=op.f('ck_schedules_max_week_duration')),
         sa.CheckConstraint("status IN ('draft', 'pending_approval', 'approved', 'published', 'archived', 'rejected')", name=op.f('ck_schedules_valid_status')),
         sa.CheckConstraint('version > 0', name=op.f('ck_schedules_positive_version')),
         sa.CheckConstraint("(status = 'approved' AND approved_by IS NOT NULL AND approved_at IS NOT NULL) OR status != 'approved'", name=op.f('ck_schedules_approval_required_when_approved')),

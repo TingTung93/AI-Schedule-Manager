@@ -54,19 +54,20 @@ class DatabaseManager:
     def _setup_listeners(self):
         """Set up event listeners for monitoring."""
 
-        @event.listens_for(self.engine.sync_engine, "connect")
-        def receive_connect(dbapi_conn, connection_record):
-            """Configure connection on connect."""
-            connection_record.info["connect_time"] = datetime.now()
-
-            # Set connection-level optimizations for PostgreSQL
-            with dbapi_conn.cursor() as cursor:
-                # Increase work memory for complex queries
-                cursor.execute("SET work_mem = '16MB'")
-                # Optimize for read-heavy workload
-                cursor.execute("SET random_page_cost = 1.1")
-                # Enable parallel queries
-                cursor.execute("SET max_parallel_workers_per_gather = 2")
+        # Note: Connection-level optimizations disabled for asyncpg compatibility
+        # These settings can be configured at the database level or via postgresql.conf
+        # @event.listens_for(self.engine.sync_engine, "connect")
+        # def receive_connect(dbapi_conn, connection_record):
+        #     """Configure connection on connect."""
+        #     connection_record.info["connect_time"] = datetime.now()
+        #
+        #     # Set connection-level optimizations for PostgreSQL
+        #     # Note: asyncpg doesn't support cursor context managers
+        #     with dbapi_conn.cursor() as cursor:
+        #         cursor.execute("SET work_mem = '16MB'")
+        #         cursor.execute("SET random_page_cost = 1.1")
+        #         cursor.execute("SET max_parallel_workers_per_gather = 2")
+        pass
 
     @asynccontextmanager
     async def get_session(self) -> AsyncGenerator[AsyncSession, None]:

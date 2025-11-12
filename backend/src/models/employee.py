@@ -48,7 +48,10 @@ class Employee(Base):
 
     # Relationships
     schedule_assignments: Mapped[List["ScheduleAssignment"]] = relationship(
-        "ScheduleAssignment", back_populates="employee", cascade="all, delete-orphan"
+        "ScheduleAssignment",
+        back_populates="employee",
+        foreign_keys="ScheduleAssignment.employee_id",
+        cascade="all, delete-orphan"
     )
 
     created_schedules: Mapped[List["Schedule"]] = relationship(
