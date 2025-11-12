@@ -35,8 +35,12 @@ import {
 import { useAuth } from '../hooks/useAuth';
 
 const DashboardPage = () => {
+  console.log('🎯 DashboardPage: Component mounting');
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  console.log('🎯 DashboardPage: User from auth:', user);
+
   const [dashboardData, setDashboardData] = useState({
     todaySchedules: 3,
     weeklyHours: 32,
@@ -47,8 +51,10 @@ const DashboardPage = () => {
   });
 
   useEffect(() => {
+    console.log('🎯 DashboardPage: useEffect running');
     // Simulate loading dashboard data
     const loadDashboardData = () => {
+      console.log('🎯 DashboardPage: Loading dashboard data');
       setDashboardData(prev => ({
         ...prev,
         recentActivities: [
@@ -75,6 +81,7 @@ const DashboardPage = () => {
           }
         ]
       }));
+      console.log('🎯 DashboardPage: Dashboard data loaded');
     };
 
     loadDashboardData();
@@ -160,17 +167,24 @@ const DashboardPage = () => {
     return action.requiresRole.includes(user?.role);
   });
 
+  console.log('🎯 DashboardPage: About to render, user firstName:', user?.firstName);
+  console.log('🎯 DashboardPage: Stats count:', stats.length);
+  console.log('🎯 DashboardPage: Filtered quick actions count:', filteredQuickActions.length);
+
   return (
     <Box sx={{ p: 3 }}>
+      {console.log('🎯 DashboardPage: Rendering main Box')}
+
       {/* Welcome Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
+        {console.log('🎯 DashboardPage: Rendering welcome header')}
         <Box mb={4}>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Welcome back, {user?.firstName || 'User'}!
+            Welcome back, {user?.firstName || user?.first_name || 'User'}!
           </Typography>
           <Typography variant="body1" color="textSecondary">
             Here's what's happening with your schedule today
@@ -184,40 +198,44 @@ const DashboardPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
+        {console.log('🎯 DashboardPage: Rendering stats grid')}
         <Grid container spacing={3} mb={4}>
-          {stats.map((stat, index) => (
-            <Grid item xs={12} sm={6} lg={3} key={stat.title}>
-              <Card
-                sx={{
-                  height: '100%',
-                  background: `linear-gradient(135deg, ${stat.color === 'primary' ? '#1976d2' :
-                    stat.color === 'success' ? '#2e7d32' :
-                    stat.color === 'warning' ? '#ed6c02' : '#d32f2f'} 0%, ${
-                    stat.color === 'primary' ? '#42a5f5' :
-                    stat.color === 'success' ? '#66bb6a' :
-                    stat.color === 'warning' ? '#ffb74d' : '#ef5350'} 100%)`,
-                  color: 'white'
-                }}
-              >
-                <CardContent>
-                  <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                    <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
-                      {stat.icon}
-                    </Avatar>
-                    <Typography variant="h4" fontWeight="bold">
-                      {stat.value}
+          {stats.map((stat, index) => {
+            console.log('🎯 DashboardPage: Rendering stat card:', stat.title);
+            return (
+              <Grid item xs={12} sm={6} lg={3} key={stat.title}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    background: `linear-gradient(135deg, ${stat.color === 'primary' ? '#1976d2' :
+                      stat.color === 'success' ? '#2e7d32' :
+                      stat.color === 'warning' ? '#ed6c02' : '#d32f2f'} 0%, ${
+                      stat.color === 'primary' ? '#42a5f5' :
+                      stat.color === 'success' ? '#66bb6a' :
+                      stat.color === 'warning' ? '#ffb74d' : '#ef5350'} 100%)`,
+                    color: 'white'
+                  }}
+                >
+                  <CardContent>
+                    <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                      <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
+                        {stat.icon}
+                      </Avatar>
+                      <Typography variant="h4" fontWeight="bold">
+                        {stat.value}
+                      </Typography>
+                    </Box>
+                    <Typography variant="h6" gutterBottom>
+                      {stat.title}
                     </Typography>
-                  </Box>
-                  <Typography variant="h6" gutterBottom>
-                    {stat.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    {stat.change}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                      {stat.change}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
         </Grid>
       </motion.div>
 
@@ -229,6 +247,7 @@ const DashboardPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
+            {console.log('🎯 DashboardPage: Rendering quick actions')}
             <Paper sx={{ p: 3, mb: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Quick Actions
@@ -280,6 +299,7 @@ const DashboardPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
+            {console.log('🎯 DashboardPage: Rendering weekly progress')}
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Weekly Progress
@@ -309,6 +329,7 @@ const DashboardPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
+            {console.log('🎯 DashboardPage: Rendering recent activities')}
             <Paper sx={{ p: 3, height: 'fit-content' }}>
               <Typography variant="h6" gutterBottom>
                 Recent Activities
@@ -342,6 +363,7 @@ const DashboardPage = () => {
           </motion.div>
         </Grid>
       </Grid>
+      {console.log('🎯 DashboardPage: Render complete')}
     </Box>
   );
 };

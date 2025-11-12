@@ -193,6 +193,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const register = async (userData) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+
+      // Call the registration API
+      const response = await authService.register({
+        email: userData.email,
+        password: userData.password,
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+        role: userData.role,
+        department: userData.department
+      });
+
+      // Set the access token if provided
+      if (response.data.access_token) {
+        authService.setAccessToken(response.data.access_token);
+      }
+
+      // Update auth state with user data
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user: response.data.user }
+      });
+
+      // Get CSRF token for future requests
+      await getCsrfToken();
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed';
+
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: { error: errorMessage }
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const logout = async () => {
     try {
       // Call logout API to clear server-side session
@@ -299,6 +340,7 @@ export const AuthProvider = ({ children }) => {
 
     // Actions
     login,
+    register,
     logout,
     refreshToken,
     updateUser,

@@ -180,69 +180,67 @@ function App() {
                   path="/*"
                   element={
                     <ProtectedRoute>
-                      <Layout>
-                        <Routes>
-                          {/* Dashboard */}
-                          <Route
-                            path={ROUTES.DASHBOARD}
-                            element={<DashboardPage />}
-                          />
-
-                          {/* Employee Management */}
-                          <Route
-                            path={ROUTES.EMPLOYEES}
-                            element={
-                              <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                                <EmployeesPage />
-                              </ProtectedRoute>
-                            }
-                          />
-
-                          {/* Schedule Management */}
-                          <Route
-                            path={ROUTES.SCHEDULE}
-                            element={<SchedulePage />}
-                          />
-
-                          {/* Business Rules */}
-                          <Route
-                            path={ROUTES.RULES}
-                            element={
-                              <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                                <RulesPage />
-                              </ProtectedRoute>
-                            }
-                          />
-
-                          {/* Analytics */}
-                          <Route
-                            path={ROUTES.ANALYTICS}
-                            element={
-                              <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                                <AnalyticsPage />
-                              </ProtectedRoute>
-                            }
-                          />
-
-                          {/* Settings */}
-                          <Route
-                            path={ROUTES.SETTINGS}
-                            element={<SettingsPage />}
-                          />
-
-                          {/* Profile */}
-                          <Route
-                            path={ROUTES.PROFILE}
-                            element={<ProfilePage />}
-                          />
-
-                          {/* 404 for unmatched protected routes */}
-                          <Route path="*" element={<NotFoundPage />} />
-                        </Routes>
-                      </Layout>
+                      <Layout />
                     </ProtectedRoute>
                   }
-                />
+                >
+                  {/* Dashboard */}
+                  <Route
+                    path="dashboard"
+                    element={<DashboardPage />}
+                  />
+
+                  {/* Employee Management */}
+                  <Route
+                    path="employees"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <EmployeesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Schedule Management */}
+                  <Route
+                    path="schedule"
+                    element={<SchedulePage />}
+                  />
+
+                  {/* Business Rules */}
+                  <Route
+                    path="rules"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <RulesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Analytics */}
+                  <Route
+                    path="analytics"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <AnalyticsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Settings */}
+                  <Route
+                    path="settings"
+                    element={<SettingsPage />}
+                  />
+
+                  {/* Profile */}
+                  <Route
+                    path="profile"
+                    element={<ProfilePage />}
+                  />
+
+                  {/* 404 for unmatched protected routes */}
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
 
                 {/* 404 for unmatched routes */}
                 <Route path="*" element={<NotFoundPage />} />
