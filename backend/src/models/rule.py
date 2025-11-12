@@ -384,3 +384,37 @@ class Rule(Base):
             "violations": self.violation_count,
             "constraints": self.constraints,
         }
+
+    def to_dict(self, camelCase: bool = True) -> dict:
+        """
+        Convert rule to dictionary for API responses.
+
+        Args:
+            camelCase: If True, convert keys to camelCase (default: True)
+
+        Returns:
+            Dictionary representation of rule
+        """
+        from ..utils.serializers import serialize_dict
+
+        data = {
+            "id": self.id,
+            "rule_text": self.rule_text,
+            "rule_type": self.rule_type,
+            "employee_id": self.employee_id,
+            "constraints": self.constraints,
+            "priority": self.priority,
+            "active": self.active,
+            "strict": self.strict,
+            "violation_count": self.violation_count,
+            "effective_from": self.effective_from.isoformat() if self.effective_from else None,
+            "effective_until": self.effective_until.isoformat() if self.effective_until else None,
+            "description": self.description,
+            "tags": self.tags,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "is_global": self.is_global,
+            "is_effective": self.is_effective,
+        }
+
+        return serialize_dict(data) if camelCase else data

@@ -117,3 +117,30 @@ class Employee(Base):
 
         required_quals = shift_requirements.get(shift_type, [])
         return any(qual in self.qualifications for qual in required_quals) if required_quals else True
+
+    def to_dict(self, camelCase: bool = True) -> dict:
+        """
+        Convert employee to dictionary for API responses.
+
+        Args:
+            camelCase: If True, convert keys to camelCase (default: True)
+
+        Returns:
+            Dictionary representation of employee
+        """
+        from ..utils.serializers import serialize_dict
+
+        data = {
+            "id": self.id,
+            "email": self.email,
+            "name": self.name,
+            "role": self.role,
+            "qualifications": self.qualifications,
+            "availability": self.availability,
+            "is_active": self.is_active,
+            "is_admin": self.is_admin,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+        return serialize_dict(data) if camelCase else data

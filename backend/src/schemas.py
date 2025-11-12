@@ -34,6 +34,45 @@ class EmployeeRole(str, Enum):
     SECURITY = "security"
 
 
+# Department schemas
+class DepartmentBase(BaseModel):
+    """Base department schema."""
+
+    name: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = None
+    parent_id: Optional[int] = None
+    settings: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    active: bool = True
+
+
+class DepartmentCreate(DepartmentBase):
+    """Department creation schema."""
+
+    pass
+
+
+class DepartmentUpdate(BaseModel):
+    """Department update schema."""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    description: Optional[str] = None
+    parent_id: Optional[int] = None
+    settings: Optional[Dict[str, Any]] = None
+    active: Optional[bool] = None
+
+
+class DepartmentResponse(DepartmentBase):
+    """Department response schema."""
+
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    parent: Optional["DepartmentResponse"] = None
+    children: List["DepartmentResponse"] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class RuleType(str, Enum):
     """Rule type enumeration."""
 
@@ -93,6 +132,7 @@ class EmployeeBase(BaseModel):
     max_hours_per_week: Optional[int] = Field(40, ge=1, le=168)
     qualifications: Optional[List[str]] = Field(default_factory=list)
     availability_pattern: Optional[Dict[str, Any]] = None
+    department_id: Optional[int] = None
     active: bool = True
 
 
@@ -113,6 +153,7 @@ class EmployeeUpdate(BaseModel):
     max_hours_per_week: Optional[int] = Field(None, ge=1, le=168)
     qualifications: Optional[List[str]] = None
     availability_pattern: Optional[Dict[str, Any]] = None
+    department_id: Optional[int] = None
     active: Optional[bool] = None
 
 
@@ -182,7 +223,7 @@ class ShiftBase(BaseModel):
     end_time: time
     required_staff: int = Field(1, ge=1)
     required_qualifications: Optional[List[str]] = Field(default_factory=list)
-    department: Optional[str] = Field(None, max_length=100)
+    department_id: Optional[int] = None
     hourly_rate_multiplier: float = Field(1.0, ge=0)
     active: bool = True
 
@@ -202,7 +243,7 @@ class ShiftUpdate(BaseModel):
     end_time: Optional[time] = None
     required_staff: Optional[int] = Field(None, ge=1)
     required_qualifications: Optional[List[str]] = None
-    department: Optional[str] = Field(None, max_length=100)
+    department_id: Optional[int] = None
     hourly_rate_multiplier: Optional[float] = Field(None, ge=0)
     active: Optional[bool] = None
 

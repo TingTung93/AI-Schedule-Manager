@@ -15,7 +15,9 @@ from .api.analytics import router as analytics_router
 from .api.data_io import router as data_io_router
 from .api.notifications import router as notifications_router
 from .api.settings import router as settings_router
+from .api.shifts import router as shifts_router
 from .api_docs import setup_docs
+from .auth.fastapi_routes import auth_router  # Native FastAPI auth routes
 from .dependencies import get_current_manager, get_current_user, get_database_session
 from .nlp.rule_parser import RuleParser
 from .schemas import (
@@ -34,6 +36,7 @@ from .schemas import (
     RuleUpdate,
     ScheduleCreate,
     ScheduleGenerateRequest,
+    ScheduleOptimizeRequest,
     ScheduleResponse,
     ScheduleUpdate,
     TokenResponse,
@@ -63,10 +66,12 @@ app.add_middleware(
 )
 
 # Include API routers
+app.include_router(auth_router)  # Authentication routes (replaces mock endpoints)
 app.include_router(data_io_router)
 app.include_router(notifications_router)
 app.include_router(analytics_router)
 app.include_router(settings_router)
+app.include_router(shifts_router)
 
 # Initialize rule parser
 rule_parser = RuleParser()
@@ -88,44 +93,32 @@ async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
 
-# Authentication endpoints
-@app.post("/api/auth/login", response_model=TokenResponse)
-async def login(request: LoginRequest):
-    """Mock authentication endpoint."""
-    if request.email and request.password:
-        return TokenResponse(
-            access_token=f"mock-jwt-token-{request.email}",
-            token_type="bearer",
-            user={"email": request.email, "role": "manager" if "admin" in request.email else "employee"},
-        )
-    raise HTTPException(status_code=401, detail="Invalid credentials")
-
-
-@app.get("/api/auth/me")
-async def get_current_user_info():
-    """Get current user information (mock endpoint)."""
-    # For demo purposes, return a mock user
-    # In production, this would extract user from JWT token
-    return {
-        "user": {
-            "id": 1,
-            "email": "demo@example.com",
-            "full_name": "Demo User",
-            "role": "manager",
-            "roles": ["manager"],
-            "permissions": ["read", "write", "manage"]
-        }
-    }
-
-
-@app.get("/api/auth/csrf-token")
-async def get_csrf_token():
-    """Get CSRF token for state-changing requests."""
-    # Generate a simple CSRF token for demo purposes
-    # In production, use a proper CSRF library
-    import secrets
-    token = secrets.token_urlsafe(32)
-    return {"csrf_token": token}
+# ============================================================================
+# DEPRECATED MOCK AUTHENTICATION ENDPOINTS - REMOVED
+# ============================================================================
+# The mock authentication endpoints have been removed and replaced with the
+# complete Flask authentication system located in /backend/src/auth/routes.py
+#
+# The Flask auth routes are now integrated into FastAPI using ASGI middleware.
+# All authentication endpoints are available at /api/auth/* including:
+#   - POST /api/auth/register - User registration
+#   - POST /api/auth/login - User login with JWT tokens
+#   - POST /api/auth/logout - Logout and revoke tokens
+#   - GET /api/auth/me - Get current user information
+#   - POST /api/auth/refresh - Refresh access token
+#   - POST /api/auth/change-password - Change user password
+#   - POST /api/auth/forgot-password - Request password reset
+#   - POST /api/auth/reset-password - Reset password with token
+#   - GET /api/auth/csrf-token - Get CSRF token for protected requests
+#   - GET /api/auth/sessions - Get active refresh token sessions
+#   - DELETE /api/auth/sessions/{token_jti} - Revoke specific session
+#
+# For implementation details, see:
+#   - /backend/src/auth/routes.py - Flask authentication routes
+#   - /backend/src/auth/auth.py - JWT service and password hashing
+#   - /backend/src/auth/middleware.py - Authentication middleware
+#   - /backend/src/auth/models.py - User, Role, Permission models
+# ============================================================================
 
 
 # Rules endpoints
@@ -501,35 +494,126 @@ async def generate_schedule(
     db: AsyncSession = Depends(get_database_session),
     current_user: dict = Depends(get_current_manager),
 ):
-    """Generate schedule for date range."""
-    # Mock schedule generation for now
-    # In production, this would use the constraint solver
-    return {
-        "id": random.randint(1000, 9999),
-        "start_date": request.start_date.isoformat(),
-        "end_date": request.end_date.isoformat(),
-        "status": "generated",
-        "shifts": [],
-        "created_at": datetime.utcnow().isoformat(),
-        "message": "Schedule generation started. Check back for results.",
-    }
+    """Generate schedule for date range using constraint solver."""
+    from .services.schedule_service import schedule_service
+
+    try:
+        # Generate schedule using constraint solver
+        result = await schedule_service.generate_schedule(
+            db=db, start_date=request.start_date, end_date=request.end_date, constraints=request.constraints
+        )
+
+        # Check for conflicts before returning
+        if result["status"] in ["optimal", "feasible"]:
+            conflicts = await schedule_service.check_conflicts(db=db, start_date=request.start_date, end_date=request.end_date)
+
+            return {
+                "status": result["status"],
+                "start_date": request.start_date.isoformat(),
+                "end_date": request.end_date.isoformat(),
+                "schedule": result.get("schedule", []),
+                "saved_assignments": result.get("saved_assignments", 0),
+                "conflicts": conflicts.get("conflicts", []),
+                "statistics": result.get("statistics", {}),
+                "message": result.get("message", "Schedule generated successfully"),
+                "created_at": datetime.utcnow().isoformat(),
+            }
+        else:
+            # Handle infeasible or error cases
+            return {
+                "status": result["status"],
+                "start_date": request.start_date.isoformat(),
+                "end_date": request.end_date.isoformat(),
+                "schedule": [],
+                "message": result.get(
+                    "message",
+                    "Could not generate feasible schedule. Try relaxing constraints or adjusting employee availability.",
+                ),
+                "suggestions": [
+                    "Increase employee availability windows",
+                    "Reduce required qualifications for some shifts",
+                    "Add more employees to the system",
+                    "Reduce the number of shifts or adjust shift times",
+                ],
+            }
+
+    except Exception as e:
+        logger.error(f"Schedule generation error: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": f"Failed to generate schedule: {str(e)}",
+            "schedule": [],
+        }
 
 
 @app.post("/api/schedule/optimize")
 async def optimize_schedule(
-    schedule_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_manager)
+    request: ScheduleOptimizeRequest,
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_manager),
 ):
-    """Optimize existing schedule."""
-    # Mock optimization
-    return {
-        "status": "optimized",
-        "improvements": {
-            "cost_savings": "$" + str(random.randint(200, 800)),
-            "coverage": str(random.randint(92, 99)) + "%",
-            "satisfaction": str(random.randint(85, 95)) + "%",
-        },
-        "message": "Schedule optimized successfully using AI",
-    }
+    """Optimize existing schedule using constraint solver."""
+    from .services.schedule_service import schedule_service
+
+    try:
+        # Optimize schedule using constraint solver
+        result = await schedule_service.optimize_schedule(db=db, schedule_ids=request.schedule_ids)
+
+        if result["status"] in ["optimal", "feasible"]:
+            return {
+                "status": result["status"],
+                "improvements": result.get("improvements", {}),
+                "schedule": result.get("schedule", []),
+                "statistics": result.get("statistics", {}),
+                "message": "Schedule optimized successfully using constraint-based AI solver",
+            }
+        else:
+            return {
+                "status": result["status"],
+                "message": result.get("message", "Optimization failed"),
+                "suggestions": [
+                    "Review and relax some constraints",
+                    "Ensure all employees have availability set",
+                    "Check for conflicting rules",
+                ],
+            }
+
+    except Exception as e:
+        logger.error(f"Schedule optimization error: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": f"Failed to optimize schedule: {str(e)}",
+        }
+
+
+@app.get("/api/schedule/conflicts")
+async def check_schedule_conflicts(
+    start_date: date = Query(..., description="Start date for conflict check"),
+    end_date: date = Query(..., description="End date for conflict check"),
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_manager),
+):
+    """Check for conflicts in schedule for given date range."""
+    from .services.schedule_service import schedule_service
+
+    try:
+        conflicts = await schedule_service.check_conflicts(db=db, start_date=start_date, end_date=end_date)
+
+        return {
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
+            "conflicts": conflicts.get("conflicts", []),
+            "conflict_count": conflicts.get("conflict_count", 0),
+            "status": "ok" if conflicts.get("conflict_count", 0) == 0 else "conflicts_found",
+        }
+
+    except Exception as e:
+        logger.error(f"Conflict check error: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": f"Failed to check conflicts: {str(e)}",
+            "conflicts": [],
+        }
 
 
 # Analytics endpoint

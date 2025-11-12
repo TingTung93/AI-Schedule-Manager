@@ -168,3 +168,42 @@ class Schedule(Base):
             "total_assignments": self.get_total_assignments(),
             "unique_employees": len(self.get_assigned_employees()),
         }
+
+    def to_dict(self, camelCase: bool = True, include_assignments: bool = False) -> dict:
+        """
+        Convert schedule to dictionary for API responses.
+
+        Args:
+            camelCase: If True, convert keys to camelCase (default: True)
+            include_assignments: If True, include assignment details (default: False)
+
+        Returns:
+            Dictionary representation of schedule
+        """
+        from ..utils.serializers import serialize_dict
+
+        data = {
+            "id": self.id,
+            "week_start": self.week_start.isoformat() if self.week_start else None,
+            "week_end": self.week_end.isoformat() if self.week_end else None,
+            "status": self.status,
+            "version": self.version,
+            "parent_schedule_id": self.parent_schedule_id,
+            "title": self.title,
+            "description": self.description,
+            "notes": self.notes,
+            "created_by": self.created_by,
+            "approved_by": self.approved_by,
+            "approved_at": self.approved_at.isoformat() if self.approved_at else None,
+            "published_at": self.published_at.isoformat() if self.published_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "is_editable": self.is_editable,
+            "is_current_week": self.is_current_week,
+            "days_until_start": self.days_until_start,
+        }
+
+        if include_assignments and self.assignments:
+            data["assignments"] = [assignment.to_dict(camelCase=False) for assignment in self.assignments]
+
+        return serialize_dict(data) if camelCase else data

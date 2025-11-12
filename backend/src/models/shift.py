@@ -140,3 +140,32 @@ class Shift(Base):
                 return False, f"Employee already assigned to conflicting shift"
 
         return True, "Can assign"
+
+    def to_dict(self, camelCase: bool = True) -> dict:
+        """
+        Convert shift to dictionary for API responses.
+
+        Args:
+            camelCase: If True, convert keys to camelCase (default: True)
+
+        Returns:
+            Dictionary representation of shift
+        """
+        from ..utils.serializers import serialize_dict
+
+        data = {
+            "id": self.id,
+            "date": self.date.isoformat() if self.date else None,
+            "start_time": self.start_time.isoformat() if self.start_time else None,
+            "end_time": self.end_time.isoformat() if self.end_time else None,
+            "shift_type": self.shift_type,
+            "required_staff": self.required_staff,
+            "requirements": self.requirements,
+            "description": self.description,
+            "priority": self.priority,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "duration_hours": self.duration_hours,
+            "is_overtime": self.is_overtime,
+        }
+
+        return serialize_dict(data) if camelCase else data

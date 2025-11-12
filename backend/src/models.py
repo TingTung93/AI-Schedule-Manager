@@ -7,11 +7,38 @@ from datetime import date, datetime, time
 from typing import List, Optional
 
 from sqlalchemy import JSON, Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, String, Text, Time
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 Base = declarative_base()
+
+
+class Department(Base):
+    """Department model with hierarchical support."""
+
+    __tablename__ = "departments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    parent_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("departments.id"), nullable=True, index=True)
+    settings: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True, default={})
+    active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Self-referential relationship for hierarchy
+    parent: Mapped[Optional["Department"]] = relationship(
+        "Department", remote_side=[id], back_populates="children", foreign_keys=[parent_id]
+    )
+    children: Mapped[List["Department"]] = relationship(
+        "Department", back_populates="parent", foreign_keys=[parent_id], cascade="all, delete-orphan"
+    )
+
+    # Relationships to other models
+    employees: Mapped[List["Employee"]] = relationship("Employee", back_populates="department")
+    shifts: Mapped[List["Shift"]] = relationship("Shift", back_populates="department")
 
 
 class Employee(Base):
@@ -28,11 +55,13 @@ class Employee(Base):
     max_hours_per_week: Mapped[Optional[int]] = mapped_column(Integer, default=40)
     qualifications: Mapped[Optional[List[str]]] = mapped_column(ARRAY(String), default=[])
     availability_pattern: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    department_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("departments.id"), nullable=True, index=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
+    department: Mapped[Optional["Department"]] = relationship("Department", back_populates="employees")
     schedules: Mapped[List["Schedule"]] = relationship("Schedule", back_populates="employee")
     rules: Mapped[List["Rule"]] = relationship("Rule", back_populates="employee")
 
@@ -70,13 +99,14 @@ class Shift(Base):
     end_time: Mapped[time] = mapped_column(Time, nullable=False)
     required_staff: Mapped[int] = mapped_column(Integer, default=1)
     required_qualifications: Mapped[Optional[List[str]]] = mapped_column(ARRAY(String), default=[])
-    department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    department_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("departments.id"), nullable=True, index=True)
     hourly_rate_multiplier: Mapped[float] = mapped_column(Float, default=1.0)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
+    department: Mapped[Optional["Department"]] = relationship("Department", back_populates="shifts")
     schedules: Mapped[List["Schedule"]] = relationship("Schedule", back_populates="shift")
 
 

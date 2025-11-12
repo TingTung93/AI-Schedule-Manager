@@ -9,7 +9,7 @@ from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..models import Employee, Notification, Rule, Schedule, Shift
+from ..models import Employee, Notification, Rule, Schedule, ScheduleTemplate, Shift
 from ..schemas import (
     EmployeeCreate,
     EmployeeUpdate,
@@ -19,6 +19,8 @@ from ..schemas import (
     RuleUpdate,
     ScheduleCreate,
     ScheduleUpdate,
+    ShiftCreate,
+    ShiftUpdate,
 )
 
 logger = logging.getLogger(__name__)
@@ -399,8 +401,86 @@ class CRUDNotification(CRUDBase):
         return result.rowcount
 
 
+class CRUDShift(CRUDBase):
+    """CRUD operations for Shift model."""
+
+    def __init__(self):
+        super().__init__(Shift)
+
+    async def get_shift_types(self, db: AsyncSession) -> dict:
+        """Get all shift types with counts."""
+        from sqlalchemy import func
+
+        result = await db.execute(
+            select(Shift.shift_type, func.count(Shift.id))
+            .where(Shift.active == True)
+            .group_by(Shift.shift_type)
+        )
+        rows = result.all()
+        return {shift_type: count for shift_type, count in rows}
+
+    async def check_conflicts(
+        self, db: AsyncSession, department: str, start_time, end_time, exclude_id: int = None
+    ) -> List[Shift]:
+        """Check for conflicting shifts in the same department."""
+        query = select(Shift).where(
+            Shift.department == department,
+            Shift.active == True,
+            or_(
+                # New shift starts during existing shift
+                (Shift.start_time <= start_time) & (Shift.end_time > start_time),
+                # New shift ends during existing shift
+                (Shift.start_time < end_time) & (Shift.end_time >= end_time),
+                # New shift encompasses existing shift
+                (Shift.start_time >= start_time) & (Shift.end_time <= end_time),
+            ),
+        )
+
+        if exclude_id:
+            query = query.where(Shift.id != exclude_id)
+
+        result = await db.execute(query)
+        return result.scalars().all()
+
+    async def count_schedule_usage(self, db: AsyncSession, shift_id: int) -> int:
+        """Count how many schedules reference this shift."""
+        result = await db.execute(select(func.count(Schedule.id)).where(Schedule.shift_id == shift_id))
+        return result.scalar()
+
+
+class CRUDScheduleTemplate(CRUDBase):
+    """CRUD operations for ScheduleTemplate model."""
+
+    def __init__(self):
+        super().__init__(ScheduleTemplate)
+
+    async def get_by_name(self, db: AsyncSession, name: str) -> Optional[ScheduleTemplate]:
+        """Get template by name."""
+        result = await db.execute(select(ScheduleTemplate).where(ScheduleTemplate.name == name))
+        return result.scalar_one_or_none()
+
+    async def get_active_templates(self, db: AsyncSession, skip: int = 0, limit: int = 100):
+        """Get all active templates."""
+        query = select(ScheduleTemplate).where(ScheduleTemplate.active == True).order_by(ScheduleTemplate.created_at.desc())
+
+        # Count total
+        count_query = select(func.count()).select_from(query.subquery())
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+
+        result = await db.execute(query)
+        items = result.scalars().all()
+
+        return {"items": items, "total": total}
+
+
 # Create CRUD instances
 crud_employee = CRUDEmployee()
 crud_rule = CRUDRule()
 crud_schedule = CRUDSchedule()
 crud_notification = CRUDNotification()
+crud_shift = CRUDShift()
+crud_schedule_template = CRUDScheduleTemplate()

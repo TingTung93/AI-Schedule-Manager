@@ -245,23 +245,43 @@ class Notification(Base):
             category=category,
         )
 
-    def to_dict(self) -> dict:
-        """Convert notification to dictionary for API responses"""
-        return {
+    def to_dict(self, camelCase: bool = True) -> dict:
+        """
+        Convert notification to dictionary for API responses.
+
+        Args:
+            camelCase: If True, convert keys to camelCase (default: True)
+
+        Returns:
+            Dictionary representation of notification
+        """
+        from ..utils.serializers import serialize_dict
+
+        data = {
             "id": self.id,
+            "user_id": self.user_id,
             "type": self.type,
             "title": self.title,
             "message": self.message,
-            "priority": self.priority,
-            "category": self.category,
+            "data": self.data,
             "read": self.read,
             "read_at": self.read_at.isoformat() if self.read_at else None,
-            "created_at": self.created_at.isoformat(),
+            "priority": self.priority,
+            "category": self.category,
+            "action_url": self.action_url,
+            "action_text": self.action_text,
+            "related_entity_type": self.related_entity_type,
+            "related_entity_id": self.related_entity_id,
+            "delivery_method": self.delivery_method,
+            "email_sent": self.email_sent,
+            "email_sent_at": self.email_sent_at.isoformat() if self.email_sent_at else None,
+            "push_sent": self.push_sent,
+            "push_sent_at": self.push_sent_at.isoformat() if self.push_sent_at else None,
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
-            "action": self.get_action_data(),
-            "related_entity": self.get_related_entity_info(),
-            "data": self.data,
-            "age_hours": round(self.age_hours, 1),
+            "created_at": self.created_at.isoformat(),
             "is_expired": self.is_expired,
             "is_urgent": self.is_urgent,
+            "age_hours": round(self.age_hours, 1),
         }
+
+        return serialize_dict(data) if camelCase else data

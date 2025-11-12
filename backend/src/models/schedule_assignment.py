@@ -208,3 +208,42 @@ class ScheduleAssignment(Base):
             "conflicts": self.check_conflicts(),
             "needs_confirmation": self.needs_confirmation,
         }
+
+    def to_dict(self, camelCase: bool = True, include_relations: bool = False) -> dict:
+        """
+        Convert assignment to dictionary for API responses.
+
+        Args:
+            camelCase: If True, convert keys to camelCase (default: True)
+            include_relations: If True, include employee and shift details (default: False)
+
+        Returns:
+            Dictionary representation of assignment
+        """
+        from ..utils.serializers import serialize_dict
+
+        data = {
+            "id": self.id,
+            "schedule_id": self.schedule_id,
+            "employee_id": self.employee_id,
+            "shift_id": self.shift_id,
+            "status": self.status,
+            "priority": self.priority,
+            "notes": self.notes,
+            "assigned_by": self.assigned_by,
+            "assigned_at": self.assigned_at.isoformat() if self.assigned_at else None,
+            "conflicts_resolved": self.conflicts_resolved,
+            "auto_assigned": self.auto_assigned,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "is_active": self.is_active,
+            "is_confirmed": self.is_confirmed,
+            "needs_confirmation": self.needs_confirmation,
+        }
+
+        if include_relations:
+            if self.employee:
+                data["employee"] = self.employee.to_dict(camelCase=False)
+            if self.shift:
+                data["shift"] = self.shift.to_dict(camelCase=False)
+
+        return serialize_dict(data) if camelCase else data
