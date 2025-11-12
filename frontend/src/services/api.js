@@ -9,7 +9,7 @@ import axios from 'axios';
 
 // Create axios instance with default configuration
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '/api',
+  baseURL: process.env.REACT_APP_API_URL || '',
   timeout: 10000,
   withCredentials: true, // Enable cookies for HttpOnly JWT tokens
   headers: {

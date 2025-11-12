@@ -5,7 +5,7 @@
 import axios from 'axios';
 import { validateEmail, checkShiftConflicts, validateEmployeeQualifications } from '../utils/validation';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
 class ValidationService {
   constructor() {
