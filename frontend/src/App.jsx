@@ -120,6 +120,7 @@ const routeComponents = {
   DepartmentManager,
   ShiftManager,
   SchedulePage,
+  DepartmentOverview,
   RulesPage,
   AnalyticsPage,
   RoleManager,
