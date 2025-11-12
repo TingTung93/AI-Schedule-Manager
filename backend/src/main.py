@@ -3,10 +3,13 @@ FastAPI backend for AI Schedule Manager with complete CRUD operations.
 """
 
 import logging
+import os
 import random
-from datetime import date, datetime
+import secrets
+from datetime import date, datetime, timedelta
 from typing import List, Optional
 
+import redis
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +21,7 @@ from .api.notifications import router as notifications_router
 from .api.settings import router as settings_router
 from .api.shifts import router as shifts_router
 from .api_docs import setup_docs
+from .auth.auth import auth_service
 from .auth.fastapi_routes import auth_router  # Native FastAPI auth routes
 from .dependencies import get_current_manager, get_current_user, get_database_session
 from .nlp.rule_parser import RuleParser
@@ -57,6 +61,25 @@ app = FastAPI(
 
 # Setup enhanced API documentation
 setup_docs(app)
+
+# Initialize authentication service with FastAPI
+# Since FastAPI doesn't have app.config like Flask, we set the values directly
+auth_service.secret_key = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
+auth_service.refresh_secret_key = os.getenv("JWT_REFRESH_SECRET_KEY", secrets.token_urlsafe(32))
+auth_service.access_token_expires = timedelta(minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", "15")))
+auth_service.refresh_token_expires = timedelta(days=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES_DAYS", "30")))
+
+# Initialize Redis client for token management
+try:
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    auth_service.redis_client = redis.from_url(redis_url, decode_responses=False)
+    # Test connection
+    auth_service.redis_client.ping()
+    logger.info("Redis connection established for auth service")
+except Exception as e:
+    logger.warning(f"Redis connection failed: {e}. Using in-memory fallback for auth.")
+    # Fallback to localhost Redis
+    auth_service.redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=False)
 
 app.add_middleware(
     CORSMiddleware,

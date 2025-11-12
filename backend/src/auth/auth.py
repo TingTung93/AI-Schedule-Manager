@@ -12,10 +12,9 @@ from functools import wraps
 from typing import Any, Dict, Optional, Tuple
 
 import bcrypt
-import jwt
 import redis
 from email_validator import EmailNotValidError, validate_email
-from flask import current_app, jsonify, request
+from jose import jwt
 
 logger = logging.getLogger(__name__)
 

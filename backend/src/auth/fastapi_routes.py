@@ -1,22 +1,120 @@
 """
 FastAPI Authentication Routes
 
-Native FastAPI routes that use the existing Flask authentication services.
+Native FastAPI routes with integrated authentication services.
 This provides better performance and integration than WSGI middleware.
 """
 
+import json
 import logging
 from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db_session
 from .auth import AuthenticationError, auth_service
-from .middleware import RateLimiter, csrf_protect, rate_limit, token_required
-from .models import User
-from .routes import log_audit_event, record_login_attempt
+from .models import AuditLog, LoginAttempt, User
+
+logger = logging.getLogger(__name__)
+
+
+# FastAPI-compatible utility functions (Async versions)
+async def log_audit_event_async(
+    request: Request,
+    db: AsyncSession,
+    event_type: str,
+    user_id: int = None,
+    resource: str = None,
+    action: str = None,
+    success: bool = True,
+    failure_reason: str = None,
+    details: dict = None,
+):
+    """Log security audit event (async)"""
+    try:
+        # Get client IP - check for proxy headers first
+        client_ip = request.headers.get("X-Forwarded-For")
+        if client_ip:
+            client_ip = client_ip.split(",")[0].strip()
+        else:
+            client_ip = request.client.host if request.client else "unknown"
+
+        audit_log = AuditLog(
+            user_id=user_id,
+            event_type=event_type,
+            resource=resource,
+            action=action,
+            ip_address=client_ip,
+            user_agent=request.headers.get("User-Agent"),
+            success=success,
+            failure_reason=failure_reason,
+            details=json.dumps(details) if details else None,
+        )
+
+        db.add(audit_log)
+        await db.commit()
+
+    except Exception as e:
+        logger.error(f"Failed to log audit event: {e}")
+        await db.rollback()
+
+
+async def record_login_attempt_async(
+    request: Request,
+    db: AsyncSession,
+    email: str,
+    user_id: int = None,
+    success: bool = True,
+    failure_reason: str = None
+):
+    """Record login attempt for security tracking (async)"""
+    try:
+        # Get client IP - check for proxy headers first
+        client_ip = request.headers.get("X-Forwarded-For")
+        if client_ip:
+            client_ip = client_ip.split(",")[0].strip()
+        else:
+            client_ip = request.client.host if request.client else "unknown"
+
+        login_attempt = LoginAttempt(
+            user_id=user_id,
+            email=email,
+            ip_address=client_ip,
+            user_agent=request.headers.get("User-Agent"),
+            success=success,
+            failure_reason=failure_reason,
+        )
+
+        db.add(login_attempt)
+        await db.commit()
+
+    except Exception as e:
+        logger.error(f"Failed to record login attempt: {e}")
+        await db.rollback()
+
+
+# Helper function to get or create user role async
+async def get_or_create_user_role_async(db: AsyncSession):
+    """Get or create default user role (async)"""
+    from .models import Role
+
+    # Try to get existing role
+    result = await db.execute(select(Role).filter_by(name="user"))
+    role = result.scalar_one_or_none()
+
+    if not role:
+        # Create default user role
+        role = Role(name="user", description="Default user role")
+        db.add(role)
+        await db.commit()
+        await db.refresh(role)
+
+    return role
+
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +196,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
 
 
 @auth_router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(request: RegisterRequest, response: Response):
+async def register(reg_request: RegisterRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db_session)):
     """
     Register new user account
 
@@ -106,10 +204,10 @@ async def register(request: RegisterRequest, response: Response):
     and returns JWT access and refresh tokens.
     """
     try:
-        email = request.email.lower().strip()
-        password = request.password
-        first_name = request.first_name.strip()
-        last_name = request.last_name.strip()
+        email = reg_request.email.lower().strip()
+        password = reg_request.password
+        first_name = reg_request.first_name.strip()
+        last_name = reg_request.last_name.strip()
 
         # Check password strength
         is_strong, password_issues = auth_service.check_password_strength(password)
@@ -119,14 +217,13 @@ async def register(request: RegisterRequest, response: Response):
                 detail={"error": "Password does not meet requirements", "requirements": password_issues}
             )
 
-        # Check if user already exists
-        session = get_db_session()
-        existing_user = session.query(User).filter_by(email=email).first()
+        # Check if user already exists (async query)
+        result = await db.execute(select(User).filter_by(email=email))
+        existing_user = result.scalar_one_or_none()
 
         if existing_user:
-            session.close()
-            log_audit_event(
-                "registration", resource="user", action="create",
+            await log_audit_event_async(
+                request, db, "registration", resource="user", action="create",
                 success=False, failure_reason="email_already_exists"
             )
             raise HTTPException(
@@ -139,7 +236,7 @@ async def register(request: RegisterRequest, response: Response):
 
         # Get default user role
         from .models import get_or_create_user_role
-        user_role = get_or_create_user_role(session)
+        user_role = await get_or_create_user_role_async(db)
 
         # Create new user
         new_user = User(
@@ -150,18 +247,17 @@ async def register(request: RegisterRequest, response: Response):
             roles=[user_role]
         )
 
-        session.add(new_user)
-        session.commit()
+        db.add(new_user)
+        await db.commit()
+        await db.refresh(new_user)
 
         # Log successful registration
-        log_audit_event("registration", user_id=new_user.id, resource="user", action="create", success=True)
+        await log_audit_event_async(request, db, "registration", user_id=new_user.id, resource="user", action="create", success=True)
 
         # Generate tokens
         user_data = new_user.to_dict()
         access_token = auth_service.generate_access_token(user_data)
         refresh_token = auth_service.generate_refresh_token(new_user.id)
-
-        session.close()
 
         # Set secure cookies
         set_auth_cookies(response, access_token, refresh_token)
@@ -183,7 +279,7 @@ async def register(request: RegisterRequest, response: Response):
 
 
 @auth_router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest, response: Response):
+async def login(login_request: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db_session)):
     """
     Authenticate user and return JWT tokens
 
@@ -191,16 +287,16 @@ async def login(request: LoginRequest, response: Response):
     access and refresh tokens with secure HTTP-only cookies.
     """
     try:
-        email = request.email.lower().strip()
-        password = request.password
+        email = login_request.email.lower().strip()
+        password = login_request.password
 
-        session = get_db_session()
-        user = session.query(User).filter_by(email=email).first()
+        # Query user using async SQLAlchemy
+        result = await db.execute(select(User).filter_by(email=email))
+        user = result.scalar_one_or_none()
 
         # Record login attempt
         if not user:
-            record_login_attempt(email, success=False, failure_reason="invalid_email")
-            session.close()
+            await record_login_attempt_async(request, db, email, success=False, failure_reason="invalid_email")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
@@ -208,8 +304,7 @@ async def login(request: LoginRequest, response: Response):
 
         # Check if account is locked
         if user.is_account_locked():
-            record_login_attempt(email, user_id=user.id, success=False, failure_reason="account_locked")
-            session.close()
+            await record_login_attempt_async(request, db, email, user_id=user.id, success=False, failure_reason="account_locked")
             raise HTTPException(
                 status_code=status.HTTP_423_LOCKED,
                 detail={
@@ -221,8 +316,7 @@ async def login(request: LoginRequest, response: Response):
 
         # Check if account is active
         if not user.is_active:
-            record_login_attempt(email, user_id=user.id, success=False, failure_reason="account_inactive")
-            session.close()
+            await record_login_attempt_async(request, db, email, user_id=user.id, success=False, failure_reason="account_inactive")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Account is deactivated"
@@ -240,16 +334,15 @@ async def login(request: LoginRequest, response: Response):
                 user.is_locked = True
                 user.account_locked_until = datetime.now(timezone.utc) + timedelta(minutes=30)
 
-                record_login_attempt(email, user_id=user.id, success=False, failure_reason="max_attempts_reached")
-                log_audit_event(
-                    "account_locked", user_id=user.id, resource="user", action="lock",
+                await record_login_attempt_async(request, db, email, user_id=user.id, success=False, failure_reason="max_attempts_reached")
+                await log_audit_event_async(
+                    request, db, "account_locked", user_id=user.id, resource="user", action="lock",
                     success=True, details={"reason": "max_failed_attempts"}
                 )
             else:
-                record_login_attempt(email, user_id=user.id, success=False, failure_reason="invalid_password")
+                await record_login_attempt_async(request, db, email, user_id=user.id, success=False, failure_reason="invalid_password")
 
-            session.commit()
-            session.close()
+            await db.commit()
 
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -264,18 +357,16 @@ async def login(request: LoginRequest, response: Response):
         user.last_successful_login = datetime.now(timezone.utc)
         user.is_locked = False
         user.account_locked_until = None
-        session.commit()
+        await db.commit()
 
         # Record successful login
-        record_login_attempt(email, user_id=user.id, success=True)
-        log_audit_event("login", user_id=user.id, resource="user", action="login", success=True)
+        await record_login_attempt_async(request, db, email, user_id=user.id, success=True)
+        await log_audit_event_async(request, db, "login", user_id=user.id, resource="user", action="login", success=True)
 
         # Generate tokens
         user_data = user.to_dict()
         access_token = auth_service.generate_access_token(user_data)
         refresh_token = auth_service.generate_refresh_token(user.id)
-
-        session.close()
 
         # Set secure cookies
         set_auth_cookies(response, access_token, refresh_token)
@@ -297,7 +388,7 @@ async def login(request: LoginRequest, response: Response):
 
 
 @auth_router.post("/refresh", response_model=dict)
-async def refresh_token(request: Request, response: Response):
+async def refresh_token(request: Request, response: Response, db: AsyncSession = Depends(get_db_session)):
     """
     Refresh JWT access token using refresh token
 
@@ -305,27 +396,26 @@ async def refresh_token(request: Request, response: Response):
     """
     try:
         # Get refresh token from cookie or body
-        refresh_token = request.cookies.get("refresh_token")
-        if not refresh_token:
+        refresh_token_value = request.cookies.get("refresh_token")
+        if not refresh_token_value:
             data = await request.json() if request.headers.get("content-type") == "application/json" else {}
-            refresh_token = data.get("refresh_token")
+            refresh_token_value = data.get("refresh_token")
 
-        if not refresh_token:
+        if not refresh_token_value:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Refresh token required"
             )
 
         # Verify refresh token
-        payload = auth_service.verify_refresh_token(refresh_token)
+        payload = auth_service.verify_refresh_token(refresh_token_value)
         user_id = payload["user_id"]
 
-        # Get user from database
-        session = get_db_session()
-        user = session.query(User).filter_by(id=user_id).first()
+        # Get user from database using async SQLAlchemy
+        result = await db.execute(select(User).filter_by(id=user_id))
+        user = result.scalar_one_or_none()
 
         if not user or not user.is_active:
-            session.close()
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid user"
@@ -335,10 +425,8 @@ async def refresh_token(request: Request, response: Response):
         user_data = user.to_dict()
         new_access_token = auth_service.generate_access_token(user_data)
 
-        session.close()
-
         # Log token refresh
-        log_audit_event("token_refresh", user_id=user_id, resource="auth", action="refresh", success=True)
+        await log_audit_event_async(request, db, "token_refresh", user_id=user_id, resource="auth", action="refresh", success=True)
 
         # Update access token cookie
         response.set_cookie(
@@ -402,7 +490,7 @@ async def logout(request: Request, response: Response):
 
 
 @auth_router.get("/me", response_model=UserResponse)
-async def get_current_user(request: Request):
+async def get_current_user(request: Request, db: AsyncSession = Depends(get_db_session)):
     """
     Get current user information
 
@@ -434,19 +522,17 @@ async def get_current_user(request: Request):
                 detail="Invalid token"
             )
 
-        # Get user from database
-        session = get_db_session()
-        user = session.query(User).filter_by(id=user_id).first()
+        # Get user from database using async SQLAlchemy
+        result = await db.execute(select(User).filter_by(id=user_id))
+        user = result.scalar_one_or_none()
 
         if not user:
-            session.close()
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
 
         user_data = user.to_dict()
-        session.close()
 
         return UserResponse(user=user_data)
 

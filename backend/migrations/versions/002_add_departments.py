@@ -44,17 +44,10 @@ def upgrade() -> None:
     op.create_index('ix_employees_department_id', 'employees', ['department_id'], unique=False)
     op.create_foreign_key('fk_employees_department_id', 'employees', 'departments', ['department_id'], ['id'])
 
-    # Add department_id column to shifts table and remove old department string column
+    # Add department_id column to shifts table
     op.add_column('shifts', sa.Column('department_id', sa.Integer(), nullable=True))
     op.create_index('ix_shifts_department_id', 'shifts', ['department_id'], unique=False)
     op.create_foreign_key('fk_shifts_department_id', 'shifts', 'departments', ['department_id'], ['id'])
-
-    # Drop old department column from shifts if it exists
-    try:
-        op.drop_column('shifts', 'department')
-    except Exception:
-        # Column might not exist in all versions
-        pass
 
 
 def downgrade() -> None:
@@ -69,9 +62,6 @@ def downgrade() -> None:
     # Remove department_id columns
     op.drop_column('shifts', 'department_id')
     op.drop_column('employees', 'department_id')
-
-    # Re-add old department column to shifts
-    op.add_column('shifts', sa.Column('department', sa.String(length=100), nullable=True))
 
     # Drop departments table indexes
     op.drop_index('ix_departments_active', table_name='departments')
