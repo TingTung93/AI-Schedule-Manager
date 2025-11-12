@@ -15,6 +15,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import EmployeesPage from './pages/EmployeesPage';
+import DepartmentManager from './pages/DepartmentManager';
 import ShiftManager from './pages/ShiftManager';
 import SchedulePage from './pages/SchedulePage';
 import DepartmentOverview from './pages/DepartmentOverview';
@@ -116,6 +117,7 @@ const routeComponents = {
   RegisterPage,
   DashboardPage,
   EmployeesPage,
+  DepartmentManager,
   ShiftManager,
   SchedulePage,
   RulesPage,
@@ -201,6 +203,16 @@ function App() {
                     element={
                       <ProtectedRoute requiredRoles={['admin', 'manager']}>
                         <EmployeesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Department Management */}
+                  <Route
+                    path="departments"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <DepartmentManager />
                       </ProtectedRoute>
                     }
                   />

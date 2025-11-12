@@ -37,7 +37,11 @@ import {
   Home,
   ExpandLess,
   ExpandMore,
-  ChevronRight
+  ChevronRight,
+  ViewModule,
+  Business,
+  AccessTime,
+  Security
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTE_CONFIG, NAV_GROUPS, ROUTES } from '../../utils/routeConfig';
@@ -51,7 +55,11 @@ const iconMap = {
   Rule,
   Analytics,
   Settings,
-  Person
+  Person,
+  ViewModule,
+  Business,
+  AccessTime,
+  Security
 };
 
 const Layout = () => {

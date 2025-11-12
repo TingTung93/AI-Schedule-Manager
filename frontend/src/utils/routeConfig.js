@@ -14,6 +14,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   EMPLOYEES: '/employees',
   DEPARTMENTS: '/departments',
+  DEPARTMENT_OVERVIEW: '/department-overview',
   SHIFTS: '/shifts',
   SCHEDULE: '/schedule',
   RULES: '/rules',
@@ -75,6 +76,13 @@ export const ROUTE_CONFIG = [
     icon: 'Schedule'
   },
   {
+    path: ROUTES.DEPARTMENT_OVERVIEW,
+    component: 'DepartmentOverview',
+    requiredRoles: [ROLES.ADMIN, ROLES.MANAGER],
+    title: 'Department Overview',
+    icon: 'ViewModule'
+  },
+  {
     path: ROUTES.RULES,
     component: 'RulesPage',
     requiredRoles: [ROLES.ADMIN, ROLES.MANAGER],
@@ -115,7 +123,7 @@ export const ROUTE_CONFIG = [
 export const NAV_GROUPS = [
   {
     title: 'Main',
-    routes: [ROUTES.DASHBOARD, ROUTES.SCHEDULE]
+    routes: [ROUTES.DASHBOARD, ROUTES.SCHEDULE, ROUTES.DEPARTMENT_OVERVIEW]
   },
   {
     title: 'Management',
