@@ -23,7 +23,10 @@ FROM nginx:alpine AS production
 # Install security updates
 RUN apk update && apk upgrade && apk add --no-cache dumb-init curl
 
-# Copy custom nginx configuration
+# Create custom nginx main configuration for non-root user
+RUN echo -e "pid /run/nginx.pid;\nuser nginx;\nevents {\n  worker_connections 1024;\n}\nhttp {\n  include /etc/nginx/mime.types;\n  include /etc/nginx/conf.d/*.conf;\n}" > /etc/nginx/nginx.conf
+
+# Copy custom nginx server configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built application from builder stage
@@ -41,7 +44,11 @@ RUN addgroup -g 1001 -S nodejs && \
 RUN chown -R nextjs:nodejs /usr/share/nginx/html && \
     chown -R nextjs:nodejs /var/cache/nginx && \
     chown -R nextjs:nodejs /var/log/nginx && \
-    chown -R nextjs:nodejs /etc/nginx/conf.d
+    chown -R nextjs:nodejs /etc/nginx/conf.d && \
+    mkdir -p /run/nginx && \
+    chown -R nextjs:nodejs /run/nginx && \
+    touch /run/nginx.pid && \
+    chown nextjs:nodejs /run/nginx.pid
 
 # Switch to non-root user
 USER nextjs
