@@ -9,8 +9,10 @@ from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..models import Employee, Notification, Rule, Schedule, ScheduleTemplate, Shift
+from ..models import Department, Employee, Notification, Rule, Schedule, ScheduleTemplate, Shift
 from ..schemas import (
+    DepartmentCreate,
+    DepartmentUpdate,
     EmployeeCreate,
     EmployeeUpdate,
     NotificationCreate,
@@ -477,7 +479,124 @@ class CRUDScheduleTemplate(CRUDBase):
         return {"items": items, "total": total}
 
 
+class CRUDDepartment(CRUDBase):
+    """CRUD operations for Department model."""
+
+    def __init__(self):
+        super().__init__(Department)
+
+    async def get_with_hierarchy(self, db: AsyncSession, department_id: int):
+        """Get department with parent and children."""
+        query = select(Department).where(Department.id == department_id)
+        query = query.options(selectinload(Department.parent), selectinload(Department.children))
+        result = await db.execute(query)
+        return result.scalar_one_or_none()
+
+    async def get_multi_with_hierarchy(
+        self,
+        db: AsyncSession,
+        skip: int = 0,
+        limit: int = 100,
+        active: bool = None,
+        parent_id: int = None,
+        search: str = None,
+        sort_by: str = "name",
+        sort_order: str = "asc",
+    ):
+        """Get departments with hierarchy and filtering."""
+        query = select(Department).options(selectinload(Department.parent), selectinload(Department.children))
+
+        # Apply filters
+        if active is not None:
+            query = query.where(Department.active == active)
+
+        if parent_id is not None:
+            query = query.where(Department.parent_id == parent_id)
+
+        if search:
+            query = query.where(Department.name.ilike(f"%{search}%"))
+
+        # Apply sorting
+        if hasattr(Department, sort_by):
+            column = getattr(Department, sort_by)
+            if sort_order == "desc":
+                query = query.order_by(column.desc())
+            else:
+                query = query.order_by(column.asc())
+
+        # Count total
+        count_query = select(func.count()).select_from(query.subquery())
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+
+        result = await db.execute(query)
+        items = result.scalars().all()
+
+        return {"items": items, "total": total}
+
+    async def get_staff(self, db: AsyncSession, department_id: int, skip: int = 0, limit: int = 100):
+        """Get all staff in department."""
+        query = select(Employee).where(Employee.department_id == department_id)
+        query = query.order_by(Employee.name.asc())
+
+        # Count total
+        count_query = select(func.count()).select_from(query.subquery())
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+
+        result = await db.execute(query)
+        items = result.scalars().all()
+
+        return {"items": items, "total": total}
+
+    async def get_shifts(self, db: AsyncSession, department_id: int, skip: int = 0, limit: int = 100):
+        """Get all shifts in department."""
+        query = select(Shift).where(Shift.department_id == department_id)
+        query = query.order_by(Shift.name.asc())
+
+        # Count total
+        count_query = select(func.count()).select_from(query.subquery())
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+
+        result = await db.execute(query)
+        items = result.scalars().all()
+
+        return {"items": items, "total": total}
+
+    async def check_dependencies(self, db: AsyncSession, department_id: int) -> dict:
+        """Check if department has dependencies before deletion."""
+        # Check employees
+        employee_count = await db.execute(select(func.count()).where(Employee.department_id == department_id))
+        employees = employee_count.scalar()
+
+        # Check shifts
+        shift_count = await db.execute(select(func.count()).where(Shift.department_id == department_id))
+        shifts = shift_count.scalar()
+
+        # Check child departments
+        child_count = await db.execute(select(func.count()).where(Department.parent_id == department_id))
+        children = child_count.scalar()
+
+        return {
+            "has_dependencies": (employees > 0 or shifts > 0 or children > 0),
+            "employees": employees,
+            "shifts": shifts,
+            "children": children,
+        }
+
+
 # Create CRUD instances
+crud_department = CRUDDepartment()
 crud_employee = CRUDEmployee()
 crud_rule = CRUDRule()
 crud_schedule = CRUDSchedule()
