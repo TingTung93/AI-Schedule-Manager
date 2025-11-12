@@ -4,7 +4,7 @@ import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress, Typogra
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Context and Hooks
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Components
 import Layout from './components/layout/Layout';
