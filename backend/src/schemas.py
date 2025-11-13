@@ -732,3 +732,92 @@ class PublishResponse(BaseModel):
     employees_notified: List[int] = Field(default_factory=list, description="Employee IDs notified")
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# Assignment schemas
+class AssignmentStatus(str, Enum):
+    """Assignment status enumeration."""
+
+    ASSIGNED = "assigned"
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    DECLINED = "declined"
+    CANCELLED = "cancelled"
+    COMPLETED = "completed"
+
+
+class AssignmentBase(BaseModel):
+    """Base assignment schema."""
+
+    employee_id: int = Field(..., gt=0, description="Employee ID")
+    shift_id: int = Field(..., gt=0, description="Shift ID")
+    status: Optional[AssignmentStatus] = Field(default=AssignmentStatus.ASSIGNED, description="Assignment status")
+    priority: Optional[int] = Field(default=1, ge=1, le=10, description="Assignment priority")
+    notes: Optional[str] = Field(None, max_length=1000, description="Assignment notes")
+
+
+class AssignmentCreate(AssignmentBase):
+    """Assignment creation schema."""
+
+    pass
+
+
+class AssignmentUpdate(BaseModel):
+    """Assignment update schema."""
+
+    employee_id: Optional[int] = Field(None, gt=0)
+    shift_id: Optional[int] = Field(None, gt=0)
+    status: Optional[AssignmentStatus] = None
+    priority: Optional[int] = Field(None, ge=1, le=10)
+    notes: Optional[str] = Field(None, max_length=1000)
+
+
+class AssignmentResponse(AssignmentBase):
+    """Assignment response schema."""
+
+    id: int
+    schedule_id: int
+    assigned_by: Optional[int] = None
+    assigned_at: datetime
+    conflicts_resolved: bool
+    auto_assigned: bool
+    created_at: datetime
+    is_active: bool
+    is_confirmed: bool
+    needs_confirmation: bool
+    employee: EmployeeResponse
+    shift: ShiftResponse
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AssignmentBulkCreateRequest(BaseModel):
+    """Bulk assignment creation request schema."""
+
+    schedule_id: int = Field(..., gt=0, description="Schedule ID")
+    assignments: List[AssignmentCreate] = Field(..., min_length=1, description="List of assignments to create")
+    validate_conflicts: bool = Field(default=True, description="Whether to validate conflicts")
+
+
+class AssignmentBulkCreateResponse(BaseModel):
+    """Bulk assignment creation response schema."""
+
+    created: List[AssignmentResponse] = Field(..., description="Successfully created assignments")
+    errors: List[Dict[str, Any]] = Field(..., description="Validation errors")
+    total_processed: int = Field(..., description="Total assignments processed")
+    total_created: int = Field(..., description="Total assignments created")
+    total_errors: int = Field(..., description="Total errors encountered")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AssignmentConfirmRequest(BaseModel):
+    """Assignment confirmation request schema."""
+
+    notes: Optional[str] = Field(None, max_length=500, description="Optional confirmation notes")
+
+
+class AssignmentDeclineRequest(BaseModel):
+    """Assignment decline request schema."""
+
+    reason: Optional[str] = Field(None, max_length=500, description="Reason for declining")
