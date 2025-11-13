@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..models import Employee as DBEmployee
 from ..models import Rule as DBRule
 from ..models import Schedule as DBSchedule
+from ..models import ScheduleAssignment as DBScheduleAssignment
 from ..models import Shift as DBShift
 from ..scheduler.constraint_solver import Employee, Shift, ScheduleOptimizer, ShiftType, SchedulingConstraint
 
@@ -29,6 +30,43 @@ class ScheduleGenerationService:
                 "min_rest_hours": 8,  # Minimum rest period between shifts
             }
         )
+
+    async def _get_or_create_schedule_for_week(
+        self, db: AsyncSession, shift_date: date, created_by: int = 1
+    ) -> DBSchedule:
+        """
+        Find or create Schedule container for the week containing shift_date.
+
+        Args:
+            db: Database session
+            shift_date: Date of the shift (used to determine week range)
+            created_by: User ID creating the schedule (default: 1 for system)
+
+        Returns:
+            Schedule object for the week
+        """
+        # Calculate week start (Monday) and end (Sunday) from shift_date
+        week_start = shift_date - timedelta(days=shift_date.weekday())
+        week_end = week_start + timedelta(days=6)
+
+        # Try to find existing schedule for this week
+        query = select(DBSchedule).where(DBSchedule.week_start == week_start, DBSchedule.week_end == week_end)
+        result = await db.execute(query)
+        schedule = result.scalar_one_or_none()
+
+        if not schedule:
+            # Create new schedule for this week
+            schedule = DBSchedule(
+                week_start=week_start,
+                week_end=week_end,
+                status="draft",
+                created_by=created_by,
+                version=1,
+            )
+            db.add(schedule)
+            await db.flush()  # Get ID without committing transaction
+
+        return schedule
 
     async def generate_schedule(
         self, db: AsyncSession, start_date: date, end_date: date, constraints: Optional[Dict[str, Any]] = None
@@ -92,24 +130,29 @@ class ScheduleGenerationService:
 
         Args:
             db: Database session
-            schedule_ids: List of schedule IDs to optimize
+            schedule_ids: List of schedule IDs to optimize (Schedule container IDs)
 
         Returns:
             Dict containing optimization results
         """
         try:
-            # Fetch existing schedules
-            query = select(DBSchedule).where(DBSchedule.id.in_(schedule_ids))
+            from sqlalchemy.orm import selectinload
+
+            # Fetch existing schedules (containers)
+            query = (
+                select(DBSchedule)
+                .where(DBSchedule.id.in_(schedule_ids))
+                .options(selectinload(DBSchedule.assignments).selectinload(DBScheduleAssignment.shift))
+            )
             result = await db.execute(query)
             schedules = result.scalars().all()
 
             if not schedules:
                 return {"status": "error", "message": "No schedules found", "improvements": {}}
 
-            # Get date range from schedules
-            dates = [s.date for s in schedules]
-            start_date = min(dates)
-            end_date = max(dates)
+            # Get date range from schedule containers (use week_start and week_end)
+            start_date = min(s.week_start for s in schedules)
+            end_date = max(s.week_end for s in schedules)
 
             # Re-generate with optimization
             result = await self.generate_schedule(db, start_date, end_date)
@@ -137,63 +180,83 @@ class ScheduleGenerationService:
         Returns:
             Dict containing conflicts found
         """
+        from sqlalchemy.orm import selectinload
+
         conflicts = []
 
-        # Fetch all schedules in date range
-        query = select(DBSchedule).where(and_(DBSchedule.date >= start_date, DBSchedule.date <= end_date))
-        result = await db.execute(query)
-        schedules = result.scalars().all()
-
-        # Check for double bookings
-        employee_shifts = {}
-        for schedule in schedules:
-            emp_id = schedule.employee_id
-            shift_date = schedule.date
-
-            if emp_id not in employee_shifts:
-                employee_shifts[emp_id] = []
-
-            employee_shifts[emp_id].append(
-                {"schedule_id": schedule.id, "shift_id": schedule.shift_id, "date": shift_date}
+        # Fetch all assignments where the shift date is in range
+        query = (
+            select(DBScheduleAssignment)
+            .join(DBShift, DBScheduleAssignment.shift_id == DBShift.id)
+            .join(DBEmployee, DBScheduleAssignment.employee_id == DBEmployee.id)
+            .where(and_(DBShift.date >= start_date, DBShift.date <= end_date))
+            .options(
+                selectinload(DBScheduleAssignment.employee),
+                selectinload(DBScheduleAssignment.shift),
+                selectinload(DBScheduleAssignment.schedule),
             )
+        )
+        result = await db.execute(query)
+        assignments = result.scalars().all()
 
-        # Detect overlapping shifts for same employee
-        for emp_id, shifts in employee_shifts.items():
-            for i, shift1 in enumerate(shifts):
-                for shift2 in shifts[i + 1 :]:
-                    if shift1["date"] == shift2["date"]:
-                        conflicts.append(
-                            {
-                                "type": "double_booking",
-                                "employee_id": emp_id,
-                                "date": shift1["date"].isoformat(),
-                                "shift_ids": [shift1["shift_id"], shift2["shift_id"]],
-                            }
-                        )
+        # Group assignments by employee to check for conflicts
+        employee_assignments = {}
+        for assignment in assignments:
+            emp_id = assignment.employee_id
+            if emp_id not in employee_assignments:
+                employee_assignments[emp_id] = []
+            employee_assignments[emp_id].append(assignment)
+
+        # Check for double bookings and time conflicts
+        for emp_id, emp_assignments in employee_assignments.items():
+            for i, assignment1 in enumerate(emp_assignments):
+                for assignment2 in emp_assignments[i + 1 :]:
+                    shift1 = assignment1.shift
+                    shift2 = assignment2.shift
+
+                    # Check if shifts are on the same date
+                    if shift1.date == shift2.date:
+                        # Check for time overlap
+                        if shift1.start_time < shift2.end_time and shift1.end_time > shift2.start_time:
+                            conflicts.append(
+                                {
+                                    "type": "double_booking",
+                                    "employee_id": emp_id,
+                                    "employee_name": assignment1.employee.name,
+                                    "date": shift1.date.isoformat(),
+                                    "assignment_ids": [assignment1.id, assignment2.id],
+                                    "shift_times": [
+                                        f"{shift1.start_time}-{shift1.end_time}",
+                                        f"{shift2.start_time}-{shift2.end_time}",
+                                    ],
+                                }
+                            )
 
         # Check qualification mismatches
-        for schedule in schedules:
-            employee = await db.get(DBEmployee, schedule.employee_id)
-            shift = await db.get(DBShift, schedule.shift_id)
+        for assignment in assignments:
+            employee = assignment.employee
+            shift = assignment.shift
 
-            if employee and shift:
-                if shift.required_qualifications:
-                    missing_quals = set(shift.required_qualifications) - set(employee.qualifications or [])
-                    if missing_quals:
-                        conflicts.append(
-                            {
-                                "type": "qualification_mismatch",
-                                "employee_id": employee.id,
-                                "shift_id": shift.id,
-                                "missing_qualifications": list(missing_quals),
-                            }
-                        )
+            if shift.required_qualifications:
+                missing_quals = set(shift.required_qualifications) - set(employee.qualifications or [])
+                if missing_quals:
+                    conflicts.append(
+                        {
+                            "type": "qualification_mismatch",
+                            "assignment_id": assignment.id,
+                            "employee_id": employee.id,
+                            "employee_name": employee.name,
+                            "shift_id": shift.id,
+                            "shift_date": shift.date.isoformat(),
+                            "missing_qualifications": list(missing_quals),
+                        }
+                    )
 
         return {"conflicts": conflicts, "conflict_count": len(conflicts)}
 
     async def _fetch_employees(self, db: AsyncSession) -> List[DBEmployee]:
         """Fetch active employees from database."""
-        query = select(DBEmployee).where(DBEmployee.active == True)
+        query = select(DBEmployee).where(DBEmployee.is_active == True)
         result = await db.execute(query)
         return result.scalars().all()
 
@@ -285,11 +348,21 @@ class ScheduleGenerationService:
     async def _save_schedule_to_db(
         self, db: AsyncSession, schedule_data: List[Dict[str, Any]], employees_lookup: List[DBEmployee]
     ) -> int:
-        """Save generated schedule to database."""
+        """
+        Save generated schedule to database.
+
+        Creates Schedule containers for each week and ScheduleAssignment records
+        linking employees to shifts within those schedules.
+        """
+        from sqlalchemy.orm import selectinload
+
         saved_count = 0
 
         # Create employee ID map
         emp_map = {str(emp.id): emp.id for emp in employees_lookup}
+
+        # Cache schedules by week to avoid recreating
+        schedules_cache = {}
 
         for shift_assignment in schedule_data:
             # Parse shift ID to get template ID and date
@@ -297,22 +370,50 @@ class ScheduleGenerationService:
             template_id = int(shift_id_parts[0])
             shift_date = date.fromisoformat(shift_assignment["date"])
 
-            # Create schedule for each assigned employee
+            # Get or create Schedule for this week
+            week_start = shift_date - timedelta(days=shift_date.weekday())
+            week_key = week_start.isoformat()
+
+            if week_key not in schedules_cache:
+                schedule = await self._get_or_create_schedule_for_week(db, shift_date, created_by=1)
+                schedules_cache[week_key] = schedule
+            schedule = schedules_cache[week_key]
+
+            # Create assignment for each assigned employee
             for assigned_emp in shift_assignment["assigned_employees"]:
                 emp_id = emp_map.get(assigned_emp["id"])
                 if emp_id:
-                    # Check if schedule already exists
-                    query = select(DBSchedule).where(
-                        and_(DBSchedule.employee_id == emp_id, DBSchedule.shift_id == template_id, DBSchedule.date == shift_date)
+                    # Check if assignment already exists
+                    query = (
+                        select(DBScheduleAssignment)
+                        .where(
+                            and_(
+                                DBScheduleAssignment.schedule_id == schedule.id,
+                                DBScheduleAssignment.employee_id == emp_id,
+                                DBScheduleAssignment.shift_id == template_id,
+                            )
+                        )
+                        .options(
+                            selectinload(DBScheduleAssignment.schedule),
+                            selectinload(DBScheduleAssignment.employee),
+                            selectinload(DBScheduleAssignment.shift),
+                        )
                     )
                     result = await db.execute(query)
                     existing = result.scalar_one_or_none()
 
                     if not existing:
-                        schedule = DBSchedule(
-                            employee_id=emp_id, shift_id=template_id, date=shift_date, status="scheduled", overtime_approved=False
+                        # Create new assignment
+                        assignment = DBScheduleAssignment(
+                            schedule_id=schedule.id,
+                            employee_id=emp_id,
+                            shift_id=template_id,
+                            status="assigned",
+                            priority=1,
+                            auto_assigned=True,  # Generated by AI
+                            notes="Auto-generated by AI schedule optimizer",
                         )
-                        db.add(schedule)
+                        db.add(assignment)
                         saved_count += 1
 
         await db.commit()
