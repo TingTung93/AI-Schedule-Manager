@@ -9,7 +9,7 @@ from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..models import Department, Employee, Notification, Rule, Schedule, ScheduleTemplate, Shift
+from ..models import Department, Employee, Notification, Rule, Schedule, ScheduleAssignment, ScheduleTemplate, Shift
 from ..schemas import (
     DepartmentCreate,
     DepartmentUpdate,
@@ -155,7 +155,7 @@ class CRUDEmployee(CRUDBase):
             query = query.where(Employee.role == role)
 
         if active is not None:
-            query = query.where(Employee.active == active)
+            query = query.where(Employee.is_active == active)
 
         # Apply sorting
         if hasattr(Employee, sort_by):
@@ -179,16 +179,39 @@ class CRUDEmployee(CRUDBase):
         return {"items": items, "total": total}
 
     async def get_schedule(self, db: AsyncSession, employee_id: int, date_from: str = None, date_to: str = None):
-        """Get employee schedule."""
-        query = select(Schedule).where(Schedule.employee_id == employee_id)
-        query = query.options(selectinload(Schedule.shift))
+        """
+        Get employee schedule assignments.
 
+        Returns ScheduleAssignment objects (not Schedule containers) for the given employee.
+        """
+        from datetime import date as date_type
+
+        # Query assignments for this employee
+        query = (
+            select(ScheduleAssignment)
+            .join(Shift, ScheduleAssignment.shift_id == Shift.id)
+            .join(Schedule, ScheduleAssignment.schedule_id == Schedule.id)
+            .where(ScheduleAssignment.employee_id == employee_id)
+            .options(
+                selectinload(ScheduleAssignment.shift),
+                selectinload(ScheduleAssignment.schedule),
+                selectinload(ScheduleAssignment.employee),
+            )
+        )
+
+        # Filter by shift dates (not schedule dates)
         if date_from:
-            query = query.where(Schedule.date >= date_from)
-        if date_to:
-            query = query.where(Schedule.date <= date_to)
+            if isinstance(date_from, str):
+                date_from = date_type.fromisoformat(date_from)
+            query = query.where(Shift.date >= date_from)
 
-        query = query.order_by(Schedule.date.desc())
+        if date_to:
+            if isinstance(date_to, str):
+                date_to = date_type.fromisoformat(date_to)
+            query = query.where(Shift.date <= date_to)
+
+        # Order by shift date
+        query = query.order_by(Shift.date.desc())
 
         result = await db.execute(query)
         return result.scalars().all()
@@ -439,8 +462,14 @@ class CRUDShift(CRUDBase):
         return result.scalars().all()
 
     async def count_schedule_usage(self, db: AsyncSession, shift_id: int) -> int:
-        """Count how many schedules reference this shift."""
-        result = await db.execute(select(func.count(Schedule.id)).where(Schedule.shift_id == shift_id))
+        """
+        Count how many schedule assignments reference this shift.
+
+        Returns the number of ScheduleAssignment records using this shift.
+        """
+        result = await db.execute(
+            select(func.count(ScheduleAssignment.id)).where(ScheduleAssignment.shift_id == shift_id)
+        )
         return result.scalar()
 
 
