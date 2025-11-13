@@ -20,7 +20,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import Employee, Rule, Schedule, Shift
+from ..models import Employee, Rule, Schedule, ScheduleAssignment, Shift
 from ..schemas import EmployeeResponse, RuleResponse, ScheduleResponse
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class ExportService:
             query = select(Employee)
 
             if not include_inactive:
-                query = query.where(Employee.active == True)
+                query = query.where(Employee.is_active == True)
 
             if filters:
                 if filters.get("role"):
@@ -62,11 +62,10 @@ class ExportService:
                         "Name": emp.name,
                         "Email": emp.email,
                         "Role": emp.role,
-                        "Phone": emp.phone or "",
-                        "Hourly Rate": emp.hourly_rate or 0,
-                        "Max Hours/Week": emp.max_hours_per_week or 40,
                         "Qualifications": ", ".join(emp.qualifications or []),
-                        "Active": "Yes" if emp.active else "No",
+                        "Active": "Yes" if emp.is_active else "No",
+                        "Admin": "Yes" if emp.is_admin else "No",
+                        "Department": emp.department.name if emp.department else "",
                         "Created": emp.created_at.strftime("%Y-%m-%d %H:%M:%S"),
                     }
                 )
@@ -86,45 +85,78 @@ class ExportService:
         employee_ids: Optional[List[int]] = None,
         filters: Optional[Dict[str, Any]] = None,
     ) -> bytes:
-        """Export schedules data in specified format."""
-        try:
-            # Build query with joins
-            query = select(Schedule).join(Employee).join(Shift)
+        """
+        Export schedules data in specified format.
 
-            # Apply date filters
+        Note: Queries ScheduleAssignment (which links schedules to employees and shifts)
+        rather than Schedule directly, since Schedule doesn't have employee_id or shift_id.
+        """
+        try:
+            from sqlalchemy.orm import selectinload
+
+            # Build query: Get assignments with all related data
+            # ScheduleAssignment links: schedule_id -> employee_id -> shift_id
+            query = (
+                select(ScheduleAssignment)
+                .join(Schedule, ScheduleAssignment.schedule_id == Schedule.id)
+                .join(Employee, ScheduleAssignment.employee_id == Employee.id)
+                .join(Shift, ScheduleAssignment.shift_id == Shift.id)
+                .options(
+                    selectinload(ScheduleAssignment.schedule),
+                    selectinload(ScheduleAssignment.employee),
+                    selectinload(ScheduleAssignment.shift)
+                )
+            )
+
+            # Apply date filters (filter by shift date, not schedule week)
             if date_from:
-                query = query.where(Schedule.date >= date_from)
+                query = query.where(Shift.date >= date_from)
             if date_to:
-                query = query.where(Schedule.date <= date_to)
+                query = query.where(Shift.date <= date_to)
 
             # Apply employee filter
             if employee_ids:
-                query = query.where(Schedule.employee_id.in_(employee_ids))
+                query = query.where(ScheduleAssignment.employee_id.in_(employee_ids))
 
             # Apply additional filters
             if filters:
                 if filters.get("status"):
-                    query = query.where(Schedule.status == filters["status"])
+                    # Filter by assignment status
+                    query = query.where(ScheduleAssignment.status == filters["status"])
+                if filters.get("schedule_status"):
+                    # Filter by schedule status
+                    query = query.where(Schedule.status == filters["schedule_status"])
 
             result = await db.execute(query)
-            schedules = result.scalars().all()
+            assignments = result.scalars().all()
 
             # Convert to export format
             data = []
-            for schedule in schedules:
+            for assignment in assignments:
+                schedule = assignment.schedule
+                employee = assignment.employee
+                shift = assignment.shift
+
                 data.append(
                     {
                         "Schedule ID": schedule.id,
-                        "Employee": schedule.employee.name,
-                        "Employee Email": schedule.employee.email,
-                        "Shift": schedule.shift.name,
-                        "Date": schedule.date.strftime("%Y-%m-%d"),
-                        "Start Time": schedule.shift.start_time.strftime("%H:%M"),
-                        "End Time": schedule.shift.end_time.strftime("%H:%M"),
-                        "Department": schedule.shift.department or "",
-                        "Status": schedule.status,
-                        "Overtime Approved": "Yes" if schedule.overtime_approved else "No",
-                        "Notes": schedule.notes or "",
+                        "Schedule Week": f"{schedule.week_start} to {schedule.week_end}",
+                        "Schedule Status": schedule.status,
+                        "Assignment ID": assignment.id,
+                        "Assignment Status": assignment.status,
+                        "Employee": employee.name,
+                        "Employee Email": employee.email,
+                        "Employee Role": employee.role,
+                        "Shift Date": shift.date.strftime("%Y-%m-%d"),
+                        "Shift Type": shift.shift_type,
+                        "Start Time": shift.start_time.strftime("%H:%M"),
+                        "End Time": shift.end_time.strftime("%H:%M"),
+                        "Required Staff": shift.required_staff,
+                        "Department": shift.department.name if shift.department else "",
+                        "Priority": assignment.priority,
+                        "Auto Assigned": "Yes" if assignment.auto_assigned else "No",
+                        "Notes": assignment.notes or "",
+                        "Assigned At": assignment.assigned_at.strftime("%Y-%m-%d %H:%M:%S"),
                         "Created": schedule.created_at.strftime("%Y-%m-%d %H:%M:%S"),
                     }
                 )
@@ -327,8 +359,8 @@ class ExportService:
         for schedule in schedule_data:
             event = Event()
 
-            # Parse date and times
-            schedule_date = datetime.strptime(schedule["Date"], "%Y-%m-%d").date()
+            # Parse date and times (updated field names)
+            schedule_date = datetime.strptime(schedule["Shift Date"], "%Y-%m-%d").date()
             start_time = datetime.strptime(schedule["Start Time"], "%H:%M").time()
             end_time = datetime.strptime(schedule["End Time"], "%H:%M").time()
 
@@ -336,19 +368,25 @@ class ExportService:
             start_datetime = datetime.combine(schedule_date, start_time)
             end_datetime = datetime.combine(schedule_date, end_time)
 
-            event.add("summary", f"{schedule['Shift']} - {schedule['Employee']}")
+            # Create event summary with shift type
+            event.add("summary", f"{schedule['Shift Type']} - {schedule['Employee']}")
             event.add("dtstart", start_datetime)
             event.add("dtend", end_datetime)
             event.add(
                 "description",
-                f"Employee: {schedule['Employee']}\n"
+                f"Employee: {schedule['Employee']} ({schedule['Employee Email']})\n"
+                f"Role: {schedule['Employee Role']}\n"
                 f"Department: {schedule['Department']}\n"
-                f"Status: {schedule['Status']}\n"
+                f"Shift Type: {schedule['Shift Type']}\n"
+                f"Schedule Week: {schedule['Schedule Week']}\n"
+                f"Schedule Status: {schedule['Schedule Status']}\n"
+                f"Assignment Status: {schedule['Assignment Status']}\n"
+                f"Auto Assigned: {schedule['Auto Assigned']}\n"
                 f"Notes: {schedule['Notes']}",
             )
             event.add("location", schedule["Department"] or "Workplace")
-            event.add("uid", f"schedule-{schedule['Schedule ID']}@ai-schedule-manager.com")
-            event.add("priority", 5)
+            event.add("uid", f"assignment-{schedule['Assignment ID']}@ai-schedule-manager.com")
+            event.add("priority", schedule["Priority"])
 
             cal.add_component(event)
 
@@ -358,51 +396,70 @@ class ExportService:
         self, db: AsyncSession, date_from: Optional[date] = None, date_to: Optional[date] = None
     ) -> List[Dict]:
         """Calculate analytics data for export."""
+        from sqlalchemy.orm import selectinload
+
         # Set default date range if not provided
         if not date_to:
             date_to = date.today()
         if not date_from:
             date_from = date_to - timedelta(days=30)
 
-        # Get schedules in date range
-        query = select(Schedule).join(Employee).join(Shift).where(and_(Schedule.date >= date_from, Schedule.date <= date_to))
+        # Get assignments in date range (query via ScheduleAssignment, not Schedule directly)
+        query = (
+            select(ScheduleAssignment)
+            .join(Schedule, ScheduleAssignment.schedule_id == Schedule.id)
+            .join(Employee, ScheduleAssignment.employee_id == Employee.id)
+            .join(Shift, ScheduleAssignment.shift_id == Shift.id)
+            .where(Shift.date.between(date_from, date_to))
+            .options(
+                selectinload(ScheduleAssignment.schedule),
+                selectinload(ScheduleAssignment.employee),
+                selectinload(ScheduleAssignment.shift)
+            )
+        )
         result = await db.execute(query)
-        schedules = result.scalars().all()
+        assignments = result.scalars().all()
 
         # Calculate metrics
-        total_schedules = len(schedules)
+        total_assignments = len(assignments)
         total_hours = sum(
             [
-                (datetime.combine(date.today(), s.shift.end_time) - datetime.combine(date.today(), s.shift.start_time)).seconds
+                (datetime.combine(date.today(), a.shift.end_time) - datetime.combine(date.today(), a.shift.start_time)).seconds
                 / 3600
-                for s in schedules
+                for a in assignments
             ]
         )
 
         # Group by employee
         employee_stats = {}
-        for schedule in schedules:
-            emp_id = schedule.employee_id
+        for assignment in assignments:
+            emp_id = assignment.employee_id
             if emp_id not in employee_stats:
-                employee_stats[emp_id] = {"name": schedule.employee.name, "schedules": 0, "hours": 0, "cost": 0}
+                employee_stats[emp_id] = {
+                    "name": assignment.employee.name,
+                    "assignments": 0,
+                    "hours": 0,
+                    "cost": 0
+                }
 
             hours = (
-                datetime.combine(date.today(), schedule.shift.end_time)
-                - datetime.combine(date.today(), schedule.shift.start_time)
+                datetime.combine(date.today(), assignment.shift.end_time)
+                - datetime.combine(date.today(), assignment.shift.start_time)
             ).seconds / 3600
 
-            employee_stats[emp_id]["schedules"] += 1
+            employee_stats[emp_id]["assignments"] += 1
             employee_stats[emp_id]["hours"] += hours
-            employee_stats[emp_id]["cost"] += hours * (schedule.employee.hourly_rate or 0)
+            # Note: Employee model doesn't have hourly_rate, will need to add this field or calculate differently
+            employee_stats[emp_id]["cost"] += hours * 15.0  # Default rate for now
 
         # Create analytics data
         analytics_data = [
             {"Metric": "Report Period", "Value": f"{date_from} to {date_to}", "Description": "Date range for this report"},
-            {"Metric": "Total Schedules", "Value": total_schedules, "Description": "Number of scheduled shifts"},
+            {"Metric": "Total Assignments", "Value": total_assignments, "Description": "Number of shift assignments"},
             {"Metric": "Total Hours", "Value": f"{total_hours:.1f}", "Description": "Total scheduled hours"},
             {
-                "Metric": "Average Hours per Schedule",
-                "Value": f"{total_hours/total_schedules:.1f}" if total_schedules > 0 else "0",
+                "Metric": "Average Hours per Assignment",
+                "Value": f"{total_hours/total_assignments:.1f}" if total_assignments > 0 else "0",
                 "Description": "Average shift duration",
             },
         ]
@@ -412,8 +469,8 @@ class ExportService:
             analytics_data.extend(
                 [
                     {
-                        "Metric": f"{emp_data['name']} - Schedules",
-                        "Value": emp_data["schedules"],
+                        "Metric": f"{emp_data['name']} - Assignments",
+                        "Value": emp_data["assignments"],
                         "Description": f"Number of shifts for {emp_data['name']}",
                     },
                     {
@@ -424,7 +481,7 @@ class ExportService:
                     {
                         "Metric": f"{emp_data['name']} - Cost",
                         "Value": f"${emp_data['cost']:.2f}",
-                        "Description": f"Total labor cost for {emp_data['name']}",
+                        "Description": f"Estimated labor cost for {emp_data['name']}",
                     },
                 ]
             )
