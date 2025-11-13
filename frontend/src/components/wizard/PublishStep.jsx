@@ -35,6 +35,7 @@ import {
 } from '@mui/icons-material';
 import api, { getErrorMessage } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { clearDraft } from '../../utils/wizardDraft';
 
 const PublishStep = ({ data, onChange, setNotification }) => {
   const [publishing, setPublishing] = useState(false);
@@ -181,7 +182,8 @@ const PublishStep = ({ data, onChange, setNotification }) => {
         }
       }
 
-      // Clear saved progress
+      // Clear draft and saved progress
+      clearDraft();
       localStorage.removeItem('scheduleBuilderProgress');
 
       // Redirect to schedule view
@@ -248,6 +250,8 @@ const PublishStep = ({ data, onChange, setNotification }) => {
         message: 'Schedule saved as draft'
       });
 
+      // Clear draft and saved progress
+      clearDraft();
       localStorage.removeItem('scheduleBuilderProgress');
 
       setTimeout(() => {

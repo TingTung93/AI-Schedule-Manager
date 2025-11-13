@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -26,7 +27,8 @@ import {
   Close,
   Save,
   Publish,
-  AutoFixHigh
+  AutoFixHigh,
+  DraftsOutlined
 } from '@mui/icons-material';
 import api, { getErrorMessage } from '../services/api';
 import ConfigurationStep from '../components/wizard/ConfigurationStep';
@@ -35,6 +37,7 @@ import GenerationStep from '../components/wizard/GenerationStep';
 import AdjustmentStep from '../components/wizard/AdjustmentStep';
 import ValidationStep from '../components/wizard/ValidationStep';
 import PublishStep from '../components/wizard/PublishStep';
+import { saveDraft, loadDraft, clearDraft, hasDraft, getDraftMetadata } from '../utils/wizardDraft';
 
 const steps = [
   'Configuration',
@@ -46,10 +49,13 @@ const steps = [
 ];
 
 const ScheduleBuilder = () => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [confirmExit, setConfirmExit] = useState(false);
+  const [showResumeDraftDialog, setShowResumeDraftDialog] = useState(false);
+  const [draftData, setDraftData] = useState(null);
 
   // Wizard data state
   const [wizardData, setWizardData] = useState({
@@ -90,21 +96,28 @@ const ScheduleBuilder = () => {
     }
   });
 
-  // Auto-save to localStorage
+  // Check for existing draft on mount
   useEffect(() => {
-    const savedData = localStorage.getItem('scheduleBuilderProgress');
-    if (savedData) {
-      try {
-        setWizardData(JSON.parse(savedData));
-      } catch (error) {
-        console.error('Failed to restore wizard progress:', error);
-      }
+    const draft = loadDraft();
+    if (draft) {
+      const metadata = getDraftMetadata();
+      console.log('Found existing draft:', metadata);
+      setDraftData(draft);
+      setShowResumeDraftDialog(true);
     }
   }, []);
 
+  // Auto-save wizard data as draft (with debouncing)
   useEffect(() => {
-    localStorage.setItem('scheduleBuilderProgress', JSON.stringify(wizardData));
-  }, [wizardData]);
+    if (!showResumeDraftDialog && wizardData.department) {
+      // Only auto-save if user has started filling the form
+      const timeoutId = setTimeout(() => {
+        saveDraft({ ...wizardData, activeStep });
+      }, 2000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [wizardData, activeStep, showResumeDraftDialog]);
 
   const updateWizardData = (field, value) => {
     setWizardData(prev => ({
@@ -227,8 +240,50 @@ const ScheduleBuilder = () => {
   };
 
   const confirmCancelWizard = () => {
-    localStorage.removeItem('scheduleBuilderProgress');
-    window.history.back();
+    clearDraft();
+    navigate('/schedules');
+  };
+
+  const handleSaveDraft = () => {
+    const success = saveDraft({ ...wizardData, activeStep });
+    if (success) {
+      setNotification({
+        type: 'success',
+        message: 'Draft saved successfully. You can resume later from the schedules page.'
+      });
+      setTimeout(() => {
+        navigate('/schedules');
+      }, 1500);
+    } else {
+      setNotification({
+        type: 'error',
+        message: 'Failed to save draft. Please try again.'
+      });
+    }
+  };
+
+  const handleResumeDraft = () => {
+    if (draftData) {
+      setWizardData(draftData);
+      if (draftData.activeStep !== undefined) {
+        setActiveStep(draftData.activeStep);
+      }
+      setShowResumeDraftDialog(false);
+      setNotification({
+        type: 'success',
+        message: 'Draft resumed successfully'
+      });
+    }
+  };
+
+  const handleStartFresh = () => {
+    clearDraft();
+    setShowResumeDraftDialog(false);
+    setDraftData(null);
+    setNotification({
+      type: 'info',
+      message: 'Starting new schedule'
+    });
   };
 
   const renderStepContent = () => {
@@ -356,14 +411,28 @@ const ScheduleBuilder = () => {
 
       {/* Navigation Buttons */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-        <Button
-          variant="outlined"
-          startIcon={<NavigateBefore />}
-          onClick={handleBack}
-          disabled={activeStep === 0 || loading}
-        >
-          Back
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<NavigateBefore />}
+            onClick={handleBack}
+            disabled={activeStep === 0 || loading}
+          >
+            Back
+          </Button>
+
+          {activeStep !== steps.length - 1 && (
+            <Button
+              variant="outlined"
+              startIcon={<DraftsOutlined />}
+              onClick={handleSaveDraft}
+              disabled={loading || !wizardData.department}
+              color="secondary"
+            >
+              Save Draft & Exit
+            </Button>
+          )}
+        </Box>
 
         <Box sx={{ display: 'flex', gap: 2 }}>
           {activeStep === steps.length - 1 ? (
@@ -405,12 +474,71 @@ const ScheduleBuilder = () => {
         </Box>
       </Box>
 
+      {/* Resume Draft Dialog */}
+      <Dialog
+        open={showResumeDraftDialog}
+        onClose={() => setShowResumeDraftDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <DraftsOutlined color="primary" />
+            Resume Draft?
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {draftData && (
+            <>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                You have an unsaved draft from {new Date(draftData.savedAt).toLocaleString()}
+              </Alert>
+              <Card variant="outlined" sx={{ mb: 2 }}>
+                <CardContent>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Draft Details:
+                  </Typography>
+                  <Typography variant="body1" fontWeight="bold">
+                    {draftData.scheduleName || 'Untitled Schedule'}
+                  </Typography>
+                  {draftData.department && (
+                    <Typography variant="body2" color="textSecondary">
+                      Department: {draftData.department}
+                    </Typography>
+                  )}
+                  {draftData.dateRange?.start && (
+                    <Typography variant="body2" color="textSecondary">
+                      Period: {new Date(draftData.dateRange.start).toLocaleDateString()} -
+                      {new Date(draftData.dateRange.end).toLocaleDateString()}
+                    </Typography>
+                  )}
+                  <Typography variant="caption" color="textSecondary">
+                    Step: {steps[draftData.activeStep || 0]}
+                  </Typography>
+                </CardContent>
+              </Card>
+              <Typography variant="body2">
+                Would you like to continue where you left off, or start a new schedule?
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleStartFresh} color="error">
+            Start Fresh
+          </Button>
+          <Button onClick={handleResumeDraft} variant="contained" autoFocus>
+            Resume Draft
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Confirmation Dialog */}
       <Dialog open={confirmExit} onClose={() => setConfirmExit(false)}>
         <DialogTitle>Cancel Schedule Creation?</DialogTitle>
         <DialogContent>
           <Typography>
-            Your progress has been saved and you can return to this wizard later.
+            Your progress will be saved as a draft and you can return to this wizard later.
             Are you sure you want to exit?
           </Typography>
         </DialogContent>
