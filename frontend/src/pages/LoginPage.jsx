@@ -73,8 +73,8 @@ const LoginPage = () => {
   const handleDemoLogin = async () => {
     setIsLoading(true);
     try {
-      // Call backend API to authenticate
-      const response = await authService.login('demo@example.com', 'demo123');
+      // Call backend API to authenticate with demo account
+      const response = await authService.login('demo@example.com', 'Demo123!');
 
       // Update auth context with user data and token
       await login(response.data.user, response.data.access_token);
