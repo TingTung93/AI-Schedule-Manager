@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -18,7 +18,9 @@ import {
   Select,
   MenuItem,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   Add,
@@ -30,18 +32,30 @@ import {
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import api, { getErrorMessage, scheduleService } from '../services/api';
 import { transformScheduleToCalendarEvents } from '../utils/assignmentHelpers';
 import AssignmentForm from '../components/forms/AssignmentForm';
+import MobileCalendarControls from '../components/calendar/MobileCalendarControls';
+import { getMobileCalendarConfig, getInitialView, getButtonText, customViews } from '../config/calendarConfig';
+import '../styles/calendar.css';
 
 const SchedulePage = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // < 900px
+  const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg')); // 900-1200px
+  const calendarRef = useRef(null);
+
   const [schedules, setSchedules] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState('timeGridWeek');
+  const [view, setView] = useState(() => {
+    // Set initial view based on screen size using config
+    return getInitialView(isMobile, isTablet);
+  });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -60,6 +74,11 @@ const SchedulePage = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Update view when screen size changes
+  useEffect(() => {
+    setView(getInitialView(isMobile, isTablet));
+  }, [isMobile, isTablet]);
 
   const loadData = async () => {
     try {
@@ -189,6 +208,33 @@ const SchedulePage = () => {
     }
   };
 
+  // Handler for Today button
+  const handleToday = () => {
+    const calendarApi = calendarRef.current?.getApi();
+    if (calendarApi) {
+      calendarApi.today();
+    }
+  };
+
+  // Handler for cycling through views (mobile)
+  const handleChangeView = () => {
+    const views = isMobile
+      ? ['timeGridDay', 'listWeek']
+      : ['dayGridMonth', 'timeGridWeek', 'timeGridDay'];
+
+    const currentIndex = views.indexOf(view);
+    const nextView = views[(currentIndex + 1) % views.length];
+    setView(nextView);
+  };
+
+  // Handler for filter (placeholder)
+  const handleFilter = () => {
+    setNotification({
+      type: 'info',
+      message: 'Filter functionality coming soon'
+    });
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -231,49 +277,53 @@ const SchedulePage = () => {
                 ))}
               </Select>
             </FormControl>
-            <ToggleButtonGroup
-              value={view}
-              exclusive
-              onChange={handleViewChange}
-              size="small"
-            >
-              <ToggleButton value="timeGridDay">
-                <Today sx={{ mr: 1 }} fontSize="small" />
-                Day
-              </ToggleButton>
-              <ToggleButton value="timeGridWeek">
-                <ViewWeek sx={{ mr: 1 }} fontSize="small" />
-                Week
-              </ToggleButton>
-              <ToggleButton value="dayGridMonth">
-                <ViewModule sx={{ mr: 1 }} fontSize="small" />
-                Month
-              </ToggleButton>
-            </ToggleButtonGroup>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AutoFixHigh />}
-              onClick={() => navigate('/schedule/builder')}
-            >
-              Schedule Builder
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setShowAssignmentForm(true)}
-              disabled={!selectedSchedule}
-              sx={{ mr: 1 }}
-            >
-              Assign Employee to Shift
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Add />}
-              onClick={() => setDialogOpen(true)}
-            >
-              Add Schedule
-            </Button>
+
+            {/* Desktop controls - hidden on mobile */}
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, alignItems: 'center' }}>
+              <ToggleButtonGroup
+                value={view}
+                exclusive
+                onChange={handleViewChange}
+                size="small"
+              >
+                <ToggleButton value="timeGridDay">
+                  <Today sx={{ mr: 1 }} fontSize="small" />
+                  Day
+                </ToggleButton>
+                <ToggleButton value="timeGridWeek">
+                  <ViewWeek sx={{ mr: 1 }} fontSize="small" />
+                  Week
+                </ToggleButton>
+                <ToggleButton value="dayGridMonth">
+                  <ViewModule sx={{ mr: 1 }} fontSize="small" />
+                  Month
+                </ToggleButton>
+              </ToggleButtonGroup>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AutoFixHigh />}
+                onClick={() => navigate('/schedule/builder')}
+              >
+                Schedule Builder
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={() => setShowAssignmentForm(true)}
+                disabled={!selectedSchedule}
+                sx={{ mr: 1 }}
+              >
+                Assign Employee to Shift
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Add />}
+                onClick={() => setDialogOpen(true)}
+              >
+                Add Schedule
+              </Button>
+            </Box>
           </Box>
         </Box>
       </motion.div>
@@ -283,26 +333,28 @@ const SchedulePage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, p: 2 }}>
+        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, p: isMobile ? 1 : 2 }}>
           <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
             initialView={view}
-            headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: ''
-            }}
+            {...getMobileCalendarConfig(isMobile, isTablet)}
+            views={customViews}
+            buttonText={getButtonText(isMobile)}
             events={calendarEvents}
             dateClick={handleDateClick}
             eventClick={handleEventClick}
-            editable={true}
-            selectable={true}
-            selectMirror={true}
-            dayMaxEvents={true}
-            weekends={true}
-            height="auto"
           />
         </Box>
+
+        {/* Mobile SpeedDial Controls */}
+        <MobileCalendarControls
+          onAddShift={() => setShowAssignmentForm(true)}
+          onChangeView={handleChangeView}
+          onToday={handleToday}
+          onFilter={handleFilter}
+          isMobile={isMobile}
+        />
       </motion.div>
 
       {/* Add Schedule Dialog */}
