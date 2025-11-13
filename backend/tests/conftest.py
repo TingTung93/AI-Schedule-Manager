@@ -216,3 +216,35 @@ async def db(db_engine) -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
         await session.rollback()
+
+
+@pytest.fixture
+async def client(db: AsyncSession) -> AsyncGenerator:
+    """Create test HTTP client for API testing."""
+    from httpx import AsyncClient
+    from backend.src.main import app
+    from backend.src.dependencies import get_database_session
+
+    # Override database dependency
+    async def override_get_db():
+        yield db
+
+    app.dependency_overrides[get_database_session] = override_get_db
+
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+    # Clean up
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def mock_current_user(test_employees):
+    """Mock current authenticated user for API tests."""
+    from unittest.mock import Mock
+    user = Mock()
+    user.id = 1
+    user.email = "test@example.com"
+    user.role = "manager"
+    user.is_admin = False
+    return user
