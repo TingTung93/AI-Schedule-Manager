@@ -38,6 +38,8 @@ import AdjustmentStep from '../components/wizard/AdjustmentStep';
 import ValidationStep from '../components/wizard/ValidationStep';
 import PublishStep from '../components/wizard/PublishStep';
 import { saveDraft, loadDraft, clearDraft, hasDraft, getDraftMetadata } from '../utils/wizardDraft';
+import { SkipNavigation } from '../components/accessibility';
+import { announceToScreenReader } from '../utils/accessibility';
 
 const steps = [
   'Configuration',
@@ -151,10 +153,12 @@ const ScheduleBuilder = () => {
 
   const handleNext = async () => {
     if (!canProceed()) {
+      const message = 'Please complete all required fields before proceeding';
       setNotification({
         type: 'warning',
-        message: 'Please complete all required fields before proceeding'
+        message
       });
+      announceToScreenReader(message, 'assertive');
       return;
     }
 
@@ -178,19 +182,25 @@ const ScheduleBuilder = () => {
           break;
       }
 
-      setActiveStep(prev => prev + 1);
+      const nextStep = activeStep + 1;
+      setActiveStep(nextStep);
+      announceToScreenReader(`Moving to step ${nextStep + 1}: ${steps[nextStep]}`);
     } catch (error) {
+      const errorMessage = getErrorMessage(error);
       setNotification({
         type: 'error',
-        message: getErrorMessage(error)
+        message: errorMessage
       });
+      announceToScreenReader(`Error: ${errorMessage}`, 'assertive');
     } finally {
       setLoading(false);
     }
   };
 
   const handleBack = () => {
-    setActiveStep(prev => prev - 1);
+    const prevStep = activeStep - 1;
+    setActiveStep(prevStep);
+    announceToScreenReader(`Going back to step ${prevStep + 1}: ${steps[prevStep]}`);
   };
 
   const handleStepClick = (stepIndex) => {
@@ -342,35 +352,71 @@ const ScheduleBuilder = () => {
     }
   };
 
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+Enter to submit/next
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (activeStep === steps.length - 1) {
+          // Publish (handled by PublishStep)
+        } else {
+          handleNext();
+        }
+      }
+      // Escape to cancel
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCancel();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [activeStep]);
+
   return (
-    <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+    <>
+      <SkipNavigation />
+      <Box
+        id="main-content"
+        tabIndex={-1}
+        sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}
+        role="main"
+        aria-label="Schedule Builder Wizard"
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-          <Box>
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-              Schedule Builder
-            </Typography>
-            <Typography variant="body1" color="textSecondary">
-              Create and optimize schedules with AI-powered constraint solving
-            </Typography>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+            <Box>
+              <Typography variant="h4" fontWeight="bold" gutterBottom>
+                Schedule Builder
+              </Typography>
+              <Typography variant="body1" color="textSecondary" id="wizard-description">
+                Create and optimize schedules with AI-powered constraint solving
+              </Typography>
+            </Box>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<Close />}
+              onClick={handleCancel}
+              aria-label="Cancel schedule creation and return to schedules page"
+            >
+              Cancel
+            </Button>
           </Box>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<Close />}
-            onClick={handleCancel}
-          >
-            Cancel
-          </Button>
-        </Box>
-      </motion.div>
+        </motion.div>
 
       {/* Step Progress Indicator */}
-      <Paper sx={{ p: 3, mb: 3 }}>
+      <Paper
+        sx={{ p: 3, mb: 3 }}
+        role="navigation"
+        aria-label="Wizard progress"
+      >
         <Stepper activeStep={activeStep} alternativeLabel>
           {steps.map((label, index) => (
             <Step
@@ -381,7 +427,12 @@ const ScheduleBuilder = () => {
                 '&:hover': index < activeStep ? { opacity: 0.8 } : {}
               }}
             >
-              <StepLabel>{label}</StepLabel>
+              <StepLabel
+                aria-label={`Step ${index + 1} of ${steps.length}: ${label}${index === activeStep ? ' (current)' : ''}${index < activeStep ? ' (completed)' : ''}`}
+                aria-current={index === activeStep ? 'step' : undefined}
+              >
+                {label}
+              </StepLabel>
             </Step>
           ))}
         </Stepper>
@@ -403,20 +454,30 @@ const ScheduleBuilder = () => {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
         >
-          <Paper sx={{ p: 4, minHeight: 500 }}>
+          <Paper
+            sx={{ p: 4, minHeight: 500 }}
+            role="tabpanel"
+            aria-labelledby={`step-${activeStep}-label`}
+            aria-describedby="wizard-description"
+          >
             {renderStepContent()}
           </Paper>
         </motion.div>
       </AnimatePresence>
 
       {/* Navigation Buttons */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}
+        role="navigation"
+        aria-label="Wizard navigation controls"
+      >
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="outlined"
             startIcon={<NavigateBefore />}
             onClick={handleBack}
             disabled={activeStep === 0 || loading}
+            aria-label={`Go back to step ${activeStep}: ${steps[activeStep - 1] || ''}`}
           >
             Back
           </Button>
@@ -428,6 +489,7 @@ const ScheduleBuilder = () => {
               onClick={handleSaveDraft}
               disabled={loading || !wizardData.department}
               color="secondary"
+              aria-label="Save current progress as draft and exit wizard"
             >
               Save Draft & Exit
             </Button>
@@ -447,6 +509,7 @@ const ScheduleBuilder = () => {
                     saveAsDraft: true
                   });
                 }}
+                aria-label="Save schedule as draft without publishing"
               >
                 Save as Draft
               </Button>
@@ -457,6 +520,7 @@ const ScheduleBuilder = () => {
                 onClick={() => {
                   // Publishing is handled in PublishStep component
                 }}
+                aria-label="Publish and finalize schedule"
               >
                 Publish Schedule
               </Button>
@@ -467,12 +531,22 @@ const ScheduleBuilder = () => {
               endIcon={<NavigateNext />}
               onClick={handleNext}
               disabled={loading || !canProceed()}
+              aria-label={`Proceed to step ${activeStep + 2}: ${steps[activeStep + 1]}`}
+              title="Keyboard shortcut: Ctrl+Enter"
             >
               {activeStep === 2 ? 'Generate Schedule' : 'Next'}
             </Button>
           )}
         </Box>
       </Box>
+        <Typography
+          variant="caption"
+          color="textSecondary"
+          sx={{ display: 'block', mt: 2, textAlign: 'center' }}
+          aria-live="polite"
+        >
+          Keyboard shortcuts: Ctrl+Enter to proceed, Escape to cancel
+        </Typography>
 
       {/* Resume Draft Dialog */}
       <Dialog
@@ -569,7 +643,8 @@ const ScheduleBuilder = () => {
           </Alert>
         )}
       </Snackbar>
-    </Box>
+      </Box>
+    </>
   );
 };
 
