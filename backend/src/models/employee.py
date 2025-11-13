@@ -5,7 +5,7 @@ Employee model for user management and authentication
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import Boolean, CheckConstraint, Index, String, Text
+from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -28,6 +28,9 @@ class Employee(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     role: Mapped[str] = mapped_column(String(100), nullable=False, default="employee")
 
+    # Department relationship
+    department_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("departments.id"), nullable=True, index=True)
+
     # Work-related fields
     qualifications: Mapped[Optional[List[str]]] = mapped_column(
         ARRAY(String), nullable=True, comment="List of employee qualifications/certifications"
@@ -47,6 +50,8 @@ class Employee(Base):
     updated_at: Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
+    department: Mapped[Optional["Department"]] = relationship("Department", back_populates="employees")
+
     schedule_assignments: Mapped[List["ScheduleAssignment"]] = relationship(
         "ScheduleAssignment",
         back_populates="employee",
