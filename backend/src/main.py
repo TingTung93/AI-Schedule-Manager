@@ -17,7 +17,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .api.analytics import router as analytics_router
 from .api.data_io import router as data_io_router
 from .api.departments import router as departments_router
+from .api.employees import router as employees_router
 from .api.notifications import router as notifications_router
+from .api.schedules import router as schedules_router
 from .api.settings import router as settings_router
 from .api.shifts import router as shifts_router
 from .api_docs import setup_docs
@@ -93,7 +95,9 @@ app.add_middleware(
 app.include_router(auth_router)  # Authentication routes (replaces mock endpoints)
 app.include_router(data_io_router)
 app.include_router(departments_router)
+app.include_router(employees_router)
 app.include_router(notifications_router)
+app.include_router(schedules_router)
 app.include_router(analytics_router)
 app.include_router(settings_router)
 app.include_router(shifts_router)

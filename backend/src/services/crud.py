@@ -265,21 +265,15 @@ class CRUDSchedule(CRUDBase):
         sort_by: str = "date",
         sort_order: str = "desc",
     ):
-        """Get schedules with employee and shift data."""
-        query = select(Schedule).options(selectinload(Schedule.employee), selectinload(Schedule.shift))
+        """Get schedules with assignments, employees and shifts data."""
+        query = select(Schedule).options(selectinload(Schedule.assignments))
 
-        # Apply filters
-        if employee_id:
-            query = query.where(Schedule.employee_id == employee_id)
-
-        if shift_id:
-            query = query.where(Schedule.shift_id == shift_id)
-
+        # Apply filters based on schedule date range
         if date_from:
-            query = query.where(Schedule.date >= date_from)
+            query = query.where(Schedule.week_start >= date_from)
 
         if date_to:
-            query = query.where(Schedule.date <= date_to)
+            query = query.where(Schedule.week_end <= date_to)
 
         if status:
             query = query.where(Schedule.status == status)
