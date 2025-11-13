@@ -217,11 +217,13 @@ export function transformScheduleToCalendarEvents(schedule, employeeMap = {}) {
       borderColor: shift.isConfirmed ? '#4caf50' : '#ff9800',
       extendedProps: {
         employeeId: shift.employeeId,
+        employeeName: employeeName,
         shiftId: shift.shiftId,
         assignmentId: shift.assignmentId,
         status: shift.status,
         priority: shift.priority,
         shiftType: shift.shiftType,
+        department: employee?.department || '',
         notes: shift.notes,
         isConfirmed: shift.isConfirmed,
         needsConfirmation: shift.needsConfirmation,

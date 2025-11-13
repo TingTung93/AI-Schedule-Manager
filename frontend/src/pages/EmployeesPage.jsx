@@ -24,7 +24,10 @@ import {
   Alert,
   Snackbar,
   Tabs,
-  Tab
+  Tab,
+  OutlinedInput,
+  Checkbox,
+  ListItemText
 } from '@mui/material';
 import {
   Add,
@@ -39,6 +42,8 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/routeConfig';
 import api, { getErrorMessage } from '../services/api';
+import SearchBar from '../components/search/SearchBar';
+import { filterEmployees } from '../utils/filterUtils';
 
 const EmployeesPage = () => {
   const { user } = useAuth();
@@ -49,6 +54,9 @@ const EmployeesPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [selectedRoles, setSelectedRoles] = useState([]);
   const [employeeForm, setEmployeeForm] = useState({
     firstName: '',
     lastName: '',
@@ -155,8 +163,34 @@ const EmployeesPage = () => {
     return status === 'active' ? 'success' : 'default';
   };
 
-  const activeEmployees = employees.filter(emp => emp.status === 'active' || emp.isActive !== false || emp.is_active !== false);
-  const inactiveEmployees = employees.filter(emp => emp.status === 'inactive' || emp.isActive === false || emp.is_active === false);
+  // Get unique departments and roles for filters
+  const departments = [...new Set(employees.map(emp => emp.department).filter(Boolean))];
+  const roles = [...new Set(employees.map(emp => emp.role).filter(Boolean))];
+
+  // Apply filters to employees
+  const filteredEmployees = filterEmployees(employees, searchTerm, selectedDepartments, selectedRoles);
+
+  const activeEmployees = filteredEmployees.filter(emp => emp.status === 'active' || emp.isActive !== false || emp.is_active !== false);
+  const inactiveEmployees = filteredEmployees.filter(emp => emp.status === 'inactive' || emp.isActive === false || emp.is_active === false);
+
+  // Handlers for filters
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
+
+  const handleDepartmentChange = (event) => {
+    const {
+      target: { value }
+    } = event;
+    setSelectedDepartments(typeof value === 'string' ? value.split(',') : value);
+  };
+
+  const handleRoleChange = (event) => {
+    const {
+      target: { value }
+    } = event;
+    setSelectedRoles(typeof value === 'string' ? value.split(',') : value);
+  };
 
   if (loading) {
     return (
@@ -194,6 +228,66 @@ const EmployeesPage = () => {
           )}
         </Box>
       </motion.div>
+
+      {/* Search and Filters */}
+      <Box sx={{ mb: 3 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <SearchBar
+              onSearch={handleSearch}
+              placeholder="Search by name or email..."
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel id="department-filter-label">Departments</InputLabel>
+              <Select
+                labelId="department-filter-label"
+                multiple
+                value={selectedDepartments}
+                onChange={handleDepartmentChange}
+                input={<OutlinedInput label="Departments" />}
+                renderValue={(selected) =>
+                  selected.length === 0
+                    ? 'All Departments'
+                    : `${selected.length} selected`
+                }
+              >
+                {departments.map((dept) => (
+                  <MenuItem key={dept} value={dept}>
+                    <Checkbox checked={selectedDepartments.indexOf(dept) > -1} />
+                    <ListItemText primary={dept} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel id="role-filter-label">Roles</InputLabel>
+              <Select
+                labelId="role-filter-label"
+                multiple
+                value={selectedRoles}
+                onChange={handleRoleChange}
+                input={<OutlinedInput label="Roles" />}
+                renderValue={(selected) =>
+                  selected.length === 0
+                    ? 'All Roles'
+                    : `${selected.length} selected`
+                }
+              >
+                {roles.map((role) => (
+                  <MenuItem key={role} value={role}>
+                    <Checkbox checked={selectedRoles.indexOf(role) > -1} />
+                    <ListItemText primary={role.charAt(0).toUpperCase() + role.slice(1)} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Box>
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>

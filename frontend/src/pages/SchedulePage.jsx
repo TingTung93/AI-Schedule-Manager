@@ -19,6 +19,7 @@ import {
   MenuItem,
   ToggleButton,
   ToggleButtonGroup,
+  Grid,
   useMediaQuery,
   useTheme
 } from '@mui/material';
@@ -38,9 +39,12 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import api, { getErrorMessage, scheduleService } from '../services/api';
 import { transformScheduleToCalendarEvents } from '../utils/assignmentHelpers';
+import { filterCalendarEvents } from '../utils/filterUtils';
 import AssignmentForm from '../components/forms/AssignmentForm';
 import MobileCalendarControls from '../components/calendar/MobileCalendarControls';
 import { ImportDialog, ExportDialog } from '../components/data-io';
+import SearchBar from '../components/search/SearchBar';
+import FilterPanel from '../components/search/FilterPanel';
 import { getMobileCalendarConfig, getInitialView, getButtonText, customViews } from '../config/calendarConfig';
 import '../styles/calendar.css';
 
@@ -54,6 +58,7 @@ const SchedulePage = () => {
   const [schedules, setSchedules] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(() => {
     // Set initial view based on screen size using config
@@ -66,6 +71,13 @@ const SchedulePage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    departments: [],
+    shiftTypes: [],
+    dateRange: { start: null, end: null }
+  });
+  const [showFilters, setShowFilters] = useState(!isMobile);
   const [scheduleForm, setScheduleForm] = useState({
     title: '',
     employeeId: '',
@@ -88,17 +100,20 @@ const SchedulePage = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [schedulesRes, employeesRes] = await Promise.all([
+      const [schedulesRes, employeesRes, departmentsRes] = await Promise.all([
         scheduleService.getSchedules(),
-        api.get('/api/employees')
+        api.get('/api/employees'),
+        api.get('/api/departments').catch(() => ({ data: { departments: [] } }))
       ]);
 
       const schedulesData = schedulesRes.data.schedules || [];
       const employeesData = employeesRes.data.employees || [];
+      const departmentsData = departmentsRes.data.departments || [];
 
-      // Set schedules and employees
+      // Set schedules, employees, and departments
       setSchedules(schedulesData);
       setEmployees(employeesData);
+      setDepartments(departmentsData);
 
       // Select the first schedule by default
       if (schedulesData.length > 0) {
@@ -119,11 +134,25 @@ const SchedulePage = () => {
     }, {});
   }, [employees]);
 
-  // Transform selected schedule to calendar events
+  // Transform selected schedule to calendar events and apply filters
   const calendarEvents = React.useMemo(() => {
     if (!selectedSchedule) return [];
-    return transformScheduleToCalendarEvents(selectedSchedule, employeeMap);
-  }, [selectedSchedule, employeeMap]);
+    const allEvents = transformScheduleToCalendarEvents(selectedSchedule, employeeMap);
+
+    // Apply search filter
+    let filteredEvents = allEvents;
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filteredEvents = filteredEvents.filter(event => {
+        const title = (event.title || '').toLowerCase();
+        const employee = event.extendedProps?.employeeName || '';
+        return title.includes(term) || employee.toLowerCase().includes(term);
+      });
+    }
+
+    // Apply other filters
+    return filterCalendarEvents(filteredEvents, filters);
+  }, [selectedSchedule, employeeMap, searchTerm, filters]);
 
   const handleDateClick = (arg) => {
     setSelectedDate(arg.date);
@@ -232,12 +261,29 @@ const SchedulePage = () => {
     setView(nextView);
   };
 
-  // Handler for filter (placeholder)
+  // Handler for filter toggle
   const handleFilter = () => {
-    setNotification({
-      type: 'info',
-      message: 'Filter functionality coming soon'
-    });
+    setShowFilters(!showFilters);
+  };
+
+  // Handler for search
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
+
+  // Handler for filter changes
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  // Count active filters
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (filters.departments.length > 0) count += filters.departments.length;
+    if (filters.shiftTypes.length > 0) count += filters.shiftTypes.length;
+    if (filters.dateRange.start && filters.dateRange.end) count += 1;
+    if (searchTerm) count += 1;
+    return count;
   };
 
   // Handler for successful import
@@ -370,19 +416,47 @@ const SchedulePage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, p: isMobile ? 1 : 2 }}>
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-            initialView={view}
-            {...getMobileCalendarConfig(isMobile, isTablet)}
-            views={customViews}
-            buttonText={getButtonText(isMobile)}
-            events={calendarEvents}
-            dateClick={handleDateClick}
-            eventClick={handleEventClick}
-          />
-        </Box>
+        <Grid container spacing={2}>
+          {/* Filter Sidebar */}
+          {showFilters && (
+            <Grid item xs={12} md={3}>
+              <SearchBar
+                onSearch={handleSearch}
+                placeholder="Search employees or shifts..."
+              />
+              <FilterPanel
+                departments={departments}
+                onFilterChange={handleFilterChange}
+                initialFilters={filters}
+                showDateFilter={true}
+                showShiftTypeFilter={true}
+                showDepartmentFilter={true}
+              />
+            </Grid>
+          )}
+
+          {/* Calendar */}
+          <Grid item xs={12} md={showFilters ? 9 : 12}>
+            <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, p: isMobile ? 1 : 2 }}>
+              {getActiveFilterCount() > 0 && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Showing {calendarEvents.length} event(s) with {getActiveFilterCount()} active filter(s)
+                </Alert>
+              )}
+              <FullCalendar
+                ref={calendarRef}
+                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+                initialView={view}
+                {...getMobileCalendarConfig(isMobile, isTablet)}
+                views={customViews}
+                buttonText={getButtonText(isMobile)}
+                events={calendarEvents}
+                dateClick={handleDateClick}
+                eventClick={handleEventClick}
+              />
+            </Box>
+          </Grid>
+        </Grid>
 
         {/* Mobile SpeedDial Controls */}
         <MobileCalendarControls
