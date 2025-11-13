@@ -17,7 +17,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..exceptions.import_exceptions import DuplicateDataError, ImportValidationError
-from ..models import Employee, Rule, Schedule, Shift
+from ..models import Employee, Rule, Schedule, ScheduleAssignment, Shift
 from ..schemas import EmployeeCreate, RuleCreate, ScheduleCreate, ShiftCreate
 from ..services.crud import crud_employee, crud_rule, crud_schedule
 
@@ -31,6 +31,45 @@ class ImportService:
         self.supported_formats = ["csv", "excel", "xlsx", "xls"]
         self.max_file_size = 50 * 1024 * 1024  # 50MB
         self.max_rows = 10000
+
+    async def _get_or_create_schedule_for_week(
+        self, db: AsyncSession, shift_date: date, created_by: int
+    ) -> Schedule:
+        """
+        Find or create Schedule container for the week containing shift_date.
+
+        Args:
+            db: Database session
+            shift_date: Date of the shift (used to determine week range)
+            created_by: User ID creating the schedule
+
+        Returns:
+            Schedule object for the week
+        """
+        from datetime import timedelta
+
+        # Calculate week start (Monday) and end (Sunday) from shift_date
+        week_start = shift_date - timedelta(days=shift_date.weekday())
+        week_end = week_start + timedelta(days=6)
+
+        # Try to find existing schedule for this week
+        query = select(Schedule).where(Schedule.week_start == week_start, Schedule.week_end == week_end)
+        result = await db.execute(query)
+        schedule = result.scalar_one_or_none()
+
+        if not schedule:
+            # Create new schedule for this week
+            schedule = Schedule(
+                week_start=week_start,
+                week_end=week_end,
+                status="draft",
+                created_by=created_by,
+                version=1,
+            )
+            db.add(schedule)
+            await db.flush()  # Get ID without committing transaction
+
+        return schedule
 
     async def validate_file(self, file_content: bytes, filename: str) -> Dict[str, Any]:
         """Validate uploaded file format and content."""
@@ -249,7 +288,14 @@ class ImportService:
         return results
 
     async def _process_schedule_import(self, db: AsyncSession, df: pd.DataFrame, options: Dict[str, Any]) -> Dict[str, Any]:
-        """Process schedule import data."""
+        """
+        Process schedule import data.
+
+        Creates Schedule containers for weeks and ScheduleAssignment records linking
+        employees to shifts within those schedules.
+        """
+        from sqlalchemy.orm import selectinload
+
         results = {"total_rows": len(df), "processed": 0, "created": 0, "updated": 0, "skipped": 0, "errors": []}
 
         # Column mapping
@@ -263,9 +309,13 @@ class ImportService:
         if missing_columns:
             raise ImportValidationError(f"Missing required columns: {missing_columns}")
 
-        # Cache employees and shifts for lookup
+        # Cache employees, shifts, and schedules for lookup
         employees_cache = {}
         shifts_cache = {}
+        schedules_cache = {}  # Cache schedules by week_start date
+
+        # Get created_by from options (default to admin user ID 1 if not provided)
+        created_by = options.get("created_by", 1)
 
         # Process each row
         for index, row in df.iterrows():
@@ -292,47 +342,130 @@ class ImportService:
                     shifts_cache[shift_name] = shift
                 shift = shifts_cache[shift_name]
 
-                # Parse date
-                schedule_date = pd.to_datetime(row[mapped_columns["date"]]).date()
+                # Parse date from the row
+                shift_date = pd.to_datetime(row[mapped_columns["date"]]).date()
 
-                # Check for existing schedule
-                existing_query = select(Schedule).where(
-                    and_(Schedule.employee_id == employee.id, Schedule.shift_id == shift.id, Schedule.date == schedule_date)
+                # Get or create Schedule for the week containing this shift date
+                from datetime import timedelta
+
+                week_start = shift_date - timedelta(days=shift_date.weekday())
+                week_key = week_start.isoformat()
+
+                if week_key not in schedules_cache:
+                    schedule = await self._get_or_create_schedule_for_week(db, shift_date, created_by)
+                    schedules_cache[week_key] = schedule
+                schedule = schedules_cache[week_key]
+
+                # Check for existing assignment
+                existing_query = (
+                    select(ScheduleAssignment)
+                    .where(
+                        and_(
+                            ScheduleAssignment.schedule_id == schedule.id,
+                            ScheduleAssignment.employee_id == employee.id,
+                            ScheduleAssignment.shift_id == shift.id,
+                        )
+                    )
+                    .options(
+                        selectinload(ScheduleAssignment.schedule),
+                        selectinload(ScheduleAssignment.employee),
+                        selectinload(ScheduleAssignment.shift),
+                    )
                 )
                 existing_result = await db.execute(existing_query)
-                existing_schedule = existing_result.scalar_one_or_none()
+                existing_assignment = existing_result.scalar_one_or_none()
 
-                schedule_data = {"employee_id": employee.id, "shift_id": shift.id, "date": schedule_date}
+                # Prepare assignment data
+                assignment_data = {
+                    "schedule_id": schedule.id,
+                    "employee_id": employee.id,
+                    "shift_id": shift.id,
+                    "status": "assigned",  # Default status
+                    "priority": 1,  # Default priority
+                    "auto_assigned": False,  # Manually imported
+                }
 
                 # Handle optional columns
-                if "status" in df.columns:
-                    schedule_data["status"] = row.get("status", "scheduled")
-                if "notes" in df.columns and pd.notna(row.get("notes")):
-                    schedule_data["notes"] = str(row["notes"])
-                if "overtime_approved" in df.columns:
-                    schedule_data["overtime_approved"] = str(row.get("overtime_approved", "")).lower() in ["true", "1", "yes"]
+                if "status" in df.columns and pd.notna(row.get("status")):
+                    status = str(row["status"]).lower()
+                    if status in ["assigned", "pending", "confirmed", "declined", "cancelled", "completed"]:
+                        assignment_data["status"] = status
 
-                if existing_schedule:
+                if "notes" in df.columns and pd.notna(row.get("notes")):
+                    assignment_data["notes"] = str(row["notes"])
+
+                if "priority" in df.columns and pd.notna(row.get("priority")):
+                    try:
+                        priority = int(row["priority"])
+                        if 1 <= priority <= 10:
+                            assignment_data["priority"] = priority
+                    except (ValueError, TypeError):
+                        pass  # Keep default priority
+
+                if existing_assignment:
                     if options.get("update_existing", False):
-                        # Update existing schedule
-                        update_data = {k: v for k, v in schedule_data.items() if k not in ["employee_id", "shift_id", "date"]}
-                        await crud_schedule.update(db, existing_schedule, update_data)
+                        # Update existing assignment
+                        for key, value in assignment_data.items():
+                            if key not in ["schedule_id", "employee_id", "shift_id"]:
+                                setattr(existing_assignment, key, value)
                         results["updated"] += 1
                     else:
                         results["skipped"] += 1
                         results["errors"].append(
-                            {"row": index + 1, "error": f"Schedule already exists for {email} on {schedule_date}"}
+                            {
+                                "row": index + 1,
+                                "error": f"Assignment already exists for {email} on {shift_date} for shift {shift_name}",
+                            }
                         )
                         continue
                 else:
-                    # Create new schedule
-                    schedule_create = ScheduleCreate(**schedule_data)
-                    await crud_schedule.create(db, schedule_create)
+                    # Check for shift conflicts before creating
+                    # Query other assignments for this employee on the same date
+                    conflict_query = (
+                        select(ScheduleAssignment)
+                        .join(Shift, ScheduleAssignment.shift_id == Shift.id)
+                        .where(
+                            and_(
+                                ScheduleAssignment.employee_id == employee.id,
+                                ScheduleAssignment.status.in_(["assigned", "confirmed"]),
+                                Shift.date == shift_date,
+                            )
+                        )
+                        .options(selectinload(ScheduleAssignment.shift))
+                    )
+                    conflict_result = await db.execute(conflict_query)
+                    existing_assignments = conflict_result.scalars().all()
+
+                    # Check for time conflicts
+                    has_conflict = False
+                    for existing in existing_assignments:
+                        # Check if shifts overlap
+                        if (
+                            shift.start_time < existing.shift.end_time
+                            and shift.end_time > existing.shift.start_time
+                        ):
+                            has_conflict = True
+                            results["errors"].append(
+                                {
+                                    "row": index + 1,
+                                    "error": f"Shift conflict: {email} already has shift from {existing.shift.start_time} to {existing.shift.end_time} on {shift_date}",
+                                }
+                            )
+                            break
+
+                    if has_conflict:
+                        results["skipped"] += 1
+                        continue
+
+                    # Create new assignment
+                    new_assignment = ScheduleAssignment(**assignment_data)
+                    db.add(new_assignment)
                     results["created"] += 1
 
                 results["processed"] += 1
 
             except Exception as e:
+                logger.error(f"Error processing row {index + 1}: {e}")
                 results["errors"].append({"row": index + 1, "error": f"Processing error: {str(e)}"})
 
         return results
@@ -432,26 +565,52 @@ class ImportService:
                     )
 
         elif import_type == "schedules":
-            # Check for schedule conflicts
+            # Check for schedule assignment conflicts
             for index, row in df.iterrows():
                 employee = await crud_employee.get_by_email(db, row["employee_email"])
                 if employee:
-                    # Check existing schedules
-                    schedule_date = pd.to_datetime(row["date"]).date()
-                    existing_query = select(Schedule).where(
-                        and_(Schedule.employee_id == employee.id, Schedule.date == schedule_date)
-                    )
-                    result = await db.execute(existing_query)
-                    existing_schedules = result.scalars().all()
+                    # Get shift by name
+                    shift_query = select(Shift).where(Shift.name == row["shift_name"])
+                    shift_result = await db.execute(shift_query)
+                    shift = shift_result.scalar_one_or_none()
 
-                    if existing_schedules:
-                        duplicates["database_duplicates"].append(
-                            {
-                                "field": "employee_date",
-                                "value": f"{row['employee_email']} on {schedule_date}",
-                                "existing_schedules": [s.id for s in existing_schedules],
-                            }
+                    if shift:
+                        # Check existing assignments for this employee/shift combination
+                        shift_date = pd.to_datetime(row["date"]).date()
+
+                        # Calculate week for this shift
+                        from datetime import timedelta
+
+                        week_start = shift_date - timedelta(days=shift_date.weekday())
+                        week_end = week_start + timedelta(days=6)
+
+                        # Find schedule for this week
+                        schedule_query = select(Schedule).where(
+                            Schedule.week_start == week_start, Schedule.week_end == week_end
                         )
+                        schedule_result = await db.execute(schedule_query)
+                        schedule = schedule_result.scalar_one_or_none()
+
+                        if schedule:
+                            # Check for existing assignment
+                            existing_query = select(ScheduleAssignment).where(
+                                and_(
+                                    ScheduleAssignment.schedule_id == schedule.id,
+                                    ScheduleAssignment.employee_id == employee.id,
+                                    ScheduleAssignment.shift_id == shift.id,
+                                )
+                            )
+                            result = await db.execute(existing_query)
+                            existing_assignment = result.scalar_one_or_none()
+
+                            if existing_assignment:
+                                duplicates["database_duplicates"].append(
+                                    {
+                                        "field": "employee_shift_date",
+                                        "value": f"{row['employee_email']} - {row['shift_name']} on {shift_date}",
+                                        "existing_assignment_id": existing_assignment.id,
+                                    }
+                                )
 
         duplicates["total_duplicates"] = len(duplicates["internal_duplicates"]) + len(duplicates["database_duplicates"])
         return duplicates
