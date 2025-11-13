@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -42,9 +42,13 @@ import { transformScheduleToCalendarEvents } from '../utils/assignmentHelpers';
 import { filterCalendarEvents } from '../utils/filterUtils';
 import AssignmentForm from '../components/forms/AssignmentForm';
 import MobileCalendarControls from '../components/calendar/MobileCalendarControls';
-import { ImportDialog, ExportDialog } from '../components/data-io';
 import SearchBar from '../components/search/SearchBar';
 import FilterPanel from '../components/search/FilterPanel';
+import { useLazyLoad } from '../hooks/useLazyLoad';
+
+// Lazy load heavy dialog components for better initial load
+const ImportDialog = lazy(() => import(/* webpackChunkName: "import-dialog" */ '../components/data-io/ImportDialog'));
+const ExportDialog = lazy(() => import(/* webpackChunkName: "export-dialog" */ '../components/data-io/ExportDialog'));
 import { getMobileCalendarConfig, getInitialView, getButtonText, customViews } from '../config/calendarConfig';
 import '../styles/calendar.css';
 
@@ -560,19 +564,27 @@ const SchedulePage = () => {
         scheduleId={selectedSchedule?.id}
       />
 
-      {/* Import Dialog */}
-      <ImportDialog
-        open={showImportDialog}
-        onClose={() => setShowImportDialog(false)}
-        onImport={handleImport}
-      />
+      {/* Import Dialog - Lazy Loaded */}
+      <Suspense fallback={<CircularProgress />}>
+        {showImportDialog && (
+          <ImportDialog
+            open={showImportDialog}
+            onClose={() => setShowImportDialog(false)}
+            onImport={handleImport}
+          />
+        )}
+      </Suspense>
 
-      {/* Export Dialog */}
-      <ExportDialog
-        open={showExportDialog}
-        onClose={() => setShowExportDialog(false)}
-        onExport={handleExport}
-      />
+      {/* Export Dialog - Lazy Loaded */}
+      <Suspense fallback={<CircularProgress />}>
+        {showExportDialog && (
+          <ExportDialog
+            open={showExportDialog}
+            onClose={() => setShowExportDialog(false)}
+            onExport={handleExport}
+          />
+        )}
+      </Suspense>
 
       {/* Notification Snackbar */}
       <Snackbar

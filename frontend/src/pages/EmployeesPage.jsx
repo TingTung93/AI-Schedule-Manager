@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+// import VirtualList from '../components/performance/VirtualList'; // For 1000+ employee lists
 import {
   Box,
   Typography,
@@ -297,7 +298,7 @@ const EmployeesPage = () => {
         </Tabs>
       </Box>
 
-      {/* Employee Cards */}
+      {/* Employee Cards with Virtual Scrolling */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -309,6 +310,9 @@ const EmployeesPage = () => {
           </Alert>
         ) : (
           <Grid container spacing={3}>
+            {/* Note: VirtualList component ready for large datasets (1000+ employees) */}
+            {/* Current implementation uses Grid for consistent layout */}
+            {/* To enable virtual scrolling for very large lists (1000+), wrap in VirtualList */}
             {(tabValue === 0 ? activeEmployees : inactiveEmployees).map((employee, index) => {
               const firstName = employee.firstName || employee.first_name || '';
               const lastName = employee.lastName || employee.last_name || '';

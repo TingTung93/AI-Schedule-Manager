@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress, Typography, Alert } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,22 +12,29 @@ import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Pages (Lazy loaded for better performance)
+// Performance Monitoring
+import { initPerformanceMonitoring } from './utils/performanceMonitor';
+
+// Public pages (no code splitting for critical routes)
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import EmployeesPage from './pages/EmployeesPage';
-import DepartmentManager from './pages/DepartmentManager';
-import ShiftManager from './pages/ShiftManager';
-import SchedulePage from './pages/SchedulePage';
-import ScheduleBuilder from './pages/ScheduleBuilder';
-import DepartmentOverview from './pages/DepartmentOverview';
-import RulesPage from './pages/RulesPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import RoleManager from './pages/RoleManager';
-import SettingsPage from './pages/SettingsPage';
-import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
+
+// Dashboard (keep immediate for first render)
+import DashboardPage from './pages/DashboardPage';
+
+// Heavy pages - lazy loaded for code splitting
+const ScheduleBuilder = lazy(() => import(/* webpackChunkName: "schedule-builder" */ './pages/ScheduleBuilder'));
+const SchedulePage = lazy(() => import(/* webpackChunkName: "schedule-page" */ './pages/SchedulePage'));
+const EmployeesPage = lazy(() => import(/* webpackChunkName: "employees-page" */ './pages/EmployeesPage'));
+const AnalyticsPage = lazy(() => import(/* webpackChunkName: "analytics-page" */ './pages/AnalyticsPage'));
+const DepartmentManager = lazy(() => import(/* webpackChunkName: "department-manager" */ './pages/DepartmentManager'));
+const ShiftManager = lazy(() => import(/* webpackChunkName: "shift-manager" */ './pages/ShiftManager'));
+const DepartmentOverview = lazy(() => import(/* webpackChunkName: "department-overview" */ './pages/DepartmentOverview'));
+const RulesPage = lazy(() => import(/* webpackChunkName: "rules-page" */ './pages/RulesPage'));
+const RoleManager = lazy(() => import(/* webpackChunkName: "role-manager" */ './pages/RoleManager'));
+const SettingsPage = lazy(() => import(/* webpackChunkName: "settings-page" */ './pages/SettingsPage'));
+const ProfilePage = lazy(() => import(/* webpackChunkName: "profile-page" */ './pages/ProfilePage'));
 
 // Route configuration
 import { ROUTES, ROUTE_CONFIG } from './utils/routeConfig';
@@ -133,6 +140,11 @@ const routeComponents = {
 
 function App() {
   const isOnline = useOnlineStatus();
+
+  // Initialize performance monitoring
+  useEffect(() => {
+    initPerformanceMonitoring();
+  }, []);
 
   // Generate routes from configuration
   const generateRoutes = () => {
