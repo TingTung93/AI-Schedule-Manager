@@ -33,6 +33,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import api, { getErrorMessage, scheduleService } from '../services/api';
 import { transformScheduleToCalendarEvents } from '../utils/assignmentHelpers';
+import AssignmentForm from '../components/forms/AssignmentForm';
 
 const SchedulePage = () => {
   const navigate = useNavigate();
@@ -42,8 +43,10 @@ const SchedulePage = () => {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('timeGridWeek');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [scheduleForm, setScheduleForm] = useState({
     title: '',
     employeeId: '',
@@ -135,6 +138,51 @@ const SchedulePage = () => {
     }
   };
 
+  const handleAssignmentSubmit = async (formData) => {
+    if (!selectedSchedule) {
+      setNotification({ type: 'error', message: 'Please select a schedule first' });
+      return;
+    }
+
+    try {
+      // Call correct assignment endpoint
+      const response = await api.post(
+        `/api/schedules/${selectedSchedule.id}/assignments`,
+        {
+          employee_id: parseInt(formData.employeeId),
+          shift_id: parseInt(formData.shiftId),
+          status: formData.status || 'assigned',
+          priority: formData.priority || 3,
+          notes: formData.notes || ''
+        }
+      );
+
+      // Show success message
+      setNotification({ type: 'success', message: 'Assignment created successfully' });
+
+      // Close form
+      setShowAssignmentForm(false);
+
+      // Reload schedule to show new assignment
+      await loadData();
+
+      // Refresh calendar events
+      setRefreshTrigger(prev => prev + 1);
+
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      setNotification({ type: 'error', message: errorMessage });
+
+      // Show specific error if conflict
+      if (error.response?.data?.conflicts) {
+        setNotification({
+          type: 'warning',
+          message: `Conflict detected: ${error.response.data.conflicts[0]?.message || 'Assignment may have conflicts'}`
+        });
+      }
+    }
+  };
+
   const handleViewChange = (event, newView) => {
     if (newView !== null) {
       setView(newView);
@@ -209,6 +257,15 @@ const SchedulePage = () => {
               onClick={() => navigate('/schedule/builder')}
             >
               Schedule Builder
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setShowAssignmentForm(true)}
+              disabled={!selectedSchedule}
+              sx={{ mr: 1 }}
+            >
+              Assign Employee to Shift
             </Button>
             <Button
               variant="outlined"
@@ -331,6 +388,14 @@ const SchedulePage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Assignment Form Dialog */}
+      <AssignmentForm
+        open={showAssignmentForm}
+        onClose={() => setShowAssignmentForm(false)}
+        onSubmit={handleAssignmentSubmit}
+        scheduleId={selectedSchedule?.id}
+      />
 
       {/* Notification Snackbar */}
       <Snackbar
