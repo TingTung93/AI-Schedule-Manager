@@ -1,10 +1,11 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress, Typography } from '@mui/material';
+import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress, Typography, Alert } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Context and Hooks
 import { AuthProvider } from './contexts/AuthContext';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -131,6 +132,8 @@ const routeComponents = {
 };
 
 function App() {
+  const isOnline = useOnlineStatus();
+
   // Generate routes from configuration
   const generateRoutes = () => {
     return ROUTE_CONFIG.map((route) => {
@@ -171,6 +174,23 @@ function App() {
     <ErrorBoundary name="App">
       <ThemeProvider theme={theme}>
         <CssBaseline />
+
+        {/* Offline Banner */}
+        {!isOnline && (
+          <Alert
+            severity="warning"
+            sx={{
+              position: 'fixed',
+              top: 0,
+              width: '100%',
+              zIndex: 9999,
+              borderRadius: 0
+            }}
+          >
+            You are offline. Some features may not work.
+          </Alert>
+        )}
+
         <AuthProvider>
           <Router>
             <Suspense fallback={<LoadingFallback />}>

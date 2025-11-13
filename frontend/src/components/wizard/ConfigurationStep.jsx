@@ -22,6 +22,7 @@ import { Search, FilterList } from '@mui/icons-material';
 import api, { getErrorMessage } from '../../services/api';
 import ValidationFeedback from './ValidationFeedback';
 import StepProgress from './StepProgress';
+import ErrorRecovery from './ErrorRecovery';
 
 const ConfigurationStep = ({ data, onChange, setNotification }) => {
   const [departments, setDepartments] = useState([]);
@@ -29,6 +30,8 @@ const ConfigurationStep = ({ data, onChange, setNotification }) => {
   const [filteredStaff, setFilteredStaff] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [staffLoadError, setStaffLoadError] = useState(null);
 
   useEffect(() => {
     loadDepartments();
@@ -54,13 +57,13 @@ const ConfigurationStep = ({ data, onChange, setNotification }) => {
 
   const loadDepartments = async () => {
     try {
+      setLoadError(null);
+      setLoading(true);
       const response = await api.get('/api/departments');
       setDepartments(response.data.departments || []);
     } catch (error) {
-      setNotification({
-        type: 'error',
-        message: 'Failed to load departments: ' + getErrorMessage(error)
-      });
+      console.error('Failed to load departments:', error);
+      setLoadError(error);
     } finally {
       setLoading(false);
     }
@@ -68,15 +71,14 @@ const ConfigurationStep = ({ data, onChange, setNotification }) => {
 
   const loadStaff = async (departmentId) => {
     try {
+      setStaffLoadError(null);
       setLoading(true);
       const response = await api.get(`/api/departments/${departmentId}/staff`);
       setAllStaff(response.data.staff || []);
       setFilteredStaff(response.data.staff || []);
     } catch (error) {
-      setNotification({
-        type: 'error',
-        message: 'Failed to load staff: ' + getErrorMessage(error)
-      });
+      console.error('Failed to load staff:', error);
+      setStaffLoadError(error);
     } finally {
       setLoading(false);
     }
@@ -257,6 +259,31 @@ const ConfigurationStep = ({ data, onChange, setNotification }) => {
       <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
         Configure the basic parameters for your schedule
       </Typography>
+
+      {/* Department Loading Error */}
+      {loadError && (
+        <ErrorRecovery
+          error={loadError}
+          onRetry={loadDepartments}
+          skipAllowed={false}
+        />
+      )}
+
+      {/* Staff Loading Error */}
+      {staffLoadError && (
+        <ErrorRecovery
+          error={staffLoadError}
+          onRetry={() => loadStaff(data.department)}
+          skipAllowed={true}
+          onSkip={() => {
+            setStaffLoadError(null);
+            setNotification({
+              type: 'warning',
+              message: 'Staff loading skipped. You can continue without staff data.'
+            });
+          }}
+        />
+      )}
 
       {/* Validation Feedback */}
       <ValidationFeedback validations={validations} currentData={data} />
