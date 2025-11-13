@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Context and Hooks
 import { AuthProvider } from './contexts/AuthContext';
-import { useOnlineStatus } from './hooks/useOnlineStatus';
+import useOnlineStatus from './hooks/useOnlineStatus';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -14,6 +14,9 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 // Performance Monitoring
 import { initPerformanceMonitoring } from './utils/performanceMonitor';
+
+// Route configuration
+import { ROUTES, ROUTE_CONFIG } from './utils/routeConfig';
 
 // Public pages (no code splitting for critical routes)
 import LoginPage from './pages/LoginPage';
@@ -35,9 +38,6 @@ const RulesPage = lazy(() => import(/* webpackChunkName: "rules-page" */ './page
 const RoleManager = lazy(() => import(/* webpackChunkName: "role-manager" */ './pages/RoleManager'));
 const SettingsPage = lazy(() => import(/* webpackChunkName: "settings-page" */ './pages/SettingsPage'));
 const ProfilePage = lazy(() => import(/* webpackChunkName: "profile-page" */ './pages/ProfilePage'));
-
-// Route configuration
-import { ROUTES, ROUTE_CONFIG } from './utils/routeConfig';
 
 // Theme configuration
 const theme = createTheme({

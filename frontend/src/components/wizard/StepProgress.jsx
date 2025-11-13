@@ -13,7 +13,7 @@ import {
 import {
   CheckCircle as CheckCircleIcon,
   RadioButtonUnchecked as UncheckedIcon
-} from '@mui/material';
+} from '@mui/icons-material';
 
 /**
  * StepProgress Component

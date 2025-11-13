@@ -46,11 +46,13 @@ import SearchBar from '../components/search/SearchBar';
 import FilterPanel from '../components/search/FilterPanel';
 import { useLazyLoad } from '../hooks/useLazyLoad';
 
+// Calendar configuration and styles
+import { getMobileCalendarConfig, getInitialView, getButtonText, customViews } from '../config/calendarConfig';
+import '../styles/calendar.css';
+
 // Lazy load heavy dialog components for better initial load
 const ImportDialog = lazy(() => import(/* webpackChunkName: "import-dialog" */ '../components/data-io/ImportDialog'));
 const ExportDialog = lazy(() => import(/* webpackChunkName: "export-dialog" */ '../components/data-io/ExportDialog'));
-import { getMobileCalendarConfig, getInitialView, getButtonText, customViews } from '../config/calendarConfig';
-import '../styles/calendar.css';
 
 const SchedulePage = () => {
   const navigate = useNavigate();
