@@ -128,6 +128,7 @@ const AuthContext = createContext(null);
 // Authentication provider component
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const initializingRef = React.useRef(false);
 
   // Initialize authentication state on app load
   useEffect(() => {
@@ -135,7 +136,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const initializeAuth = async () => {
+    // Prevent multiple simultaneous initializations
+    if (initializingRef.current) {
+      return;
+    }
+
     try {
+      initializingRef.current = true;
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: { isLoading: true } });
 
       // Try to get current user (this will use existing cookies)
@@ -152,14 +159,25 @@ export const AuthProvider = ({ children }) => {
           authService.setAccessToken(response.data.access_token);
         }
 
-        // Get CSRF token
-        await getCsrfToken();
+        // Get CSRF token (but don't fail if it doesn't work)
+        try {
+          await getCsrfToken();
+        } catch (csrfError) {
+          console.warn('CSRF token fetch failed:', csrfError);
+        }
       } else {
         dispatch({ type: AUTH_ACTIONS.LOGOUT });
       }
     } catch (error) {
-      console.warn('Authentication initialization failed:', error);
+      // Handle network errors gracefully - don't spam console
+      if (error.code === 'ECONNABORTED' || error.message?.includes('Network error')) {
+        console.debug('Auth initialization skipped - network not ready');
+      } else {
+        console.warn('Authentication initialization failed:', error.message);
+      }
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    } finally {
+      initializingRef.current = false;
     }
   };
 
