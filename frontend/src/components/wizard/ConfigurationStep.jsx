@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -20,6 +20,8 @@ import {
 } from '@mui/material';
 import { Search, FilterList } from '@mui/icons-material';
 import api, { getErrorMessage } from '../../services/api';
+import ValidationFeedback from './ValidationFeedback';
+import StepProgress from './StepProgress';
 
 const ConfigurationStep = ({ data, onChange, setNotification }) => {
   const [departments, setDepartments] = useState([]);
@@ -117,6 +119,136 @@ const ConfigurationStep = ({ data, onChange, setNotification }) => {
     }
   }, []);
 
+  // Define validation rules for all required fields
+  const validations = useMemo(() => [
+    {
+      field: 'scheduleName',
+      validator: (formData) => {
+        if (!formData.scheduleName?.trim()) {
+          return 'Schedule name is required. Example: "Week of Jan 15-21, 2024"';
+        }
+        if (formData.scheduleName.trim().length < 3) {
+          return 'Schedule name must be at least 3 characters long';
+        }
+        return null;
+      }
+    },
+    {
+      field: 'department',
+      validator: (formData) => {
+        if (!formData.department) {
+          return 'Please select a department to assign staff members';
+        }
+        return null;
+      }
+    },
+    {
+      field: 'dateRange.start',
+      validator: (formData) => {
+        if (!formData.dateRange?.start) {
+          return 'Start date is required for the schedule period';
+        }
+        return null;
+      }
+    },
+    {
+      field: 'dateRange.end',
+      validator: (formData) => {
+        if (!formData.dateRange?.end) {
+          return 'End date is required for the schedule period';
+        }
+        return null;
+      }
+    },
+    {
+      field: 'dateRange.validation',
+      validator: (formData) => {
+        if (formData.dateRange?.start && formData.dateRange?.end) {
+          const start = new Date(formData.dateRange.start);
+          const end = new Date(formData.dateRange.end);
+          if (end < start) {
+            return 'End date must be after or equal to the start date';
+          }
+          const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+          if (diffDays > 90) {
+            return 'Schedule period cannot exceed 90 days. Please select a shorter date range.';
+          }
+        }
+        return null;
+      }
+    },
+    {
+      field: 'selectedStaff',
+      validator: (formData) => {
+        if (!formData.selectedStaff || formData.selectedStaff.length === 0) {
+          return 'Please select at least one employee to include in this schedule';
+        }
+        return null;
+      }
+    },
+    {
+      field: 'selectedStaff.warning',
+      severity: 'warning',
+      validator: (formData) => {
+        if (formData.selectedStaff && formData.selectedStaff.length === 1) {
+          return 'You have only selected one employee. Consider adding more for better schedule flexibility.';
+        }
+        return null;
+      }
+    }
+  ], []);
+
+  // Define step requirements for progress tracking
+  const requirements = useMemo(() => [
+    {
+      id: 'scheduleName',
+      label: 'Provide a schedule name',
+      hint: 'Enter a descriptive name for your schedule'
+    },
+    {
+      id: 'department',
+      label: 'Select a department',
+      hint: 'Choose the department to schedule'
+    },
+    {
+      id: 'dateRange',
+      label: 'Set start and end dates',
+      hint: 'Define the schedule period'
+    },
+    {
+      id: 'selectedStaff',
+      label: 'Select at least one staff member',
+      hint: 'Choose employees to include in the schedule'
+    }
+  ], []);
+
+  // Calculate completed requirements
+  const completedItems = useMemo(() => {
+    const completed = [];
+
+    if (data.scheduleName?.trim() && data.scheduleName.trim().length >= 3) {
+      completed.push('scheduleName');
+    }
+
+    if (data.department) {
+      completed.push('department');
+    }
+
+    if (data.dateRange?.start && data.dateRange?.end) {
+      const start = new Date(data.dateRange.start);
+      const end = new Date(data.dateRange.end);
+      if (end >= start) {
+        completed.push('dateRange');
+      }
+    }
+
+    if (data.selectedStaff && data.selectedStaff.length > 0) {
+      completed.push('selectedStaff');
+    }
+
+    return completed;
+  }, [data]);
+
   return (
     <Box>
       <Typography variant="h5" gutterBottom fontWeight="bold">
@@ -125,6 +257,12 @@ const ConfigurationStep = ({ data, onChange, setNotification }) => {
       <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
         Configure the basic parameters for your schedule
       </Typography>
+
+      {/* Validation Feedback */}
+      <ValidationFeedback validations={validations} currentData={data} />
+
+      {/* Step Progress */}
+      <StepProgress requirements={requirements} completedItems={completedItems} />
 
       <Grid container spacing={3}>
         {/* Schedule Name and Description */}
