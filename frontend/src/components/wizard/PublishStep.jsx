@@ -105,6 +105,23 @@ const PublishStep = ({ data, onChange, setNotification }) => {
   const handlePublish = async () => {
     setPublishing(true);
     try {
+      // Validate data before proceeding
+      if (!data.currentSchedule?.assignments || data.currentSchedule.assignments.length === 0) {
+        setNotification({
+          type: 'error',
+          message: 'No assignments to publish. Please complete the Generation step first.'
+        });
+        return;
+      }
+
+      if (!data.dateRange?.start || !data.dateRange?.end) {
+        setNotification({
+          type: 'error',
+          message: 'Invalid date range. Please go back to Configuration step.'
+        });
+        return;
+      }
+
       // Step 1: Create Schedule container
       console.log('Creating schedule container...');
       const scheduleResponse = await api.post('/api/schedules', {
@@ -118,42 +135,37 @@ const PublishStep = ({ data, onChange, setNotification }) => {
       const scheduleId = scheduleResponse.data.id;
       console.log(`Schedule created with ID: ${scheduleId}`);
 
-      // Step 2: Create schedule assignments (link employees to shifts)
-      // The generated schedule should have assignments array
-      const assignments = data.currentSchedule?.assignments || [];
+      // Step 2: Create schedule assignments in bulk
+      const assignments = data.currentSchedule.assignments.map(assignment => ({
+        employee_id: assignment.employeeId || assignment.employee_id || assignment.staffId,
+        shift_id: assignment.shiftId || assignment.shift_id,
+        status: assignment.status || 'assigned',
+        priority: assignment.priority || 1,
+        notes: assignment.notes || ''
+      }));
 
-      if (assignments.length > 0) {
-        console.log(`Creating ${assignments.length} assignments...`);
+      console.log(`Creating ${assignments.length} assignments via bulk endpoint...`);
 
-        // Create assignments one by one (batch endpoint may not exist yet)
-        let createdCount = 0;
-        const errors = [];
+      const bulkResponse = await api.post('/api/assignments/bulk', {
+        schedule_id: scheduleId,
+        assignments: assignments,
+        validate_conflicts: true
+      });
 
-        for (const assignment of assignments) {
-          try {
-            await api.post('/api/schedule-assignments', {
-              schedule_id: scheduleId,
-              employee_id: assignment.employeeId || assignment.employee_id || assignment.staffId,
-              shift_id: assignment.shiftId || assignment.shift_id,
-              status: assignment.status || 'assigned',
-              priority: assignment.priority || 1,
-              notes: assignment.notes || ''
-            });
-            createdCount++;
-          } catch (err) {
-            console.warn('Failed to create assignment:', err);
-            errors.push({
-              assignment,
-              error: getErrorMessage(err)
-            });
-          }
-        }
+      console.log(`Created ${bulkResponse.data.total_created} assignments successfully`);
 
-        console.log(`Created ${createdCount}/${assignments.length} assignments`);
-
-        if (errors.length > 0) {
-          console.warn(`${errors.length} assignments failed:`, errors);
-        }
+      // Handle any conflicts or errors
+      if (bulkResponse.data.errors && bulkResponse.data.errors.length > 0) {
+        console.warn('Some assignments had conflicts:', bulkResponse.data.errors);
+        setNotification({
+          type: 'warning',
+          message: `Schedule created, but ${bulkResponse.data.errors.length} assignment(s) had conflicts and were skipped.`
+        });
+      } else {
+        setNotification({
+          type: 'success',
+          message: `Schedule published successfully with ${bulkResponse.data.total_created} assignments!`
+        });
       }
 
       // Step 3: Optionally publish the schedule (change status)
@@ -162,17 +174,12 @@ const PublishStep = ({ data, onChange, setNotification }) => {
           await api.put(`/api/schedules/${scheduleId}`, {
             status: 'published'
           });
-          console.log('Schedule published');
+          console.log('Schedule status changed to published');
         } catch (err) {
-          console.warn('Failed to publish schedule:', err);
+          console.warn('Failed to update schedule status:', err);
           // Continue anyway - schedule is created
         }
       }
-
-      setNotification({
-        type: 'success',
-        message: 'Schedule published successfully!'
-      });
 
       // Clear saved progress
       localStorage.removeItem('scheduleBuilderProgress');
@@ -210,24 +217,29 @@ const PublishStep = ({ data, onChange, setNotification }) => {
       const scheduleId = scheduleResponse.data.id;
       console.log(`Draft schedule created with ID: ${scheduleId}`);
 
-      // Optionally save assignments if they exist
-      const assignments = data.currentSchedule?.assignments || [];
-      if (assignments.length > 0) {
-        console.log(`Saving ${assignments.length} draft assignments...`);
+      // Save assignments if they exist using bulk endpoint
+      const assignmentsData = data.currentSchedule?.assignments || [];
+      if (assignmentsData.length > 0) {
+        console.log(`Saving ${assignmentsData.length} draft assignments...`);
 
-        for (const assignment of assignments) {
-          try {
-            await api.post('/api/schedule-assignments', {
-              schedule_id: scheduleId,
-              employee_id: assignment.employeeId || assignment.employee_id || assignment.staffId,
-              shift_id: assignment.shiftId || assignment.shift_id,
-              status: 'pending',  // Draft assignments are pending
-              priority: assignment.priority || 1,
-              notes: assignment.notes || ''
-            });
-          } catch (err) {
-            console.warn('Failed to save draft assignment:', err);
-          }
+        const assignments = assignmentsData.map(assignment => ({
+          employee_id: assignment.employeeId || assignment.employee_id || assignment.staffId,
+          shift_id: assignment.shiftId || assignment.shift_id,
+          status: 'pending',  // Draft assignments are pending
+          priority: assignment.priority || 1,
+          notes: assignment.notes || ''
+        }));
+
+        try {
+          const bulkResponse = await api.post('/api/assignments/bulk', {
+            schedule_id: scheduleId,
+            assignments: assignments,
+            validate_conflicts: false  // Don't validate conflicts for drafts
+          });
+          console.log(`Saved ${bulkResponse.data.total_created} draft assignments`);
+        } catch (err) {
+          console.warn('Failed to save draft assignments:', err);
+          // Continue anyway - schedule container is created
         }
       }
 

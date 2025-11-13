@@ -24,7 +24,10 @@ from ..schemas import (
     PublishSettings,
     PublishResponse,
     ConflictDetail,
-    CoverageStats
+    CoverageStats,
+    AssignmentCreate,
+    AssignmentResponse,
+    AssignmentUpdate
 )
 from ..services.schedule_service import schedule_service
 
@@ -659,3 +662,228 @@ def _determine_severity(conflict_type: str) -> str:
         return "medium"
     else:
         return "low"
+
+
+# Assignment endpoints
+@router.post("/{schedule_id}/assignments", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED)
+async def create_assignment(
+    schedule_id: int,
+    assignment_data: AssignmentCreate,
+    db: AsyncSession = Depends(get_database_session),
+    current_user = Depends(get_current_user)
+):
+    """Create a new assignment for a schedule."""
+    try:
+        # Verify schedule exists
+        schedule_result = await db.execute(select(Schedule).where(Schedule.id == schedule_id))
+        schedule = schedule_result.scalar_one_or_none()
+
+        if not schedule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Schedule with ID {schedule_id} not found"
+            )
+
+        # Check if schedule is editable
+        if not schedule.is_editable:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Schedule is {schedule.status} and cannot be modified"
+            )
+
+        # Create new assignment
+        new_assignment = ScheduleAssignment(
+            schedule_id=schedule_id,
+            employee_id=assignment_data.employee_id,
+            shift_id=assignment_data.shift_id,
+            status=assignment_data.status.value if hasattr(assignment_data.status, 'value') else assignment_data.status,
+            priority=assignment_data.priority,
+            notes=assignment_data.notes,
+            assigned_by=current_user.id,
+            auto_assigned=False
+        )
+
+        db.add(new_assignment)
+        await db.commit()
+        await db.refresh(new_assignment)
+
+        # Reload with relationships
+        query = select(ScheduleAssignment).options(
+            selectinload(ScheduleAssignment.employee),
+            selectinload(ScheduleAssignment.shift)
+        ).where(ScheduleAssignment.id == new_assignment.id)
+
+        result = await db.execute(query)
+        assignment = result.scalar_one()
+
+        return assignment
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        print(f"Error creating assignment: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create assignment: {str(e)}"
+        )
+
+
+@router.get("/{schedule_id}/assignments", response_model=List[AssignmentResponse])
+async def get_assignments(
+    schedule_id: int,
+    status_filter: Optional[str] = None,
+    employee_id: Optional[int] = None,
+    db: AsyncSession = Depends(get_database_session),
+    current_user = Depends(get_current_user)
+):
+    """Get all assignments for a schedule."""
+    try:
+        # Verify schedule exists
+        schedule_result = await db.execute(select(Schedule).where(Schedule.id == schedule_id))
+        schedule = schedule_result.scalar_one_or_none()
+
+        if not schedule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Schedule with ID {schedule_id} not found"
+            )
+
+        # Build query
+        query = select(ScheduleAssignment).options(
+            selectinload(ScheduleAssignment.employee),
+            selectinload(ScheduleAssignment.shift)
+        ).where(ScheduleAssignment.schedule_id == schedule_id)
+
+        # Apply filters
+        if status_filter:
+            query = query.where(ScheduleAssignment.status == status_filter)
+
+        if employee_id:
+            query = query.where(ScheduleAssignment.employee_id == employee_id)
+
+        result = await db.execute(query)
+        assignments = result.scalars().all()
+
+        return assignments
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching assignments: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch assignments: {str(e)}"
+        )
+
+
+@router.put("/{schedule_id}/assignments/{assignment_id}", response_model=AssignmentResponse)
+async def update_assignment(
+    schedule_id: int,
+    assignment_id: int,
+    assignment_data: AssignmentUpdate,
+    db: AsyncSession = Depends(get_database_session),
+    current_user = Depends(get_current_user)
+):
+    """Update an assignment."""
+    try:
+        # Find assignment
+        result = await db.execute(
+            select(ScheduleAssignment)
+            .where(ScheduleAssignment.id == assignment_id)
+            .where(ScheduleAssignment.schedule_id == schedule_id)
+        )
+        assignment = result.scalar_one_or_none()
+
+        if not assignment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Assignment with ID {assignment_id} not found in schedule {schedule_id}"
+            )
+
+        # Check permissions
+        can_modify, reason = assignment.can_modify(current_user)
+        if not can_modify:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=reason
+            )
+
+        # Update fields
+        update_data = assignment_data.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            if hasattr(assignment, field):
+                # Handle enum values
+                if field == 'status' and hasattr(value, 'value'):
+                    setattr(assignment, field, value.value)
+                else:
+                    setattr(assignment, field, value)
+
+        await db.commit()
+        await db.refresh(assignment)
+
+        # Reload with relationships
+        query = select(ScheduleAssignment).options(
+            selectinload(ScheduleAssignment.employee),
+            selectinload(ScheduleAssignment.shift)
+        ).where(ScheduleAssignment.id == assignment_id)
+
+        result = await db.execute(query)
+        assignment = result.scalar_one()
+
+        return assignment
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        print(f"Error updating assignment: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update assignment: {str(e)}"
+        )
+
+
+@router.delete("/{schedule_id}/assignments/{assignment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_assignment(
+    schedule_id: int,
+    assignment_id: int,
+    db: AsyncSession = Depends(get_database_session),
+    current_user = Depends(get_current_user)
+):
+    """Delete an assignment."""
+    try:
+        # Find assignment
+        result = await db.execute(
+            select(ScheduleAssignment)
+            .where(ScheduleAssignment.id == assignment_id)
+            .where(ScheduleAssignment.schedule_id == schedule_id)
+        )
+        assignment = result.scalar_one_or_none()
+
+        if not assignment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Assignment with ID {assignment_id} not found in schedule {schedule_id}"
+            )
+
+        # Check permissions
+        can_modify, reason = assignment.can_modify(current_user)
+        if not can_modify:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=reason
+            )
+
+        await db.delete(assignment)
+        await db.commit()
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        print(f"Error deleting assignment: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete assignment: {str(e)}"
+        )
