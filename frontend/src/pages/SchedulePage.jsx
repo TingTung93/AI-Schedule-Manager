@@ -27,7 +27,9 @@ import {
   Today,
   ViewWeek,
   ViewModule,
-  AutoFixHigh
+  AutoFixHigh,
+  CloudUpload,
+  CloudDownload
 } from '@mui/icons-material';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -38,6 +40,7 @@ import api, { getErrorMessage, scheduleService } from '../services/api';
 import { transformScheduleToCalendarEvents } from '../utils/assignmentHelpers';
 import AssignmentForm from '../components/forms/AssignmentForm';
 import MobileCalendarControls from '../components/calendar/MobileCalendarControls';
+import { ImportDialog, ExportDialog } from '../components/data-io';
 import { getMobileCalendarConfig, getInitialView, getButtonText, customViews } from '../config/calendarConfig';
 import '../styles/calendar.css';
 
@@ -61,6 +64,8 @@ const SchedulePage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [notification, setNotification] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const [scheduleForm, setScheduleForm] = useState({
     title: '',
     employeeId: '',
@@ -235,6 +240,24 @@ const SchedulePage = () => {
     });
   };
 
+  // Handler for successful import
+  const handleImport = (result) => {
+    setNotification({
+      type: 'success',
+      message: `Successfully imported ${result.shifts_created || 0} shifts`
+    });
+    // Reload schedules to show imported data
+    loadData();
+  };
+
+  // Handler for successful export
+  const handleExport = (result) => {
+    setNotification({
+      type: 'success',
+      message: `Successfully exported schedule as ${result.format.toUpperCase()}`
+    });
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -322,6 +345,20 @@ const SchedulePage = () => {
                 onClick={() => setDialogOpen(true)}
               >
                 Add Schedule
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<CloudUpload />}
+                onClick={() => setShowImportDialog(true)}
+              >
+                Import
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<CloudDownload />}
+                onClick={() => setShowExportDialog(true)}
+              >
+                Export
               </Button>
             </Box>
           </Box>
@@ -447,6 +484,20 @@ const SchedulePage = () => {
         onClose={() => setShowAssignmentForm(false)}
         onSubmit={handleAssignmentSubmit}
         scheduleId={selectedSchedule?.id}
+      />
+
+      {/* Import Dialog */}
+      <ImportDialog
+        open={showImportDialog}
+        onClose={() => setShowImportDialog(false)}
+        onImport={handleImport}
+      />
+
+      {/* Export Dialog */}
+      <ExportDialog
+        open={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        onExport={handleExport}
       />
 
       {/* Notification Snackbar */}
