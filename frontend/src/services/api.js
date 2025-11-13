@@ -105,10 +105,15 @@ api.interceptors.response.use(
         // Retry original request
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - redirect to login
+        // Refresh failed - redirect to login only if not already there
         processQueue(refreshError, null);
         authService.logout();
-        window.location.href = '/login';
+
+        // Don't redirect if already on login/register pages to prevent loops
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          window.location.href = '/login';
+        }
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

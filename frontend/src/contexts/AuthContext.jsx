@@ -141,6 +141,12 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    // Don't initialize auth on login/register pages - user is trying to authenticate
+    if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      return;
+    }
+
     try {
       initializingRef.current = true;
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: { isLoading: true } });
