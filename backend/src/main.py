@@ -19,6 +19,7 @@ from .api.data_io import router as data_io_router
 from .api.departments import router as departments_router
 from .api.employees import router as employees_router
 from .api.notifications import router as notifications_router
+from .api.rules import router as rules_router
 from .api.schedules import router as schedules_router
 from .api.settings import router as settings_router
 from .api.shifts import router as shifts_router
@@ -97,6 +98,7 @@ app.include_router(data_io_router)
 app.include_router(departments_router)
 app.include_router(employees_router)
 app.include_router(notifications_router)
+app.include_router(rules_router)
 app.include_router(schedules_router)
 app.include_router(analytics_router)
 app.include_router(settings_router)

@@ -258,16 +258,15 @@ class ShiftResponse(ShiftBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-# Schedule schemas
+# Schedule schemas (updated to match new model)
 class ScheduleBase(BaseModel):
-    """Base schedule schema."""
+    """Base schedule schema for weekly schedules."""
 
-    employee_id: int
-    shift_id: int
-    date: date
-    status: ScheduleStatus = ScheduleStatus.SCHEDULED
+    week_start: date
+    week_end: date
+    title: Optional[str] = None
+    description: Optional[str] = None
     notes: Optional[str] = None
-    overtime_approved: bool = False
 
 
 class ScheduleCreate(ScheduleBase):
@@ -279,22 +278,70 @@ class ScheduleCreate(ScheduleBase):
 class ScheduleUpdate(BaseModel):
     """Schedule update schema."""
 
-    employee_id: Optional[int] = None
-    shift_id: Optional[int] = None
-    date: Optional[date] = None
-    status: Optional[ScheduleStatus] = None
+    week_start: Optional[date] = None
+    week_end: Optional[date] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
     notes: Optional[str] = None
-    overtime_approved: Optional[bool] = None
+    status: Optional[str] = None
+
+
+class ScheduleAssignmentBase(BaseModel):
+    """Base schedule assignment schema."""
+
+    employee_id: int
+    shift_id: int
+    status: str = "assigned"
+    priority: int = Field(3, ge=1, le=10)
+    notes: Optional[str] = None
+
+
+class ScheduleAssignmentCreate(ScheduleAssignmentBase):
+    """Schedule assignment creation schema."""
+
+    pass
+
+
+class ScheduleAssignmentUpdate(BaseModel):
+    """Schedule assignment update schema."""
+
+    status: Optional[str] = None
+    priority: Optional[int] = Field(None, ge=1, le=10)
+    notes: Optional[str] = None
+
+
+class ScheduleAssignmentResponse(ScheduleAssignmentBase):
+    """Schedule assignment response schema."""
+
+    id: int
+    schedule_id: int
+    assigned_by: Optional[int] = None
+    assigned_at: datetime
+    conflicts_resolved: bool
+    auto_assigned: bool
+    created_at: datetime
+    employee: Optional[EmployeeResponse] = None
+    shift: Optional[ShiftResponse] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ScheduleResponse(ScheduleBase):
     """Schedule response schema."""
 
     id: int
+    status: str
+    version: int
+    parent_schedule_id: Optional[int] = None
+    created_by: int
+    approved_by: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    published_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
-    employee: EmployeeResponse
-    shift: ShiftResponse
+    creator: Optional[EmployeeResponse] = None
+    approver: Optional[EmployeeResponse] = None
+    assignments: List[ScheduleAssignmentResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -554,5 +601,134 @@ class SettingsUpdateResponse(BaseModel):
 
     message: str = Field(..., description="Success message")
     settings: UserSettingsResponse = Field(..., description="Updated settings")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# AI Schedule Generation Schemas
+class GenerationRequirements(BaseModel):
+    """Requirements for AI schedule generation."""
+
+    start_date: date = Field(..., description="Schedule start date")
+    end_date: date = Field(..., description="Schedule end date")
+    employee_ids: Optional[List[int]] = Field(None, description="Specific employees to include (optional)")
+    shift_template_ids: Optional[List[int]] = Field(None, description="Shift templates to use (optional)")
+    constraints: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional constraints")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ConflictDetail(BaseModel):
+    """Details about a scheduling conflict."""
+
+    type: str = Field(..., description="Conflict type (double_booking, qualification_mismatch, etc.)")
+    employee_id: Optional[int] = Field(None, description="Employee involved in conflict")
+    employee_name: Optional[str] = Field(None, description="Employee name")
+    assignment_ids: Optional[List[int]] = Field(None, description="Assignment IDs involved")
+    shift_id: Optional[int] = Field(None, description="Shift ID involved")
+    shift_date: Optional[str] = Field(None, description="Shift date (ISO format)")
+    description: str = Field(..., description="Human-readable conflict description")
+    severity: str = Field("medium", description="Conflict severity (low, medium, high)")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CoverageStats(BaseModel):
+    """Schedule coverage statistics."""
+
+    total_shifts: int = Field(..., description="Total number of shifts")
+    assigned_shifts: int = Field(..., description="Number of shifts with assignments")
+    coverage_percentage: float = Field(..., description="Percentage of shifts covered")
+    total_assignments: int = Field(..., description="Total number of assignments")
+    unique_employees: int = Field(..., description="Number of unique employees assigned")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class GenerationResponse(BaseModel):
+    """Response from AI schedule generation."""
+
+    status: str = Field(..., description="Generation status (optimal, feasible, infeasible, error)")
+    message: str = Field(..., description="Status message")
+    saved_assignments: Optional[int] = Field(None, description="Number of assignments saved to database")
+    schedule: List[Dict[str, Any]] = Field(default_factory=list, description="Generated schedule data")
+    conflicts: Optional[List[ConflictDetail]] = Field(default_factory=list, description="Detected conflicts")
+    coverage: Optional[CoverageStats] = Field(None, description="Coverage statistics")
+    optimization_score: Optional[float] = Field(None, description="Overall schedule quality score (0-100)")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ValidationResponse(BaseModel):
+    """Response from schedule validation."""
+
+    schedule_id: int = Field(..., description="Schedule ID validated")
+    is_valid: bool = Field(..., description="Whether schedule is valid")
+    conflicts: List[ConflictDetail] = Field(default_factory=list, description="List of conflicts found")
+    conflict_count: int = Field(..., description="Total number of conflicts")
+    warnings: List[str] = Field(default_factory=list, description="Non-critical warnings")
+    validation_timestamp: datetime = Field(default_factory=datetime.utcnow, description="When validation occurred")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OptimizationGoals(BaseModel):
+    """Goals for schedule optimization."""
+
+    minimize_overtime: bool = Field(False, description="Minimize overtime hours")
+    maximize_coverage: bool = Field(True, description="Ensure all shifts are covered")
+    balance_workload: bool = Field(True, description="Distribute shifts evenly among employees")
+    prefer_qualifications: bool = Field(True, description="Match employee skills to shift requirements")
+    minimize_cost: bool = Field(False, description="Minimize total labor cost")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OptimizationSuggestion(BaseModel):
+    """Individual optimization suggestion."""
+
+    type: str = Field(..., description="Suggestion type (swap, reassign, remove, add)")
+    current_assignment_id: Optional[int] = Field(None, description="Current assignment ID to modify")
+    suggested_employee_id: Optional[int] = Field(None, description="Suggested employee for reassignment")
+    shift_id: int = Field(..., description="Shift ID involved")
+    rationale: str = Field(..., description="Explanation of why this optimization helps")
+    impact_score: float = Field(..., description="Expected improvement score (0-100)")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OptimizationResponse(BaseModel):
+    """Response from schedule optimization."""
+
+    schedule_id: int = Field(..., description="Schedule ID optimized")
+    status: str = Field(..., description="Optimization status (optimal, feasible, no_improvement)")
+    suggestions: List[OptimizationSuggestion] = Field(default_factory=list, description="Optimization suggestions")
+    improvement_score: float = Field(..., description="Overall improvement score (0-100)")
+    estimated_savings: Optional[Dict[str, Any]] = Field(None, description="Estimated cost/time savings")
+    current_coverage: Optional[CoverageStats] = Field(None, description="Current coverage before optimization")
+    optimized_coverage: Optional[CoverageStats] = Field(None, description="Projected coverage after optimization")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PublishSettings(BaseModel):
+    """Settings for publishing a schedule."""
+
+    send_notifications: bool = Field(True, description="Send notifications to assigned employees")
+    notification_method: str = Field("email", description="Notification method (email, push, both)")
+    include_calendar_invite: bool = Field(True, description="Include calendar invitations")
+    lock_assignments: bool = Field(True, description="Lock assignments to prevent further edits")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PublishResponse(BaseModel):
+    """Response from schedule publishing."""
+
+    schedule_id: int = Field(..., description="Published schedule ID")
+    status: str = Field(..., description="Schedule status after publishing")
+    published_at: datetime = Field(..., description="Publication timestamp")
+    notifications_sent: int = Field(..., description="Number of notifications sent")
+    employees_notified: List[int] = Field(default_factory=list, description="Employee IDs notified")
 
     model_config = ConfigDict(from_attributes=True)

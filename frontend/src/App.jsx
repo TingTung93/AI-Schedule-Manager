@@ -9,6 +9,7 @@ import { AuthProvider } from './contexts/AuthContext';
 // Components
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages (Lazy loaded for better performance)
 import LoginPage from './pages/LoginPage';
@@ -167,13 +168,14 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        <Router>
-          <Suspense fallback={<LoadingFallback />}>
-            <AnimatePresence mode="wait">
-              <Routes>
+    <ErrorBoundary name="App">
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <Router>
+            <Suspense fallback={<LoadingFallback />}>
+              <AnimatePresence mode="wait">
+                <Routes>
                 {/* Root redirect to dashboard */}
                 <Route
                   path="/"
@@ -196,7 +198,11 @@ function App() {
                   {/* Dashboard */}
                   <Route
                     path="dashboard"
-                    element={<DashboardPage />}
+                    element={
+                      <ErrorBoundary name="Dashboard">
+                        <DashboardPage />
+                      </ErrorBoundary>
+                    }
                   />
 
                   {/* Employee Management */}
@@ -204,7 +210,9 @@ function App() {
                     path="employees"
                     element={
                       <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                        <EmployeesPage />
+                        <ErrorBoundary name="Employees">
+                          <EmployeesPage />
+                        </ErrorBoundary>
                       </ProtectedRoute>
                     }
                   />
@@ -214,7 +222,9 @@ function App() {
                     path="departments"
                     element={
                       <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                        <DepartmentManager />
+                        <ErrorBoundary name="Departments">
+                          <DepartmentManager />
+                        </ErrorBoundary>
                       </ProtectedRoute>
                     }
                   />
@@ -224,7 +234,9 @@ function App() {
                     path="shifts"
                     element={
                       <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                        <ShiftManager />
+                        <ErrorBoundary name="Shifts">
+                          <ShiftManager />
+                        </ErrorBoundary>
                       </ProtectedRoute>
                     }
                   />
@@ -232,7 +244,11 @@ function App() {
                   {/* Schedule Management */}
                   <Route
                     path="schedule"
-                    element={<SchedulePage />}
+                    element={
+                      <ErrorBoundary name="Schedule">
+                        <SchedulePage />
+                      </ErrorBoundary>
+                    }
                   />
 
                   {/* Schedule Builder */}
@@ -240,7 +256,9 @@ function App() {
                     path="schedule/builder"
                     element={
                       <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                        <ScheduleBuilder />
+                        <ErrorBoundary name="ScheduleBuilder">
+                          <ScheduleBuilder />
+                        </ErrorBoundary>
                       </ProtectedRoute>
                     }
                   />
@@ -309,6 +327,7 @@ function App() {
         </Router>
       </AuthProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

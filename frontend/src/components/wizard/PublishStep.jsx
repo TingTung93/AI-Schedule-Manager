@@ -105,16 +105,69 @@ const PublishStep = ({ data, onChange, setNotification }) => {
   const handlePublish = async () => {
     setPublishing(true);
     try {
-      const response = await api.post('/api/schedules', {
-        name: data.scheduleName,
-        description: data.scheduleDescription,
-        department_id: data.department,
-        start_date: data.dateRange.start,
-        end_date: data.dateRange.end,
-        assignments: data.currentSchedule.assignments,
-        status: 'published',
-        notify_employees: data.publishOptions.notifyEmployees
+      // Step 1: Create Schedule container
+      console.log('Creating schedule container...');
+      const scheduleResponse = await api.post('/api/schedules', {
+        week_start: data.dateRange.start,
+        week_end: data.dateRange.end,
+        title: data.scheduleName || `Schedule for ${data.dateRange.start}`,
+        description: data.scheduleDescription || '',
+        notes: data.notes || ''
       });
+
+      const scheduleId = scheduleResponse.data.id;
+      console.log(`Schedule created with ID: ${scheduleId}`);
+
+      // Step 2: Create schedule assignments (link employees to shifts)
+      // The generated schedule should have assignments array
+      const assignments = data.currentSchedule?.assignments || [];
+
+      if (assignments.length > 0) {
+        console.log(`Creating ${assignments.length} assignments...`);
+
+        // Create assignments one by one (batch endpoint may not exist yet)
+        let createdCount = 0;
+        const errors = [];
+
+        for (const assignment of assignments) {
+          try {
+            await api.post('/api/schedule-assignments', {
+              schedule_id: scheduleId,
+              employee_id: assignment.employeeId || assignment.employee_id || assignment.staffId,
+              shift_id: assignment.shiftId || assignment.shift_id,
+              status: assignment.status || 'assigned',
+              priority: assignment.priority || 1,
+              notes: assignment.notes || ''
+            });
+            createdCount++;
+          } catch (err) {
+            console.warn('Failed to create assignment:', err);
+            errors.push({
+              assignment,
+              error: getErrorMessage(err)
+            });
+          }
+        }
+
+        console.log(`Created ${createdCount}/${assignments.length} assignments`);
+
+        if (errors.length > 0) {
+          console.warn(`${errors.length} assignments failed:`, errors);
+        }
+      }
+
+      // Step 3: Optionally publish the schedule (change status)
+      if (data.publishOptions?.notifyEmployees) {
+        try {
+          await api.put(`/api/schedules/${scheduleId}`, {
+            status: 'published'
+          });
+          console.log('Schedule published');
+        } catch (err) {
+          console.warn('Failed to publish schedule:', err);
+          // Continue anyway - schedule is created
+        }
+      }
 
       setNotification({
         type: 'success',
@@ -126,10 +179,11 @@ const PublishStep = ({ data, onChange, setNotification }) => {
 
       // Redirect to schedule view
       setTimeout(() => {
-        navigate('/schedules');
+        navigate(`/schedules/${scheduleId}`);
       }, 2000);
 
     } catch (error) {
+      console.error('Failed to publish schedule:', error);
       setNotification({
         type: 'error',
         message: 'Failed to publish schedule: ' + getErrorMessage(error)
@@ -142,15 +196,40 @@ const PublishStep = ({ data, onChange, setNotification }) => {
 
   const handleSaveDraft = async () => {
     try {
-      await api.post('/api/schedules', {
-        name: data.scheduleName,
-        description: data.scheduleDescription,
-        department_id: data.department,
-        start_date: data.dateRange.start,
-        end_date: data.dateRange.end,
-        assignments: data.currentSchedule.assignments,
-        status: 'draft'
+      // Create Schedule container with draft status
+      console.log('Saving schedule as draft...');
+      const scheduleResponse = await api.post('/api/schedules', {
+        week_start: data.dateRange.start,
+        week_end: data.dateRange.end,
+        title: data.scheduleName || `Draft Schedule for ${data.dateRange.start}`,
+        description: data.scheduleDescription || '',
+        notes: data.notes || ''
+        // Status defaults to 'draft' in backend
       });
+
+      const scheduleId = scheduleResponse.data.id;
+      console.log(`Draft schedule created with ID: ${scheduleId}`);
+
+      // Optionally save assignments if they exist
+      const assignments = data.currentSchedule?.assignments || [];
+      if (assignments.length > 0) {
+        console.log(`Saving ${assignments.length} draft assignments...`);
+
+        for (const assignment of assignments) {
+          try {
+            await api.post('/api/schedule-assignments', {
+              schedule_id: scheduleId,
+              employee_id: assignment.employeeId || assignment.employee_id || assignment.staffId,
+              shift_id: assignment.shiftId || assignment.shift_id,
+              status: 'pending',  // Draft assignments are pending
+              priority: assignment.priority || 1,
+              notes: assignment.notes || ''
+            });
+          } catch (err) {
+            console.warn('Failed to save draft assignment:', err);
+          }
+        }
+      }
 
       setNotification({
         type: 'success',
@@ -160,10 +239,11 @@ const PublishStep = ({ data, onChange, setNotification }) => {
       localStorage.removeItem('scheduleBuilderProgress');
 
       setTimeout(() => {
-        navigate('/schedules');
+        navigate(`/schedules/${scheduleId}`);
       }, 1500);
 
     } catch (error) {
+      console.error('Failed to save draft:', error);
       setNotification({
         type: 'error',
         message: 'Failed to save draft: ' + getErrorMessage(error)
