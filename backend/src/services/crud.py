@@ -24,6 +24,13 @@ from ..schemas import (
     ShiftCreate,
     ShiftUpdate,
 )
+from ..utils.cache import (
+    cache_manager,
+    invalidate_department_cache,
+    invalidate_employee_cache,
+    invalidate_schedule_cache,
+    invalidate_shift_cache,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +91,7 @@ class CRUDBase:
         return {"items": items, "total": total}
 
     async def create(self, db: AsyncSession, obj_in):
-        """Create new record."""
+        """Create new record and invalidate related caches."""
         if hasattr(obj_in, "dict"):
             obj_data = obj_in.dict()
         else:
@@ -94,10 +101,26 @@ class CRUDBase:
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
+
+        # Invalidate related caches based on model type
+        self._invalidate_cache_after_create(db_obj)
+
         return db_obj
 
+    def _invalidate_cache_after_create(self, db_obj):
+        """Invalidate caches after creating a record."""
+        model_name = db_obj.__class__.__name__
+        if model_name == "Employee":
+            invalidate_employee_cache()
+        elif model_name == "Department":
+            invalidate_department_cache()
+        elif model_name == "Shift":
+            invalidate_shift_cache()
+        elif model_name == "Schedule":
+            invalidate_schedule_cache()
+
     async def update(self, db: AsyncSession, db_obj, obj_in):
-        """Update existing record."""
+        """Update existing record and invalidate related caches."""
         if hasattr(obj_in, "dict"):
             update_data = obj_in.dict(exclude_unset=True)
         else:
@@ -110,16 +133,46 @@ class CRUDBase:
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
+
+        # Invalidate related caches based on model type
+        self._invalidate_cache_after_update(db_obj)
+
         return db_obj
 
+    def _invalidate_cache_after_update(self, db_obj):
+        """Invalidate caches after updating a record."""
+        model_name = db_obj.__class__.__name__
+        if model_name == "Employee":
+            invalidate_employee_cache(employee_id=db_obj.id, email=getattr(db_obj, "email", None))
+        elif model_name == "Department":
+            invalidate_department_cache(department_id=db_obj.id)
+        elif model_name == "Shift":
+            invalidate_shift_cache(shift_id=db_obj.id, shift_name=getattr(db_obj, "name", None))
+        elif model_name == "Schedule":
+            invalidate_schedule_cache(schedule_id=db_obj.id)
+
     async def remove(self, db: AsyncSession, id: int):
-        """Delete record by ID."""
+        """Delete record by ID and invalidate related caches."""
         result = await db.execute(select(self.model).where(self.model.id == id))
         obj = result.scalar_one_or_none()
         if obj:
+            # Invalidate caches before deleting
+            self._invalidate_cache_after_delete(obj)
             await db.delete(obj)
             await db.commit()
         return obj
+
+    def _invalidate_cache_after_delete(self, db_obj):
+        """Invalidate caches after deleting a record."""
+        model_name = db_obj.__class__.__name__
+        if model_name == "Employee":
+            invalidate_employee_cache(employee_id=db_obj.id, email=getattr(db_obj, "email", None))
+        elif model_name == "Department":
+            invalidate_department_cache(department_id=db_obj.id)
+        elif model_name == "Shift":
+            invalidate_shift_cache(shift_id=db_obj.id, shift_name=getattr(db_obj, "name", None))
+        elif model_name == "Schedule":
+            invalidate_schedule_cache(schedule_id=db_obj.id)
 
 
 class CRUDEmployee(CRUDBase):
@@ -129,9 +182,40 @@ class CRUDEmployee(CRUDBase):
         super().__init__(Employee)
 
     async def get_by_email(self, db: AsyncSession, email: str) -> Optional[Employee]:
-        """Get employee by email."""
+        """Get employee by email with caching."""
+        # Try cache first
+        cache_key = f"email:{email}"
+        cached_employee = cache_manager.get("employee", cache_key)
+        if cached_employee is not None:
+            logger.debug(f"Cache hit for employee email: {email}")
+            # Convert dict back to Employee object
+            from ..models import Employee
+
+            return Employee(**cached_employee) if isinstance(cached_employee, dict) else cached_employee
+
+        # Cache miss - query database
         result = await db.execute(select(Employee).where(Employee.email == email))
-        return result.scalar_one_or_none()
+        employee = result.scalar_one_or_none()
+
+        # Cache the result if found
+        if employee:
+            # Convert to dict for JSON serialization in cache
+            employee_dict = {
+                "id": employee.id,
+                "name": employee.name,
+                "email": employee.email,
+                "role": employee.role,
+                "phone": employee.phone,
+                "hourly_rate": employee.hourly_rate,
+                "max_hours_per_week": employee.max_hours_per_week,
+                "qualifications": employee.qualifications,
+                "is_active": employee.is_active,
+                "department_id": employee.department_id,
+            }
+            cache_manager.set("employee", cache_key, employee_dict)
+            logger.debug(f"Cached employee: {email}")
+
+        return employee
 
     async def get_multi_with_search(
         self,
@@ -509,11 +593,41 @@ class CRUDDepartment(CRUDBase):
         super().__init__(Department)
 
     async def get_with_hierarchy(self, db: AsyncSession, department_id: int):
-        """Get department with parent and children."""
+        """Get department with parent and children, with caching."""
+        # Try cache first
+        cache_key = f"hierarchy:{department_id}"
+        cached_dept = cache_manager.get("department", cache_key)
+        if cached_dept is not None:
+            logger.debug(f"Cache hit for department hierarchy: {department_id}")
+            # Note: This returns dict, caller may need to handle conversion
+            return cached_dept
+
+        # Cache miss - query database
         query = select(Department).where(Department.id == department_id)
         query = query.options(selectinload(Department.parent), selectinload(Department.children))
         result = await db.execute(query)
-        return result.scalar_one_or_none()
+        department = result.scalar_one_or_none()
+
+        # Cache the result if found
+        if department:
+            dept_dict = {
+                "id": department.id,
+                "name": department.name,
+                "description": department.description,
+                "active": department.active,
+                "parent_id": department.parent_id,
+                "parent": {
+                    "id": department.parent.id,
+                    "name": department.parent.name,
+                }
+                if department.parent
+                else None,
+                "children": [{"id": child.id, "name": child.name} for child in department.children],
+            }
+            cache_manager.set("department", cache_key, dept_dict)
+            logger.debug(f"Cached department hierarchy: {department_id}")
+
+        return department
 
     async def get_multi_with_hierarchy(
         self,

@@ -32,10 +32,12 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import api, { getErrorMessage, scheduleService } from '../services/api';
+import { transformScheduleToCalendarEvents } from '../utils/assignmentHelpers';
 
 const SchedulePage = () => {
   const navigate = useNavigate();
   const [schedules, setSchedules] = useState([]);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('timeGridWeek');
@@ -63,26 +65,18 @@ const SchedulePage = () => {
         scheduleService.getSchedules(),
         api.get('/api/employees')
       ]);
-      
+
       const schedulesData = schedulesRes.data.schedules || [];
       const employeesData = employeesRes.data.employees || [];
-      
-      // Transform schedules to FullCalendar events
-      const events = schedulesData.map(schedule => ({
-        id: schedule.id,
-        title: schedule.title || `Shift - ${schedule.employee_name || 'Employee'}`,
-        start: schedule.start_time || schedule.date,
-        end: schedule.end_time,
-        backgroundColor: getEventColor(schedule.status),
-        extendedProps: {
-          employeeId: schedule.employee_id,
-          type: schedule.type || 'shift',
-          status: schedule.status
-        }
-      }));
-      
-      setSchedules(events);
+
+      // Set schedules and employees
+      setSchedules(schedulesData);
       setEmployees(employeesData);
+
+      // Select the first schedule by default
+      if (schedulesData.length > 0) {
+        setSelectedSchedule(schedulesData[0]);
+      }
     } catch (error) {
       setNotification({ type: 'error', message: getErrorMessage(error) });
     } finally {
@@ -90,14 +84,19 @@ const SchedulePage = () => {
     }
   };
 
-  const getEventColor = (status) => {
-    switch (status) {
-      case 'confirmed': return '#2e7d32';
-      case 'pending': return '#ed6c02';
-      case 'cancelled': return '#d32f2f';
-      default: return '#1976d2';
-    }
-  };
+  // Create employee map for quick lookups
+  const employeeMap = React.useMemo(() => {
+    return employees.reduce((acc, emp) => {
+      acc[emp.id] = emp;
+      return acc;
+    }, {});
+  }, [employees]);
+
+  // Transform selected schedule to calendar events
+  const calendarEvents = React.useMemo(() => {
+    if (!selectedSchedule) return [];
+    return transformScheduleToCalendarEvents(selectedSchedule, employeeMap);
+  }, [selectedSchedule, employeeMap]);
 
   const handleDateClick = (arg) => {
     setSelectedDate(arg.date);
@@ -167,6 +166,23 @@ const SchedulePage = () => {
             </Typography>
           </Box>
           <Box display="flex" gap={2} alignItems="center">
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel>Schedule</InputLabel>
+              <Select
+                value={selectedSchedule?.id || ''}
+                label="Schedule"
+                onChange={(e) => {
+                  const schedule = schedules.find(s => s.id === e.target.value);
+                  setSelectedSchedule(schedule);
+                }}
+              >
+                {schedules.map(schedule => (
+                  <MenuItem key={schedule.id} value={schedule.id}>
+                    {schedule.title || `Week of ${schedule.weekStart || schedule.week_start}`}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <ToggleButtonGroup
               value={view}
               exclusive
@@ -219,7 +235,7 @@ const SchedulePage = () => {
               center: 'title',
               right: ''
             }}
-            events={schedules}
+            events={calendarEvents}
             dateClick={handleDateClick}
             eventClick={handleEventClick}
             editable={true}

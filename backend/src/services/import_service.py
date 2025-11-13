@@ -20,6 +20,7 @@ from ..exceptions.import_exceptions import DuplicateDataError, ImportValidationE
 from ..models import Employee, Rule, Schedule, ScheduleAssignment, Shift
 from ..schemas import EmployeeCreate, RuleCreate, ScheduleCreate, ShiftCreate
 from ..services.crud import crud_employee, crud_rule, crud_schedule
+from ..utils.cache import cache_manager
 
 logger = logging.getLogger(__name__)
 
@@ -418,23 +419,90 @@ class ImportService:
         assignments_to_update = []
         validation_errors = []
 
-        # Batch load all employees and shifts upfront
+        # Batch load all employees and shifts upfront with global cache integration
         try:
             # Get all unique emails and shift names from the import file
             unique_emails = df[mapped_columns["employee_email"]].dropna().unique().tolist()
             unique_shift_names = df[mapped_columns["shift_name"]].dropna().unique().tolist()
 
-            # Bulk load employees
-            employees_query = select(Employee).where(Employee.email.in_(unique_emails))
-            employees_result = await db.execute(employees_query)
-            employees = employees_result.scalars().all()
-            employees_cache = {emp.email: emp for emp in employees}
+            # Local batch cache for this import operation
+            employees_cache = {}
+            shifts_cache = {}
 
-            # Bulk load shifts
-            shifts_query = select(Shift).where(Shift.name.in_(unique_shift_names))
-            shifts_result = await db.execute(shifts_query)
-            shifts = shifts_result.scalars().all()
-            shifts_cache = {shift.name: shift for shift in shifts}
+            # Load employees - check global cache first, then bulk query for misses
+            emails_to_query = []
+            for email in unique_emails:
+                cached_emp = cache_manager.get("employee", f"email:{email}")
+                if cached_emp:
+                    # Reconstruct Employee from cache
+                    employees_cache[email] = Employee(**cached_emp) if isinstance(cached_emp, dict) else cached_emp
+                else:
+                    emails_to_query.append(email)
+
+            # Bulk query for cache misses
+            if emails_to_query:
+                employees_query = select(Employee).where(Employee.email.in_(emails_to_query))
+                employees_result = await db.execute(employees_query)
+                employees = employees_result.scalars().all()
+
+                # Add to local cache and global cache
+                for emp in employees:
+                    employees_cache[emp.email] = emp
+                    # Cache in global cache for future imports
+                    emp_dict = {
+                        "id": emp.id,
+                        "name": emp.name,
+                        "email": emp.email,
+                        "role": emp.role,
+                        "phone": emp.phone,
+                        "hourly_rate": emp.hourly_rate,
+                        "max_hours_per_week": emp.max_hours_per_week,
+                        "qualifications": emp.qualifications,
+                        "is_active": emp.is_active,
+                        "department_id": emp.department_id,
+                    }
+                    cache_manager.set("employee", f"email:{emp.email}", emp_dict)
+
+            logger.info(
+                f"Loaded {len(employees_cache)} employees ({len(unique_emails) - len(emails_to_query)} from cache)"
+            )
+
+            # Load shifts - check global cache first, then bulk query for misses
+            shifts_to_query = []
+            for shift_name in unique_shift_names:
+                cached_shift = cache_manager.get("shift", f"name:{shift_name}")
+                if cached_shift:
+                    # Reconstruct Shift from cache
+                    shifts_cache[shift_name] = Shift(**cached_shift) if isinstance(cached_shift, dict) else cached_shift
+                else:
+                    shifts_to_query.append(shift_name)
+
+            # Bulk query for cache misses
+            if shifts_to_query:
+                shifts_query = select(Shift).where(Shift.name.in_(shifts_to_query))
+                shifts_result = await db.execute(shifts_query)
+                shifts = shifts_result.scalars().all()
+
+                # Add to local cache and global cache
+                for shift in shifts:
+                    shifts_cache[shift.name] = shift
+                    # Cache in global cache for future imports
+                    shift_dict = {
+                        "id": shift.id,
+                        "name": shift.name,
+                        "shift_type": shift.shift_type,
+                        "start_time": shift.start_time.isoformat() if shift.start_time else None,
+                        "end_time": shift.end_time.isoformat() if shift.end_time else None,
+                        "date": shift.date.isoformat() if shift.date else None,
+                        "department_id": shift.department_id,
+                        "required_staff": shift.required_staff,
+                        "active": shift.active,
+                    }
+                    cache_manager.set("shift", f"name:{shift.name}", shift_dict)
+
+            logger.info(
+                f"Loaded {len(shifts_cache)} shifts ({len(unique_shift_names) - len(shifts_to_query)} from cache)"
+            )
 
             # Cache for schedules (will be populated as needed)
             schedules_cache = {}

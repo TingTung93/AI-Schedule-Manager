@@ -407,7 +407,7 @@ export function ScheduleProvider({ children }) {
 
       abortControllerRef.current = new AbortController();
 
-      const response = await fetch('/api/schedules', {
+      const response = await fetch('/api/schedules?include_assignments=true', {
         signal: abortControllerRef.current.signal,
       });
 
@@ -415,7 +415,8 @@ export function ScheduleProvider({ children }) {
         throw new Error('Failed to fetch schedules');
       }
 
-      const schedules = await response.json();
+      const data = await response.json();
+      const schedules = data.schedules || [];
 
       dispatch({
         type: SCHEDULE_ACTIONS.SET_SCHEDULES,
@@ -675,21 +676,7 @@ export function ScheduleProvider({ children }) {
       filtered = filtered.filter(schedule =>
         schedule.title?.toLowerCase().includes(query) ||
         schedule.description?.toLowerCase().includes(query) ||
-        schedule.location?.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply category filter
-    if (state.filters.categories.length > 0) {
-      filtered = filtered.filter(schedule =>
-        state.filters.categories.includes(schedule.category)
-      );
-    }
-
-    // Apply priority filter
-    if (state.filters.priorities.length > 0) {
-      filtered = filtered.filter(schedule =>
-        state.filters.priorities.includes(schedule.priority)
+        schedule.notes?.toLowerCase().includes(query)
       );
     }
 
@@ -700,28 +687,28 @@ export function ScheduleProvider({ children }) {
       );
     }
 
-    // Apply assignee filter
+    // Apply assignee filter (check assignments for employee IDs)
     if (state.filters.assignees.length > 0) {
       filtered = filtered.filter(schedule =>
-        schedule.assignees?.some(assignee =>
-          state.filters.assignees.includes(assignee.id)
-        )
-      );
-    }
-
-    // Apply tag filter
-    if (state.filters.tags.length > 0) {
-      filtered = filtered.filter(schedule =>
-        schedule.tags?.some(tag =>
-          state.filters.tags.includes(tag)
+        schedule.assignments?.some(assignment =>
+          state.filters.assignees.includes(assignment.employeeId || assignment.employee_id)
         )
       );
     }
 
     // Apply sorting
     filtered.sort((a, b) => {
-      const aValue = a[state.sortBy];
-      const bValue = b[state.sortBy];
+      let aValue = a[state.sortBy];
+      let bValue = b[state.sortBy];
+
+      // Handle date fields
+      if (state.sortBy === 'weekStart' || state.sortBy === 'week_start') {
+        aValue = new Date(a.weekStart || a.week_start);
+        bValue = new Date(b.weekStart || b.week_start);
+      } else if (state.sortBy === 'createdAt' || state.sortBy === 'created_at') {
+        aValue = new Date(a.createdAt || a.created_at);
+        bValue = new Date(b.createdAt || b.created_at);
+      }
 
       if (state.sortOrder === 'asc') {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
