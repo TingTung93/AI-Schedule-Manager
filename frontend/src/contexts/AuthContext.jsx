@@ -325,9 +325,17 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  // Check if user has specific role
+  // Check if user has specific role (supports both string and array)
   const hasRole = (role) => {
-    return state.user?.roles?.includes(role) || false;
+    if (!state.user?.roles) return false;
+
+    // If role is an array, check if user has ANY of those roles
+    if (Array.isArray(role)) {
+      return role.some(r => state.user.roles.includes(r));
+    }
+
+    // If role is a string, check for that specific role
+    return state.user.roles.includes(role);
   };
 
   // Check if user has specific permission
