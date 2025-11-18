@@ -326,16 +326,20 @@ const DashboardPage = () => {
               <Box mb={2}>
                 <Box display="flex" justifyContent="space-between" mb={1}>
                   <Typography variant="body2">Hours Worked</Typography>
-                  <Typography variant="body2">{dashboardData.weeklyHours}/40 hours</Typography>
+                  <Typography variant="body2">{weeklyHours}/40 hours</Typography>
                 </Box>
                 <LinearProgress
                   variant="determinate"
-                  value={(dashboardData.weeklyHours / 40) * 100}
+                  value={(weeklyHours / 40) * 100}
                   sx={{ height: 8, borderRadius: 4 }}
                 />
               </Box>
               <Typography variant="body2" color="textSecondary">
-                You're on track to meet your weekly goals!
+                {weeklyHours >= 40
+                  ? 'Weekly goal completed!'
+                  : weeklyHours >= 30
+                  ? 'You\'re on track to meet your weekly goals!'
+                  : 'Keep going to reach your weekly target!'}
               </Typography>
             </Paper>
           </motion.div>
@@ -354,30 +358,40 @@ const DashboardPage = () => {
                 Recent Activities
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              <List>
-                {dashboardData.recentActivities.map((activity, index) => (
-                  <ListItem key={activity.id} sx={{ px: 0 }}>
-                    <ListItemIcon>
-                      {getActivityIcon(activity.type, activity.status)}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={activity.message}
-                      secondary={activity.time}
-                      primaryTypographyProps={{ fontSize: '0.9rem' }}
-                      secondaryTypographyProps={{ fontSize: '0.8rem' }}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-              <Button
-                fullWidth
-                variant="outlined"
-                size="small"
-                onClick={() => navigate('/notifications')}
-                sx={{ mt: 2 }}
-              >
-                View All Activities
-              </Button>
+              {recentActivities.length > 0 ? (
+                <>
+                  <List>
+                    {recentActivities.map((activity) => (
+                      <ListItem key={activity.id} sx={{ px: 0 }}>
+                        <ListItemIcon>
+                          {getActivityIcon(activity.type, activity.status)}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={activity.message}
+                          secondary={activity.time}
+                          primaryTypographyProps={{ fontSize: '0.9rem' }}
+                          secondaryTypographyProps={{ fontSize: '0.8rem' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/notifications')}
+                    sx={{ mt: 2 }}
+                  >
+                    View All Activities
+                  </Button>
+                </>
+              ) : (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="body2" color="textSecondary">
+                    No recent activities
+                  </Typography>
+                </Box>
+              )}
             </Paper>
           </motion.div>
         </Grid>
