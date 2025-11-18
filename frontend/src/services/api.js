@@ -2,10 +2,125 @@
  * API Service Module
  *
  * Centralized HTTP client with JWT authentication, token refresh,
- * CSRF protection, and comprehensive error handling.
+ * CSRF protection, comprehensive error handling, and automatic
+ * data transformation between snake_case (backend) and camelCase (frontend).
+ *
+ * Features:
+ * - Automatic bidirectional data transformation (snake_case <-> camelCase)
+ * - JWT token management with refresh
+ * - CSRF protection
+ * - Request/response interceptors
+ * - Error handling and retry logic
+ * - Rate limiting handling
  */
 
 import axios from 'axios';
+
+/**
+ * Data Transformation Utilities
+ * Convert between snake_case (backend) and camelCase (frontend)
+ */
+
+/**
+ * Check if value is a plain object (not Array, Date, File, etc.)
+ */
+const isPlainObject = (value) => {
+  return value !== null &&
+         typeof value === 'object' &&
+         value.constructor === Object;
+};
+
+/**
+ * Check if value should be excluded from transformation
+ */
+const shouldSkipTransformation = (value) => {
+  return value instanceof File ||
+         value instanceof FileList ||
+         value instanceof FormData ||
+         value instanceof Date;
+};
+
+/**
+ * Convert snake_case string to camelCase
+ */
+const snakeToCamelCase = (str) => {
+  return str.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+};
+
+/**
+ * Convert camelCase string to snake_case
+ */
+const camelToSnakeCase = (str) => {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+};
+
+/**
+ * Recursively convert object keys from snake_case to camelCase
+ */
+const snakeToCamel = (obj) => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  // Skip transformation for special types
+  if (shouldSkipTransformation(obj)) {
+    return obj;
+  }
+
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return obj.map((item) => snakeToCamel(item));
+  }
+
+  // Handle plain objects
+  if (isPlainObject(obj)) {
+    const transformed = {};
+
+    Object.keys(obj).forEach((key) => {
+      const camelKey = snakeToCamelCase(key);
+      transformed[camelKey] = snakeToCamel(obj[key]);
+    });
+
+    return transformed;
+  }
+
+  // Return primitive values as-is
+  return obj;
+};
+
+/**
+ * Recursively convert object keys from camelCase to snake_case
+ */
+const camelToSnake = (obj) => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  // Skip transformation for special types
+  if (shouldSkipTransformation(obj)) {
+    return obj;
+  }
+
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return obj.map((item) => camelToSnake(item));
+  }
+
+  // Handle plain objects
+  if (isPlainObject(obj)) {
+    const transformed = {};
+
+    Object.keys(obj).forEach((key) => {
+      const snakeKey = camelToSnakeCase(key);
+      transformed[snakeKey] = camelToSnake(obj[key]);
+    });
+
+    return transformed;
+  }
+
+  // Return primitive values as-is
+  return obj;
+};
 
 // Create axios instance with default configuration
 const api = axios.create({
@@ -36,7 +151,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Request interceptor for adding auth headers
+// Request interceptor for adding auth headers and transforming data
 api.interceptors.request.use(
   (config) => {
     // Add access token to Authorization header if available
@@ -49,6 +164,16 @@ api.interceptors.request.use(
       config.headers['X-CSRF-Token'] = csrfToken;
     }
 
+    // Transform request data from camelCase to snake_case
+    if (config.data && !shouldSkipTransformation(config.data)) {
+      config.data = camelToSnake(config.data);
+    }
+
+    // Transform query parameters from camelCase to snake_case
+    if (config.params && !shouldSkipTransformation(config.params)) {
+      config.params = camelToSnake(config.params);
+    }
+
     // Add request timestamp for debugging
     config.metadata = { startTime: new Date() };
 
@@ -59,7 +184,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for handling token refresh and errors
+// Response interceptor for transforming data and handling token refresh and errors
 api.interceptors.response.use(
   (response) => {
     // Log response time for debugging
@@ -67,6 +192,11 @@ api.interceptors.response.use(
       const endTime = new Date();
       const duration = endTime - response.config.metadata.startTime;
       console.debug(`API Request: ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`);
+    }
+
+    // Transform response data from snake_case to camelCase
+    if (response.data) {
+      response.data = snakeToCamel(response.data);
     }
 
     return response;
@@ -665,5 +795,15 @@ storeApiImplementation();
 
 // Convenient named export for error message extraction
 export const getErrorMessage = errorHandler.getErrorMessage;
+
+// Export transformation utilities for manual use if needed
+export const transformUtils = {
+  snakeToCamel,
+  camelToSnake,
+  snakeToCamelCase,
+  camelToSnakeCase,
+  isPlainObject,
+  shouldSkipTransformation
+};
 
 export default api;

@@ -10,8 +10,11 @@ from datetime import date, datetime, timedelta
 from typing import List, Optional
 
 import redis
-from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .api.analytics import router as analytics_router
@@ -54,6 +57,14 @@ from .services.crud import crud_employee, crud_notification, crud_rule, crud_sch
 
 logger = logging.getLogger(__name__)
 
+# Validate SECRET_KEY on startup
+secret_key = os.getenv("SECRET_KEY")
+if not secret_key or len(secret_key) < 32:
+    raise ValueError("SECRET_KEY must be set and at least 32 characters. Generate with: openssl rand -base64 32")
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     title="AI Schedule Manager API",
     description="Neural-powered scheduling for small businesses with complete CRUD operations",
@@ -62,6 +73,10 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+# Add rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Setup enhanced API documentation
 setup_docs(app)
@@ -87,10 +102,10 @@ except Exception as e:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+    allow_origins=["http://localhost:3000", "http://localhost:80"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
 )
 
 # Include API routers

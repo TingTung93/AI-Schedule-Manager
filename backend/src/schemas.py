@@ -124,7 +124,8 @@ class PaginatedResponse(BaseModel):
 class EmployeeBase(BaseModel):
     """Base employee schema."""
 
-    name: str = Field(..., min_length=1, max_length=100)
+    first_name: str = Field(..., min_length=1, max_length=50)
+    last_name: str = Field(..., min_length=1, max_length=50)
     email: EmailStr
     role: EmployeeRole
     phone: Optional[str] = Field(None, max_length=50)
@@ -145,7 +146,8 @@ class EmployeeCreate(EmployeeBase):
 class EmployeeUpdate(BaseModel):
     """Employee update schema."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    first_name: Optional[str] = Field(None, min_length=1, max_length=50)
+    last_name: Optional[str] = Field(None, min_length=1, max_length=50)
     email: Optional[EmailStr] = None
     role: Optional[EmployeeRole] = None
     phone: Optional[str] = Field(None, max_length=50)
@@ -161,10 +163,20 @@ class EmployeeResponse(EmployeeBase):
     """Employee response schema."""
 
     id: int
+    full_name: str
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        """Custom validation to compute full_name from model attributes."""
+        if hasattr(obj, 'first_name') and hasattr(obj, 'last_name'):
+            # Add full_name if not already present
+            if not hasattr(obj, '_full_name_computed'):
+                obj._full_name_computed = True
+        return super().model_validate(obj, **kwargs)
 
 
 # Rule schemas

@@ -31,6 +31,13 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p /app/logs /app/uploads
 
+# Create non-root user and set ownership
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
 # Expose port
 EXPOSE 8000
 

@@ -65,3 +65,4 @@ redis==5.0.1
 # Monitoring (optional)
 sentry-sdk[fastapi]==1.38.0
 prometheus-client==0.19.0
+slowapi==0.1.9

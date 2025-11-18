@@ -12,6 +12,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -119,6 +121,9 @@ async def get_or_create_user_role_async(db: AsyncSession):
 
 logger = logging.getLogger(__name__)
 
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 # Create FastAPI router for authentication
 auth_router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
@@ -197,6 +202,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
 
 
 @auth_router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/hour")
 async def register(reg_request: RegisterRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db_session)):
     """
     Register new user account
@@ -288,6 +294,7 @@ async def register(reg_request: RegisterRequest, request: Request, response: Res
 
 
 @auth_router.post("/login", response_model=TokenResponse)
+@limiter.limit("5/minute")
 async def login(login_request: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db_session)):
     """
     Authenticate user and return JWT tokens
@@ -401,6 +408,7 @@ async def login(login_request: LoginRequest, request: Request, response: Respons
 
 
 @auth_router.post("/refresh", response_model=dict)
+@limiter.limit("10/minute")
 async def refresh_token(request: Request, response: Response, db: AsyncSession = Depends(get_db_session)):
     """
     Refresh JWT access token using refresh token

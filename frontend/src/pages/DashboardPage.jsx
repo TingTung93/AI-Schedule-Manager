@@ -17,7 +17,9 @@ import {
   Avatar,
   IconButton,
   Paper,
-  Divider
+  Divider,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
   Schedule,
@@ -33,6 +35,8 @@ import {
   AccessTime
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
+import { useApi } from '../hooks/useApi';
+import api from '../services/api';
 
 const DashboardPage = () => {
   console.log('🎯 DashboardPage: Component mounting');
@@ -41,51 +45,50 @@ const DashboardPage = () => {
 
   console.log('🎯 DashboardPage: User from auth:', user);
 
-  const [dashboardData, setDashboardData] = useState({
-    todaySchedules: 3,
-    weeklyHours: 32,
-    upcomingShifts: 5,
-    teamSize: 12,
-    pendingRequests: 2,
-    recentActivities: []
-  });
+  // Fetch analytics overview
+  const {
+    data: analyticsData,
+    loading: analyticsLoading,
+    error: analyticsError
+  } = useApi(() => api.get('/api/analytics/overview'), []);
 
-  useEffect(() => {
-    console.log('🎯 DashboardPage: useEffect running');
-    // Simulate loading dashboard data
-    const loadDashboardData = () => {
-      console.log('🎯 DashboardPage: Loading dashboard data');
-      setDashboardData(prev => ({
-        ...prev,
-        recentActivities: [
-          {
-            id: 1,
-            type: 'schedule',
-            message: 'Your shift for tomorrow has been confirmed',
-            time: '2 hours ago',
-            status: 'info'
-          },
-          {
-            id: 2,
-            type: 'request',
-            message: 'Time-off request approved for next week',
-            time: '4 hours ago',
-            status: 'success'
-          },
-          {
-            id: 3,
-            type: 'alert',
-            message: 'Overtime threshold approaching this week',
-            time: '1 day ago',
-            status: 'warning'
-          }
-        ]
-      }));
-      console.log('🎯 DashboardPage: Dashboard data loaded');
-    };
+  // Fetch employees (for team size)
+  const {
+    data: employeesData,
+    loading: employeesLoading
+  } = useApi(() => api.get('/api/employees', { params: { page: 1, size: 10 } }), []);
 
-    loadDashboardData();
-  }, []);
+  // Fetch notifications (for recent activities)
+  const {
+    data: notificationsData,
+    loading: notificationsLoading
+  } = useApi(() => api.get('/api/notifications', { params: { page: 1, size: 5, read: false } }), []);
+
+  // Fetch schedules
+  const {
+    data: schedulesData,
+    loading: schedulesLoading
+  } = useApi(() => api.get('/api/schedules', { params: { page: 1, size: 10 } }), []);
+
+  // Combine loading states
+  const loading = analyticsLoading || employeesLoading || notificationsLoading || schedulesLoading;
+
+  // Process analytics data with fallbacks
+  const processedAnalytics = analyticsData?.data || {};
+  const todaySchedules = processedAnalytics.todaySchedules || 0;
+  const weeklyHours = processedAnalytics.weeklyHours || 0;
+  const upcomingShifts = processedAnalytics.upcomingShifts || schedulesData?.data?.items?.length || 0;
+  const teamSize = employeesData?.data?.total || 0;
+  const pendingRequests = processedAnalytics.pendingRequests || 0;
+
+  // Process notifications for recent activities
+  const recentActivities = notificationsData?.data?.items?.map(notification => ({
+    id: notification.id,
+    type: notification.type || 'notification',
+    message: notification.message || notification.title,
+    time: notification.createdAt ? new Date(notification.createdAt).toLocaleString() : 'Recently',
+    status: notification.priority === 'high' ? 'warning' : notification.priority === 'urgent' ? 'error' : 'info'
+  })) || [];
 
   const quickActions = [
     {
@@ -123,31 +126,31 @@ const DashboardPage = () => {
   const stats = [
     {
       title: 'Today\'s Schedules',
-      value: dashboardData.todaySchedules,
+      value: todaySchedules,
       icon: <CalendarToday />,
       color: 'primary',
-      change: '+2 from yesterday'
+      change: processedAnalytics.todaySchedulesChange || 'No change'
     },
     {
       title: 'Weekly Hours',
-      value: `${dashboardData.weeklyHours}h`,
+      value: `${weeklyHours}h`,
       icon: <AccessTime />,
       color: 'success',
-      change: '8h remaining'
+      change: `${Math.max(0, 40 - weeklyHours)}h remaining`
     },
     {
       title: 'Upcoming Shifts',
-      value: dashboardData.upcomingShifts,
+      value: upcomingShifts,
       icon: <Schedule />,
       color: 'warning',
-      change: 'Next: Tomorrow 9 AM'
+      change: processedAnalytics.nextShift || 'No upcoming shifts'
     },
     {
       title: 'Pending Requests',
-      value: dashboardData.pendingRequests,
+      value: pendingRequests,
       icon: <Assignment />,
       color: 'error',
-      change: '1 awaiting approval'
+      change: pendingRequests > 0 ? `${pendingRequests} awaiting approval` : 'All clear'
     }
   ];
 
@@ -171,9 +174,25 @@ const DashboardPage = () => {
   console.log('🎯 DashboardPage: Stats count:', stats.length);
   console.log('🎯 DashboardPage: Filtered quick actions count:', filteredQuickActions.length);
 
+  // Show loading spinner while fetching data
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       {console.log('🎯 DashboardPage: Rendering main Box')}
+
+      {/* Show error alert if analytics failed */}
+      {analyticsError && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          Unable to load some dashboard data. Showing available information.
+        </Alert>
+      )}
 
       {/* Welcome Header */}
       <motion.div

@@ -25,7 +25,8 @@ class Employee(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # Personal information
-    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    first_name: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    last_name: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     role: Mapped[str] = mapped_column(String(100), nullable=False, default="employee")
 
     # Department relationship
@@ -77,11 +78,17 @@ class Employee(Base):
     __table_args__ = (
         CheckConstraint("role IN ('admin', 'manager', 'supervisor', 'employee')", name="valid_role"),
         CheckConstraint("email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'", name="valid_email_format"),
-        CheckConstraint("char_length(name) >= 2", name="name_min_length"),
+        CheckConstraint("char_length(first_name) >= 1", name="first_name_min_length"),
+        CheckConstraint("char_length(last_name) >= 1", name="last_name_min_length"),
         Index("ix_employees_role_active", "role", "is_active"),
         Index("ix_employees_qualifications", "qualifications", postgresql_using="gin"),
         Index("ix_employees_availability", "availability", postgresql_using="gin"),
     )
+
+    @property
+    def full_name(self) -> str:
+        """Get employee's full name"""
+        return f"{self.first_name} {self.last_name}"
 
     def has_qualification(self, qualification: str) -> bool:
         """Check if employee has specific qualification"""
@@ -138,7 +145,9 @@ class Employee(Base):
         data = {
             "id": self.id,
             "email": self.email,
-            "name": self.name,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "full_name": self.full_name,
             "role": self.role,
             "qualifications": self.qualifications,
             "availability": self.availability,
