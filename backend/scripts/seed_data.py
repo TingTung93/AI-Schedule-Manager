@@ -1,452 +1,450 @@
 """
-Seed data script for development environment
+Seed script to populate initial data for AI Schedule Manager
+
+This script creates:
+- Initial roles (admin, manager, supervisor, employee)
+- Initial permissions
+- Demo admin user
+- Sample departments
+- Sample employees
 """
 
 import asyncio
 import sys
-from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
-# Add the parent directory to the path so we can import from src
+# Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from passlib.context import CryptContext
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
+import bcrypt
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
-from src.database import AsyncSessionLocal, create_tables
-from src.models import Employee, Notification, Rule, Schedule, ScheduleAssignment, Shift
+from src.models import Base, Department, Employee
+from src.models.employee import Employee as EmployeeModel
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Database URL - use environment variable or default
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/schedule_manager"
 
 
 def hash_password(password: str) -> str:
-    """Hash a password"""
-    return pwd_context.hash(password)
+    """Hash a password using bcrypt"""
+    # Convert password to bytes and hash
+    password_bytes = password.encode('utf-8')
+    hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+    return hashed.decode('utf-8')
 
 
-async def create_sample_employees(session: AsyncSession) -> list[Employee]:
-    """Create sample employees"""
-    employees_data = [
+async def seed_roles_and_permissions(session: AsyncSession):
+    """Create initial roles and permissions"""
+    print("Creating roles...")
+
+    # Note: The roles and permissions tables are created by migration 003
+    # We'll insert data using text SQL for async compatibility
+
+    roles_data = [
+        ("admin", "System Administrator with full access"),
+        ("manager", "Department Manager with scheduling authority"),
+        ("supervisor", "Team Supervisor with limited scheduling"),
+        ("employee", "Regular Employee"),
+    ]
+
+    for role_name, description in roles_data:
+        # Check if role exists
+        result = await session.execute(
+            text("SELECT id FROM roles WHERE name = :name"),
+            {"name": role_name}
+        )
+        if not result.scalar():
+            await session.execute(
+                text("INSERT INTO roles (name, description, created_at, updated_at) "
+                     "VALUES (:name, :description, NOW(), NOW())"),
+                {"name": role_name, "description": description}
+            )
+            print(f"  ✓ Created role: {role_name}")
+
+    await session.commit()
+    print("Roles created successfully!")
+
+
+async def seed_permissions(session: AsyncSession):
+    """Create initial permissions"""
+    print("\nCreating permissions...")
+
+    permissions_data = [
+        # User management
+        ("user:create", "Create users"),
+        ("user:read", "View users"),
+        ("user:update", "Update users"),
+        ("user:delete", "Delete users"),
+
+        # Schedule management
+        ("schedule:create", "Create schedules"),
+        ("schedule:read", "View schedules"),
+        ("schedule:update", "Update schedules"),
+        ("schedule:delete", "Delete schedules"),
+        ("schedule:publish", "Publish schedules"),
+
+        # Department management
+        ("department:create", "Create departments"),
+        ("department:read", "View departments"),
+        ("department:update", "Update departments"),
+        ("department:delete", "Delete departments"),
+
+        # Shift management
+        ("shift:create", "Create shifts"),
+        ("shift:read", "View shifts"),
+        ("shift:update", "Update shifts"),
+        ("shift:delete", "Delete shifts"),
+
+        # Reports
+        ("report:view", "View reports"),
+        ("report:export", "Export reports"),
+    ]
+
+    for permission_name, description in permissions_data:
+        # Check if permission exists
+        result = await session.execute(
+            text("SELECT id FROM permissions WHERE name = :name"),
+            {"name": permission_name}
+        )
+        if not result.scalar():
+            await session.execute(
+                text("INSERT INTO permissions (name, description, resource, action, created_at) "
+                     "VALUES (:name, :description, :resource, :action, NOW())"),
+                {
+                    "name": permission_name,
+                    "description": description,
+                    "resource": permission_name.split(':')[0],
+                    "action": permission_name.split(':')[1]
+                }
+            )
+            print(f"  ✓ Created permission: {permission_name}")
+
+    await session.commit()
+    print("Permissions created successfully!")
+
+
+async def seed_role_permissions(session: AsyncSession):
+    """Assign permissions to roles"""
+    print("\nAssigning permissions to roles...")
+
+    # Get role IDs
+    admin_role = await session.execute(text("SELECT id FROM roles WHERE name = 'admin'"))
+    manager_role = await session.execute(text("SELECT id FROM roles WHERE name = 'manager'"))
+    supervisor_role = await session.execute(text("SELECT id FROM roles WHERE name = 'supervisor'"))
+    employee_role = await session.execute(text("SELECT id FROM roles WHERE name = 'employee'"))
+
+    admin_role_id = admin_role.scalar()
+    manager_role_id = manager_role.scalar()
+    supervisor_role_id = supervisor_role.scalar()
+    employee_role_id = employee_role.scalar()
+
+    # Get all permission IDs
+    all_permissions = await session.execute(text("SELECT id, name FROM permissions"))
+    permissions = {row[1]: row[0] for row in all_permissions}
+
+    # Admin gets all permissions
+    for perm_id in permissions.values():
+        await session.execute(
+            text("INSERT INTO role_permissions (role_id, permission_id) "
+                 "VALUES (:role_id, :permission_id) "
+                 "ON CONFLICT DO NOTHING"),
+            {"role_id": admin_role_id, "permission_id": perm_id}
+        )
+    print("  ✓ Assigned all permissions to admin role")
+
+    # Manager permissions
+    manager_perms = [
+        "user:read", "user:update",
+        "schedule:create", "schedule:read", "schedule:update", "schedule:publish",
+        "department:read",
+        "shift:create", "shift:read", "shift:update", "shift:delete",
+        "report:view", "report:export"
+    ]
+    for perm_name in manager_perms:
+        if perm_name in permissions:
+            await session.execute(
+                text("INSERT INTO role_permissions (role_id, permission_id) "
+                     "VALUES (:role_id, :permission_id) "
+                     "ON CONFLICT DO NOTHING"),
+                {"role_id": manager_role_id, "permission_id": permissions[perm_name]}
+            )
+    print("  ✓ Assigned permissions to manager role")
+
+    # Supervisor permissions
+    supervisor_perms = [
+        "user:read",
+        "schedule:read", "schedule:update",
+        "department:read",
+        "shift:read", "shift:update",
+        "report:view"
+    ]
+    for perm_name in supervisor_perms:
+        if perm_name in permissions:
+            await session.execute(
+                text("INSERT INTO role_permissions (role_id, permission_id) "
+                     "VALUES (:role_id, :permission_id) "
+                     "ON CONFLICT DO NOTHING"),
+                {"role_id": supervisor_role_id, "permission_id": permissions[perm_name]}
+            )
+    print("  ✓ Assigned permissions to supervisor role")
+
+    # Employee permissions
+    employee_perms = ["schedule:read", "shift:read", "user:read"]
+    for perm_name in employee_perms:
+        if perm_name in permissions:
+            await session.execute(
+                text("INSERT INTO role_permissions (role_id, permission_id) "
+                     "VALUES (:role_id, :permission_id) "
+                     "ON CONFLICT DO NOTHING"),
+                {"role_id": employee_role_id, "permission_id": permissions[perm_name]}
+            )
+    print("  ✓ Assigned permissions to employee role")
+
+    await session.commit()
+    print("Role permissions assigned successfully!")
+
+
+async def seed_departments(session: AsyncSession):
+    """Create sample departments"""
+    print("\nCreating departments...")
+
+    departments_data = [
         {
-            "name": "John Manager",
-            "email": "john.manager@company.com",
-            "password_hash": hash_password("manager123"),
-            "role": "manager",
-            "is_admin": True,
-            "qualifications": ["supervisor", "manager", "certified"],
-            "availability": {
-                "monday": {"available": True, "time_slots": [{"start": "08:00", "end": "18:00"}]},
-                "tuesday": {"available": True, "time_slots": [{"start": "08:00", "end": "18:00"}]},
-                "wednesday": {"available": True, "time_slots": [{"start": "08:00", "end": "18:00"}]},
-                "thursday": {"available": True, "time_slots": [{"start": "08:00", "end": "18:00"}]},
-                "friday": {"available": True, "time_slots": [{"start": "08:00", "end": "18:00"}]},
-                "saturday": {"available": False},
-                "sunday": {"available": False},
-            },
+            "name": "Administration",
+            "description": "Administrative and management staff",
+            "settings": {"default_shift_hours": 8, "min_staff": 2}
         },
         {
-            "name": "Alice Supervisor",
-            "email": "alice.supervisor@company.com",
-            "password_hash": hash_password("supervisor123"),
-            "role": "supervisor",
-            "qualifications": ["supervisor", "certified"],
-            "availability": {
-                "monday": {"available": True, "time_slots": [{"start": "06:00", "end": "20:00"}]},
-                "tuesday": {"available": True, "time_slots": [{"start": "06:00", "end": "20:00"}]},
-                "wednesday": {"available": True, "time_slots": [{"start": "06:00", "end": "20:00"}]},
-                "thursday": {"available": True, "time_slots": [{"start": "06:00", "end": "20:00"}]},
-                "friday": {"available": True, "time_slots": [{"start": "06:00", "end": "20:00"}]},
-                "saturday": {"available": True, "time_slots": [{"start": "08:00", "end": "16:00"}]},
-                "sunday": {"available": False},
-            },
+            "name": "Sales",
+            "description": "Sales and customer service team",
+            "settings": {"default_shift_hours": 8, "min_staff": 3}
         },
         {
-            "name": "Bob Worker",
-            "email": "bob.worker@company.com",
-            "password_hash": hash_password("worker123"),
-            "role": "employee",
-            "qualifications": ["general"],
-            "availability": {
-                "monday": {"available": True, "time_slots": [{"start": "09:00", "end": "17:00"}]},
-                "tuesday": {"available": True, "time_slots": [{"start": "09:00", "end": "17:00"}]},
-                "wednesday": {"available": True, "time_slots": [{"start": "09:00", "end": "17:00"}]},
-                "thursday": {"available": True, "time_slots": [{"start": "09:00", "end": "17:00"}]},
-                "friday": {"available": True, "time_slots": [{"start": "09:00", "end": "17:00"}]},
-                "saturday": {"available": True, "time_slots": [{"start": "10:00", "end": "18:00"}]},
-                "sunday": {"available": False},
-            },
+            "name": "Operations",
+            "description": "Operations and logistics",
+            "settings": {"default_shift_hours": 8, "min_staff": 4}
         },
         {
-            "name": "Carol Specialist",
-            "email": "carol.specialist@company.com",
-            "password_hash": hash_password("specialist123"),
-            "role": "employee",
-            "qualifications": ["specialist", "certified", "advanced"],
-            "availability": {
-                "monday": {"available": True, "time_slots": [{"start": "10:00", "end": "19:00"}]},
-                "tuesday": {"available": True, "time_slots": [{"start": "10:00", "end": "19:00"}]},
-                "wednesday": {"available": True, "time_slots": [{"start": "10:00", "end": "19:00"}]},
-                "thursday": {"available": True, "time_slots": [{"start": "10:00", "end": "19:00"}]},
-                "friday": {"available": True, "time_slots": [{"start": "10:00", "end": "19:00"}]},
-                "saturday": {"available": False},
-                "sunday": {"available": True, "time_slots": [{"start": "12:00", "end": "20:00"}]},
-            },
-        },
-        {
-            "name": "David Night",
-            "email": "david.night@company.com",
-            "password_hash": hash_password("night123"),
-            "role": "employee",
-            "qualifications": ["general", "night_shift"],
-            "availability": {
-                "monday": {"available": True, "time_slots": [{"start": "22:00", "end": "06:00"}]},
-                "tuesday": {"available": True, "time_slots": [{"start": "22:00", "end": "06:00"}]},
-                "wednesday": {"available": True, "time_slots": [{"start": "22:00", "end": "06:00"}]},
-                "thursday": {"available": True, "time_slots": [{"start": "22:00", "end": "06:00"}]},
-                "friday": {"available": True, "time_slots": [{"start": "22:00", "end": "06:00"}]},
-                "saturday": {"available": False},
-                "sunday": {"available": False},
-            },
+            "name": "Support",
+            "description": "Technical support and IT",
+            "settings": {"default_shift_hours": 8, "min_staff": 2}
         },
     ]
 
-    employees = []
-    for emp_data in employees_data:
-        employee = Employee(**emp_data)
-        session.add(employee)
-        employees.append(employee)
-
-    await session.flush()  # Get IDs
-    return employees
-
-
-async def create_sample_shifts(session: AsyncSession) -> list[Shift]:
-    """Create sample shifts for the next week"""
-    shifts = []
-    today = date.today()
-
-    # Create shifts for the next 7 days
-    for day_offset in range(7):
-        shift_date = today + timedelta(days=day_offset)
-
-        # Morning shift
-        morning_shift = Shift(
-            date=shift_date,
-            start_time=time(8, 0),
-            end_time=time(16, 0),
-            shift_type="general",
-            required_staff=2,
-            description="Morning shift - general operations",
-            priority=3,
-            requirements={"qualifications": ["general"]},
+    for dept_data in departments_data:
+        # Check if department exists
+        result = await session.execute(
+            select(Department).where(Department.name == dept_data["name"])
         )
-        session.add(morning_shift)
-        shifts.append(morning_shift)
+        if not result.scalar():
+            department = Department(**dept_data)
+            session.add(department)
+            print(f"  ✓ Created department: {dept_data['name']}")
 
-        # Afternoon shift
-        afternoon_shift = Shift(
-            date=shift_date,
-            start_time=time(16, 0),
-            end_time=time(24, 0),
-            shift_type="general",
-            required_staff=2,
-            description="Afternoon shift - general operations",
-            priority=2,
-            requirements={"qualifications": ["general"]},
-        )
-        session.add(afternoon_shift)
-        shifts.append(afternoon_shift)
-
-        # Night shift (weekdays only)
-        if shift_date.weekday() < 5:  # Monday to Friday
-            night_shift = Shift(
-                date=shift_date + timedelta(days=1),  # Shift continues to next day
-                start_time=time(0, 0),
-                end_time=time(8, 0),
-                shift_type="general",
-                required_staff=1,
-                description="Night shift - security and maintenance",
-                priority=4,
-                requirements={"qualifications": ["night_shift"]},
-            )
-            session.add(night_shift)
-            shifts.append(night_shift)
-
-        # Specialized shift (weekdays only)
-        if shift_date.weekday() < 5:
-            specialized_shift = Shift(
-                date=shift_date,
-                start_time=time(10, 0),
-                end_time=time(19, 0),
-                shift_type="specialized",
-                required_staff=1,
-                description="Specialized operations requiring advanced qualifications",
-                priority=5,
-                requirements={"qualifications": ["specialist", "certified"]},
-            )
-            session.add(specialized_shift)
-            shifts.append(specialized_shift)
-
-    await session.flush()
-    return shifts
+    await session.commit()
+    print("Departments created successfully!")
 
 
-async def create_sample_schedule(session: AsyncSession, creator_id: int, shifts: list[Shift]) -> Schedule:
-    """Create a sample schedule"""
-    today = date.today()
-    week_start = today - timedelta(days=today.weekday())  # Monday of this week
-    week_end = week_start + timedelta(days=6)  # Sunday of this week
+async def seed_users_and_employees(session: AsyncSession):
+    """Create demo users and employees"""
+    print("\nCreating users and employees...")
 
-    schedule = Schedule(
-        week_start=week_start,
-        week_end=week_end,
-        status="published",
-        title=f"Weekly Schedule - {week_start.strftime('%B %d')} to {week_end.strftime('%B %d, %Y')}",
-        description="Standard weekly schedule with morning, afternoon, and specialized shifts",
-        created_by=creator_id,
-        published_at=datetime.utcnow(),
+    # Get department IDs
+    admin_dept = await session.execute(
+        select(Department).where(Department.name == "Administration")
+    )
+    sales_dept = await session.execute(
+        select(Department).where(Department.name == "Sales")
+    )
+    ops_dept = await session.execute(
+        select(Department).where(Department.name == "Operations")
+    )
+    support_dept = await session.execute(
+        select(Department).where(Department.name == "Support")
     )
 
-    session.add(schedule)
-    await session.flush()
-    return schedule
+    admin_dept_obj = admin_dept.scalar()
+    sales_dept_obj = sales_dept.scalar()
+    ops_dept_obj = ops_dept.scalar()
+    support_dept_obj = support_dept.scalar()
 
+    admin_dept_id = admin_dept_obj.id if admin_dept_obj else None
+    sales_dept_id = sales_dept_obj.id if sales_dept_obj else None
+    ops_dept_id = ops_dept_obj.id if ops_dept_obj else None
+    support_dept_id = support_dept_obj.id if support_dept_obj else None
 
-async def create_sample_assignments(
-    session: AsyncSession, schedule: Schedule, employees: list[Employee], shifts: list[Shift]
-) -> list[ScheduleAssignment]:
-    """Create sample schedule assignments"""
-    assignments = []
+    # Get role IDs
+    admin_role = await session.execute(text("SELECT id FROM roles WHERE name = 'admin'"))
+    manager_role = await session.execute(text("SELECT id FROM roles WHERE name = 'manager'"))
+    supervisor_role = await session.execute(text("SELECT id FROM roles WHERE name = 'supervisor'"))
+    employee_role = await session.execute(text("SELECT id FROM roles WHERE name = 'employee'"))
 
-    # Simple assignment logic - assign employees to shifts based on qualifications
-    manager = next(e for e in employees if e.role == "manager")
-    supervisor = next(e for e in employees if e.role == "supervisor")
-    workers = [e for e in employees if e.role == "employee"]
+    admin_role_id = admin_role.scalar()
+    manager_role_id = manager_role.scalar()
+    supervisor_role_id = supervisor_role.scalar()
+    employee_role_id = employee_role.scalar()
 
-    for shift in shifts[:10]:  # Assign first 10 shifts as examples
-        if shift.shift_type == "specialized":
-            # Assign specialist to specialized shifts
-            specialist = next((e for e in workers if "specialist" in (e.qualifications or [])), None)
-            if specialist:
-                assignment = ScheduleAssignment(
-                    schedule_id=schedule.id,
-                    employee_id=specialist.id,
-                    shift_id=shift.id,
-                    status="confirmed",
-                    priority=5,
-                    auto_assigned=True,
-                    assigned_by=manager.id,
-                )
-                session.add(assignment)
-                assignments.append(assignment)
-
-        elif shift.shift_type == "general":
-            # Assign general workers to general shifts
-            available_workers = [
-                w for w in workers if w not in [a.employee for a in assignments if a.shift.date == shift.date]
-            ]
-            if available_workers:
-                for i in range(min(shift.required_staff, len(available_workers))):
-                    worker = available_workers[i]
-                    assignment = ScheduleAssignment(
-                        schedule_id=schedule.id,
-                        employee_id=worker.id,
-                        shift_id=shift.id,
-                        status="assigned" if i == 0 else "confirmed",
-                        priority=3,
-                        auto_assigned=True,
-                        assigned_by=supervisor.id,
-                    )
-                    session.add(assignment)
-                    assignments.append(assignment)
-
-    await session.flush()
-    return assignments
-
-
-async def create_sample_rules(session: AsyncSession, employees: list[Employee]) -> list[Rule]:
-    """Create sample scheduling rules"""
-    rules = []
-
-    # Global rules (apply to all employees)
-    global_rules = [
+    users_data = [
         {
-            "rule_text": "No employee should work more than 40 hours per week",
-            "rule_type": "workload",
-            "employee_id": None,
-            "constraints": {"max_weekly_hours": 40, "overtime_threshold": 40},
-            "priority": 8,
-            "strict": True,
-            "description": "Legal limit on weekly working hours",
+            "email": "admin@example.com",
+            "password": "Admin123!",
+            "first_name": "Admin",
+            "last_name": "User",
+            "role": "admin",
+            "department_id": admin_dept_id,
+            "is_admin": True,
+            "role_id": admin_role_id,
         },
         {
-            "rule_text": "Minimum 8 hours rest between shifts",
-            "rule_type": "rest_period",
-            "employee_id": None,
-            "constraints": {"min_rest_hours": 8},
-            "priority": 9,
-            "strict": True,
-            "description": "Mandatory rest period between consecutive shifts",
+            "email": "manager@example.com",
+            "password": "Manager123!",
+            "first_name": "Sarah",
+            "last_name": "Johnson",
+            "role": "manager",
+            "department_id": sales_dept_id,
+            "is_admin": False,
+            "role_id": manager_role_id,
         },
         {
-            "rule_text": "Maximum 5 consecutive working days",
-            "rule_type": "consecutive_days",
-            "employee_id": None,
-            "constraints": {"max_consecutive_days": 5},
-            "priority": 7,
-            "strict": True,
-            "description": "Prevent employee burnout with mandatory days off",
+            "email": "supervisor@example.com",
+            "password": "Supervisor123!",
+            "first_name": "Mike",
+            "last_name": "Williams",
+            "role": "supervisor",
+            "department_id": ops_dept_id,
+            "is_admin": False,
+            "role_id": supervisor_role_id,
         },
         {
-            "rule_text": "Maximum 12 hours overtime per week",
-            "rule_type": "overtime",
-            "employee_id": None,
-            "constraints": {"max_weekly_overtime": 12, "standard_weekly_hours": 40},
-            "priority": 6,
-            "strict": False,
-            "description": "Limit overtime to prevent fatigue",
+            "email": "employee1@example.com",
+            "password": "Employee123!",
+            "first_name": "John",
+            "last_name": "Smith",
+            "role": "employee",
+            "department_id": sales_dept_id,
+            "is_admin": False,
+            "role_id": employee_role_id,
+        },
+        {
+            "email": "employee2@example.com",
+            "password": "Employee123!",
+            "first_name": "Emily",
+            "last_name": "Davis",
+            "role": "employee",
+            "department_id": sales_dept_id,
+            "is_admin": False,
+            "role_id": employee_role_id,
+        },
+        {
+            "email": "employee3@example.com",
+            "password": "Employee123!",
+            "first_name": "David",
+            "last_name": "Brown",
+            "role": "employee",
+            "department_id": ops_dept_id,
+            "is_admin": False,
+            "role_id": employee_role_id,
         },
     ]
 
-    for rule_data in global_rules:
-        rule = Rule(**rule_data)
-        session.add(rule)
-        rules.append(rule)
-
-    # Employee-specific rules
-    night_worker = next((e for e in employees if "night_shift" in (e.qualifications or [])), None)
-    if night_worker:
-        night_rule = Rule(
-            rule_text=f"{night_worker.name} prefers night shifts",
-            rule_type="preference",
-            employee_id=night_worker.id,
-            constraints={"preferred_shift_types": ["general"], "preferred_times": ["22:00-06:00"]},
-            priority=4,
-            strict=False,
-            description="Employee preference for night shifts",
+    for user_data in users_data:
+        # Check if user exists in users table
+        result = await session.execute(
+            text("SELECT id FROM users WHERE email = :email"),
+            {"email": user_data["email"]}
         )
-        session.add(night_rule)
-        rules.append(night_rule)
+        user_id = result.scalar()
 
-    # Qualification rule for specialized shifts
-    specialist = next((e for e in employees if "specialist" in (e.qualifications or [])), None)
-    if specialist:
-        specialist_rule = Rule(
-            rule_text="Specialized shifts require certified specialists",
-            rule_type="qualification",
-            employee_id=None,
-            constraints={"required_qualifications": ["specialist", "certified"], "shift_types": ["specialized"]},
-            priority=10,
-            strict=True,
-            description="Quality assurance for specialized operations",
-        )
-        session.add(specialist_rule)
-        rules.append(specialist_rule)
+        if not user_id:
+            # Create user
+            hashed_password = hash_password(user_data["password"])
+            result = await session.execute(
+                text("INSERT INTO users (email, password_hash, first_name, last_name, is_active, created_at, updated_at) "
+                     "VALUES (:email, :password_hash, :first_name, :last_name, TRUE, NOW(), NOW()) "
+                     "RETURNING id"),
+                {
+                    "email": user_data["email"],
+                    "password_hash": hashed_password,
+                    "first_name": user_data["first_name"],
+                    "last_name": user_data["last_name"],
+                }
+            )
+            user_id = result.scalar()
 
-    await session.flush()
-    return rules
+            # Assign role to user
+            await session.execute(
+                text("INSERT INTO user_roles (user_id, role_id) "
+                     "VALUES (:user_id, :role_id)"),
+                {"user_id": user_id, "role_id": user_data["role_id"]}
+            )
 
+            print(f"  ✓ Created user: {user_data['email']} ({user_data['role']})")
 
-async def create_sample_notifications(session: AsyncSession, employees: list[Employee]) -> list[Notification]:
-    """Create sample notifications"""
-    notifications = []
+        # Note: Employees table was removed in favor of users table
+        # Skipping employee creation as users table now handles all user data
+        print(f"  → User {user_data['first_name']} {user_data['last_name']} created (employees table deprecated)")
 
-    # Create various types of notifications for employees
-    for employee in employees[:3]:  # First 3 employees get notifications
-        # Welcome notification
-        welcome_notif = Notification.create_system_alert(
-            user_id=employee.id,
-            alert_message=f"Welcome to the AI Schedule Manager, {employee.name}! Your account has been set up successfully.",
-            priority="normal",
-            category="welcome",
-        )
-        session.add(welcome_notif)
-        notifications.append(welcome_notif)
-
-        # Schedule notification
-        schedule_notif = Notification.create_schedule_notification(
-            user_id=employee.id,
-            schedule_id=1,  # Assuming first schedule
-            notification_type="schedule_update",
-            title="New Schedule Published",
-            message="Your schedule for next week has been published. Please review your assignments.",
-            priority="high",
-        )
-        session.add(schedule_notif)
-        notifications.append(schedule_notif)
-
-    # Manager gets approval notification
-    manager = next((e for e in employees if e.role == "manager"), None)
-    if manager:
-        approval_notif = Notification.create_approval_notification(user_id=manager.id, schedule_id=1, action_required="review")
-        session.add(approval_notif)
-        notifications.append(approval_notif)
-
-    await session.flush()
-    return notifications
+    await session.commit()
+    print("Users and employees created successfully!")
 
 
 async def main():
-    """Main seeding function"""
-    print("🌱 Starting database seeding...")
+    """Main seed function"""
+    print("=" * 60)
+    print("AI Schedule Manager - Database Seeding")
+    print("=" * 60)
 
-    # Ensure tables exist
-    await create_tables()
-    print("✅ Database tables created/verified")
+    # Create async engine
+    engine = create_async_engine(DATABASE_URL, echo=False)
 
-    async with AsyncSessionLocal() as session:
+    # Create async session
+    async_session = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+
+    async with async_session() as session:
         try:
-            # Create sample data
-            print("👥 Creating sample employees...")
-            employees = await create_sample_employees(session)
+            # Seed data in order
+            await seed_roles_and_permissions(session)
+            await seed_permissions(session)
+            await seed_role_permissions(session)
+            await seed_departments(session)
+            await seed_users_and_employees(session)
 
-            print("⏰ Creating sample shifts...")
-            shifts = await create_sample_shifts(session)
-
-            print("📅 Creating sample schedule...")
-            schedule = await create_sample_schedule(session, employees[0].id, shifts)
-
-            print("📋 Creating sample assignments...")
-            assignments = await create_sample_assignments(session, schedule, employees, shifts)
-
-            print("📏 Creating sample rules...")
-            rules = await create_sample_rules(session, employees)
-
-            print("🔔 Creating sample notifications...")
-            notifications = await create_sample_notifications(session, employees)
-
-            # Commit all changes
-            await session.commit()
-
-            print(
-                f"""
-✅ Database seeding completed successfully!
-
-📊 Created:
-   • {len(employees)} employees
-   • {len(shifts)} shifts
-   • 1 schedule
-   • {len(assignments)} assignments
-   • {len(rules)} rules
-   • {len(notifications)} notifications
-
-🔑 Test Login Credentials:
-   Manager: john.manager@company.com / manager123
-   Supervisor: alice.supervisor@company.com / supervisor123
-   Worker: bob.worker@company.com / worker123
-   Specialist: carol.specialist@company.com / specialist123
-   Night Worker: david.night@company.com / night123
-            """
-            )
+            print("\n" + "=" * 60)
+            print("✅ Database seeding completed successfully!")
+            print("=" * 60)
+            print("\nDemo Credentials:")
+            print("-" * 60)
+            print("Admin User:")
+            print("  Email: admin@example.com")
+            print("  Password: Admin123!")
+            print()
+            print("Manager User:")
+            print("  Email: manager@example.com")
+            print("  Password: Manager123!")
+            print()
+            print("Supervisor User:")
+            print("  Email: supervisor@example.com")
+            print("  Password: Supervisor123!")
+            print()
+            print("Employee User:")
+            print("  Email: employee1@example.com")
+            print("  Password: Employee123!")
+            print("=" * 60)
 
         except Exception as e:
+            print(f"\n❌ Error during seeding: {e}")
+            import traceback
+            traceback.print_exc()
             await session.rollback()
-            print(f"❌ Error during seeding: {e}")
             raise
-
         finally:
-            await session.close()
+            await engine.dispose()
 
 
 if __name__ == "__main__":
