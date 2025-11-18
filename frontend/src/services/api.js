@@ -547,6 +547,62 @@ export const scheduleService = {
       console.error('Delete schedule failed:', error);
       throw error;
     }
+  },
+
+  /**
+   * Update a specific shift in a schedule
+   * @param {string|number} scheduleId - The schedule ID
+   * @param {string|number} shiftId - The shift ID to update
+   * @param {Object} updates - Shift update data (e.g., startTime, endTime, employeeId)
+   * @returns {Promise<Object>} Updated shift data
+   */
+  async updateShift(scheduleId, shiftId, updates) {
+    try {
+      const response = await api.patch(`/api/schedules/${scheduleId}/shifts/${shiftId}`, updates);
+      return response;
+    } catch (error) {
+      console.error('Update shift failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Generate a new schedule for a date range using AI optimization
+   * @param {string} startDate - Start date (ISO format or YYYY-MM-DD)
+   * @param {string} endDate - End date (ISO format or YYYY-MM-DD)
+   * @param {Object} options - Additional generation options
+   * @param {number} options.minStaff - Minimum staff per shift
+   * @param {number} options.maxHoursPerEmployee - Max hours per employee
+   * @param {boolean} options.respectPreferences - Whether to respect employee preferences
+   * @returns {Promise<Object>} Generated schedule data
+   */
+  async generateSchedule(startDate, endDate, options = {}) {
+    try {
+      const response = await api.post('/api/schedule/generate', {
+        startDate,
+        endDate,
+        ...options
+      });
+      return response;
+    } catch (error) {
+      console.error('Generate schedule failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Optimize an existing schedule using AI algorithms
+   * @param {string|number} scheduleId - The schedule ID to optimize
+   * @returns {Promise<Object>} Optimized schedule data
+   */
+  async optimizeSchedule(scheduleId) {
+    try {
+      const response = await api.post(`/api/schedules/${scheduleId}/optimize`);
+      return response;
+    } catch (error) {
+      console.error('Optimize schedule failed:', error);
+      throw error;
+    }
   }
 };
 
@@ -673,29 +729,83 @@ export const userService = {
   }
 };
 
+// Employee-related API calls
+export const employeeService = {
+  /**
+   * Get employee's schedule for a date range
+   * @param {string|number} employeeId - The employee ID
+   * @param {string} startDate - Start date (ISO format or YYYY-MM-DD)
+   * @param {string} endDate - End date (ISO format or YYYY-MM-DD)
+   * @returns {Promise<Object>} Employee's schedule data
+   */
+  async getEmployeeSchedule(employeeId, startDate, endDate) {
+    try {
+      const response = await api.get(`/api/employees/${employeeId}/schedule`, {
+        params: {
+          startDate,
+          endDate
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error('Get employee schedule failed:', error);
+      throw error;
+    }
+  }
+};
+
+// Analytics-related API calls
+export const analyticsService = {
+  /**
+   * Get dashboard analytics overview
+   * @returns {Promise<Object>} Analytics overview with key metrics
+   */
+  async getAnalyticsOverview() {
+    try {
+      const response = await api.get('/api/analytics/overview');
+      return response;
+    } catch (error) {
+      console.error('Get analytics overview failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get labor costs for a specific date range
+   * @param {string} startDate - Start date (ISO format or YYYY-MM-DD)
+   * @param {string} endDate - End date (ISO format or YYYY-MM-DD)
+   * @returns {Promise<Object>} Labor cost analysis data
+   */
+  async getLaborCosts(startDate, endDate) {
+    try {
+      const response = await api.get('/api/analytics/labor-costs', {
+        params: {
+          startDate,
+          endDate
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error('Get labor costs failed:', error);
+      throw error;
+    }
+  }
+};
+
 /**
- * SERVICE WRAPPERS REMOVED - Use axios 'api' instance directly
+ * NOTE: Additional API endpoints can be accessed using the 'api' instance directly.
  *
- * Previous version had 373 lines of service wrapper methods (employeeService,
- * ruleService, analyticsService, notificationService, shiftService, settingsService)
- * that added no value - just wrapped axios calls with identical try-catch blocks.
- *
- * This violates KISS and DRY principles. Instead, use the axios instance directly:
- *
- * Example:
+ * For simple CRUD operations without complex logic, use:
  *   import api, { getErrorMessage } from './services/api';
  *
- *   const response = await api.get('/api/employees');
- *   const response = await api.post('/api/employees', data);
- *   const response = await api.patch(`/api/employees/${id}`, data);
- *   const response = await api.delete(`/api/employees/${id}`);
+ *   const response = await api.get('/api/resource');
+ *   const response = await api.post('/api/resource', data);
+ *   const response = await api.patch(`/api/resource/${id}`, data);
+ *   const response = await api.delete(`/api/resource/${id}`);
  *
- * Error logging is centralized in the response interceptor (line 74).
+ * Error logging is centralized in the response interceptor.
  * For user-friendly error messages, use: getErrorMessage(error)
  */
-
-// Kept services: authService, scheduleService, taskService, userService
-// These contain authentication logic and are worth keeping
 
 export const errorHandler = {
   /**
