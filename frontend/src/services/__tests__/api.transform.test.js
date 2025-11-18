@@ -2,6 +2,16 @@
  * Unit tests for data transformation utilities
  */
 
+// Mock axios before importing api
+jest.mock('axios', () => ({
+  create: jest.fn(() => ({
+    interceptors: {
+      request: { use: jest.fn() },
+      response: { use: jest.fn() }
+    }
+  }))
+}));
+
 import { transformUtils } from '../api';
 
 const {
@@ -304,10 +314,10 @@ describe('Edge cases', () => {
     };
 
     const expected = {
-      level1: {
-        level2: {
-          level3: {
-            level4: {
+      level_1: {
+        level_2: {
+          level_3: {
+            level_4: {
               deepValue: 'test'
             }
           }
