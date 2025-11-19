@@ -291,7 +291,9 @@ export const authService = {
       });
 
       // Store access token (backup for cookie-less scenarios)
-      if (response.data.access_token) {
+      if (response.data.accessToken) {
+        accessToken = response.data.accessToken;
+      } else if (response.data.access_token) {
         accessToken = response.data.access_token;
       }
 
@@ -479,6 +481,14 @@ export const authService = {
    */
   isAuthenticated() {
     return !!accessToken;
+  },
+
+  /**
+   * Clear access token (used during logout)
+   */
+  clearAccessToken() {
+    accessToken = null;
+    csrfToken = null;
   }
 };
 

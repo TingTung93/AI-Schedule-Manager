@@ -11,6 +11,7 @@ from .schedule import Schedule
 from .schedule_assignment import ScheduleAssignment
 from .schedule_template import ScheduleTemplate
 from .shift import Shift
+from .shift_definition import ShiftDefinition
 from .user_settings import UserSettings
 
-__all__ = ["Base", "Department", "Employee", "Shift", "Schedule", "ScheduleAssignment", "ScheduleTemplate", "Rule", "Notification", "UserSettings"]
+__all__ = ["Base", "Department", "Employee", "Shift", "ShiftDefinition", "Schedule", "ScheduleAssignment", "ScheduleTemplate", "Rule", "Notification", "UserSettings"]

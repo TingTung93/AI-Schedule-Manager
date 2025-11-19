@@ -37,6 +37,7 @@ class Department(Base):
     # Relationships to other models
     employees: Mapped[List["Employee"]] = relationship("Employee", back_populates="department")
     shifts: Mapped[List["Shift"]] = relationship("Shift", back_populates="department")
+    shift_definitions: Mapped[List["ShiftDefinition"]] = relationship("ShiftDefinition", back_populates="department")
 
     def to_dict(self, camelCase: bool = True) -> dict:
         """Convert to dictionary with optional camelCase."""
