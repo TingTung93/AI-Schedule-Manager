@@ -26,7 +26,8 @@ from src.models import Base, Department, Employee
 from src.models.employee import Employee as EmployeeModel
 
 # Database URL - use environment variable or default
-DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/schedule_manager"
+import os
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@postgres:5432/schedule_manager")
 
 
 def hash_password(password: str) -> str:
