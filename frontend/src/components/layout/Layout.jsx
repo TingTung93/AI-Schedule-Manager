@@ -124,9 +124,8 @@ const Layout = () => {
 
   const handleNavigation = (path) => {
     navigate(path);
-    if (isMobile) {
-      setMobileOpen(false);
-    }
+    // Always close mobile drawer when navigating
+    setMobileOpen(false);
   };
 
   const toggleGroupExpansion = (groupIndex) => {
