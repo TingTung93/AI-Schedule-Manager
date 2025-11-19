@@ -60,8 +60,11 @@ async def get_departments(
         sort_order=sort_order,
     )
 
+    # Convert ORM objects to response schemas
+    department_responses = [DepartmentResponse.model_validate(dept) for dept in result["items"]]
+    
     return PaginatedResponse(
-        items=result["items"], total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
+        items=department_responses, total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
     )
 
 
@@ -216,8 +219,11 @@ async def get_department_staff(
     skip = (page - 1) * size
     result = await crud_department.get_staff(db, department_id, skip, size)
 
+    # Convert ORM objects to response schemas
+    department_responses = [DepartmentResponse.model_validate(dept) for dept in result["items"]]
+    
     return PaginatedResponse(
-        items=result["items"], total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
+        items=department_responses, total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
     )
 
 
@@ -242,6 +248,9 @@ async def get_department_shifts(
     skip = (page - 1) * size
     result = await crud_department.get_shifts(db, department_id, skip, size)
 
+    # Convert ORM objects to response schemas
+    department_responses = [DepartmentResponse.model_validate(dept) for dept in result["items"]]
+    
     return PaginatedResponse(
-        items=result["items"], total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
+        items=department_responses, total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
     )

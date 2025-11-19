@@ -119,6 +119,8 @@ class PaginatedResponse(BaseModel):
     size: int
     pages: int
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 # Employee schemas
 class EmployeeBase(BaseModel):
