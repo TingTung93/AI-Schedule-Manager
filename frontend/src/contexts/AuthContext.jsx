@@ -180,35 +180,9 @@ export const AuthProvider = ({ children }) => {
           dispatch({ type: AUTH_ACTIONS.LOGOUT });
         }
       } else {
-        // No stored session, try to get current user from backend (cookie-based)
-        try {
-          const response = await authService.getCurrentUser();
-
-          if (response.data.user) {
-            dispatch({
-              type: AUTH_ACTIONS.LOGIN_SUCCESS,
-              payload: { user: response.data.user }
-            });
-
-            // Set access token if provided
-            if (response.data.access_token) {
-              authService.setAccessToken(response.data.access_token);
-              localStorage.setItem('user', JSON.stringify(response.data.user));
-            }
-
-            // Get CSRF token (but don't fail if it doesn't work)
-            try {
-              await getCsrfToken();
-            } catch (csrfError) {
-              console.warn('CSRF token fetch failed:', csrfError);
-            }
-          } else {
-            dispatch({ type: AUTH_ACTIONS.LOGOUT });
-          }
-        } catch (getUserError) {
-          // Failed to get user from backend, clear session
-          dispatch({ type: AUTH_ACTIONS.LOGOUT });
-        }
+        // No stored session - user needs to login
+        // Don't call /api/auth/me without a token, just set logged out state
+        dispatch({ type: AUTH_ACTIONS.LOGOUT });
       }
     } catch (error) {
       // Handle network errors gracefully - don't spam console
