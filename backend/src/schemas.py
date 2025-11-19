@@ -1071,6 +1071,13 @@ class ShiftDefinitionResponse(ShiftDefinitionBase):
     formatted_time_range: str
     created_by_id: Optional[int] = None
 
+    @validator("created_at", "updated_at", pre=True)
+    def convert_datetime_to_str(cls, v):
+        """Convert datetime objects to ISO format strings"""
+        if isinstance(v, datetime):
+            return v.isoformat()
+        return v
+
     class Config:
         orm_mode = True
         from_attributes = True

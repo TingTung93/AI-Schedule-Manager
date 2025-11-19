@@ -176,8 +176,8 @@ async def get_current_manager(
     Raises:
         HTTPException: 403 if user is not a manager
     """
-    # Check if user has manager role
-    if not current_user.has_role("manager"):
+    # Check if user has manager or admin role (admins have all manager permissions)
+    if not (current_user.has_role("manager") or current_user.has_role("admin")):
         logger.warning(f"User {current_user.email} attempted manager access without role")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

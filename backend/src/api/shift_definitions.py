@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies import get_current_manager, get_current_user, get_database_session
+from ..auth.models import User
 from ..models import ShiftDefinition
 from ..schemas import (
     PaginatedResponse,
@@ -28,7 +29,7 @@ router = APIRouter(prefix="/api/shift-definitions", tags=["Shift Definitions"])
 @router.get("", response_model=PaginatedResponse)
 async def get_shift_definitions(
     db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     department_id: Optional[int] = Query(None, description="Filter by department ID"),
     shift_type: Optional[str] = Query(None, description="Filter by shift type"),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
@@ -86,7 +87,7 @@ async def get_shift_definitions(
 @router.get("/active", response_model=list)
 async def get_active_shift_definitions(
     db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     department_id: Optional[int] = Query(None, description="Filter by department"),
 ):
     """
@@ -104,7 +105,7 @@ async def get_active_shift_definitions(
 @router.get("/types", response_model=dict)
 async def get_shift_types_summary(
     db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get shift type summary with counts.
@@ -132,7 +133,7 @@ async def get_shift_types_summary(
 async def get_shift_definition(
     shift_definition_id: int,
     db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get specific shift definition by ID.
@@ -152,7 +153,7 @@ async def get_shift_definition(
 async def create_shift_definition(
     shift_def: ShiftDefinitionCreate,
     db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_manager),
+    current_user: User = Depends(get_current_manager),
 ):
     """
     Create a new shift definition template.
@@ -194,12 +195,12 @@ async def create_shift_definition(
     new_shift_def = await crud_shift_definition.create(
         db,
         shift_def,
-        created_by_id=current_user.get("id")
+        created_by_id=current_user.id
     )
 
     logger.info(
         f"Created shift definition: {new_shift_def.name} ({new_shift_def.abbreviation}) "
-        f"by user {current_user.get('id')}"
+        f"by user {current_user.id}"
     )
 
     return new_shift_def
@@ -210,7 +211,7 @@ async def update_shift_definition(
     shift_definition_id: int,
     shift_def_update: ShiftDefinitionUpdate,
     db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_manager),
+    current_user: User = Depends(get_current_manager),
 ):
     """
     Update an existing shift definition.
@@ -262,7 +263,7 @@ async def update_shift_definition(
 
     logger.info(
         f"Updated shift definition: {updated_shift_def.name} (ID: {shift_definition_id}) "
-        f"by user {current_user.get('id')}"
+        f"by user {current_user.id}"
     )
 
     return updated_shift_def
@@ -272,7 +273,7 @@ async def update_shift_definition(
 async def delete_shift_definition(
     shift_definition_id: int,
     db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_manager),
+    current_user: User = Depends(get_current_manager),
 ):
     """
     Delete a shift definition.
@@ -292,7 +293,7 @@ async def delete_shift_definition(
 
     logger.info(
         f"Deleted shift definition: {shift_def.name} (ID: {shift_definition_id}) "
-        f"by user {current_user.get('id')}"
+        f"by user {current_user.id}"
     )
 
     return {
@@ -306,7 +307,7 @@ async def delete_shift_definition(
 async def toggle_shift_definition(
     shift_definition_id: int,
     db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_manager),
+    current_user: User = Depends(get_current_manager),
 ):
     """
     Toggle the active status of a shift definition.
@@ -329,7 +330,7 @@ async def toggle_shift_definition(
     action = "activated" if updated_shift_def.is_active else "deactivated"
     logger.info(
         f"{action.capitalize()} shift definition: {updated_shift_def.name} "
-        f"(ID: {shift_definition_id}) by user {current_user.get('id')}"
+        f"(ID: {shift_definition_id}) by user {current_user.id}"
     )
 
     return updated_shift_def

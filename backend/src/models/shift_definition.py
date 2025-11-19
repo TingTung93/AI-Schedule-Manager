@@ -89,7 +89,7 @@ class ShiftDefinition(Base):
     )
     created_by_id: Mapped[Optional[int]] = mapped_column(
         Integer,
-        ForeignKey("users.id", ondelete="SET NULL"),
+        # Foreign key exists in database, but not declared here due to User model using different Base
         nullable=True
     )
 
