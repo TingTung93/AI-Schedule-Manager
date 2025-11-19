@@ -8,7 +8,7 @@ from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import ShiftDefinition
-from ..schemas.shift_definition import ShiftDefinitionCreate, ShiftDefinitionUpdate
+from ..schemas import ShiftDefinitionCreate, ShiftDefinitionUpdate
 
 
 class CRUDShiftDefinition:
