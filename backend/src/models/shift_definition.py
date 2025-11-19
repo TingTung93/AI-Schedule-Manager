@@ -98,7 +98,8 @@ class ShiftDefinition(Base):
         "Department",
         back_populates="shift_definitions"
     )
-    created_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[created_by_id])
+    # Note: User relationship removed to avoid import issues with auth.models.User
+    # created_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[created_by_id])
 
     # Constraints and indexes
     __table_args__ = (
