@@ -464,15 +464,25 @@ export const authService = {
 
   /**
    * Set access token manually (for non-cookie scenarios)
+   * Stores in both memory and localStorage for persistence
    */
   setAccessToken(token) {
     accessToken = token;
+    if (token) {
+      localStorage.setItem('access_token', token);
+    } else {
+      localStorage.removeItem('access_token');
+    }
   },
 
   /**
    * Get current access token
+   * Checks memory first, then localStorage
    */
   getAccessToken() {
+    if (!accessToken) {
+      accessToken = localStorage.getItem('access_token');
+    }
     return accessToken;
   },
 
@@ -480,7 +490,7 @@ export const authService = {
    * Check if user is authenticated
    */
   isAuthenticated() {
-    return !!accessToken;
+    return !!this.getAccessToken();
   },
 
   /**
@@ -489,6 +499,7 @@ export const authService = {
   clearAccessToken() {
     accessToken = null;
     csrfToken = null;
+    localStorage.removeItem('access_token');
   }
 };
 

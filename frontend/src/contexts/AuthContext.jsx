@@ -61,6 +61,9 @@ const authReducer = (state, action) => {
       };
 
     case AUTH_ACTIONS.LOGOUT:
+      // Clear localStorage on logout
+      localStorage.removeItem('user');
+      localStorage.removeItem('access_token');
       return {
         ...state,
         user: null,
@@ -151,28 +154,61 @@ export const AuthProvider = ({ children }) => {
       initializingRef.current = true;
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: { isLoading: true } });
 
-      // Try to get current user (this will use existing cookies)
-      const response = await authService.getCurrentUser();
+      // Check localStorage for stored token and user
+      const storedToken = localStorage.getItem('access_token');
+      const storedUser = localStorage.getItem('user');
 
-      if (response.data.user) {
-        dispatch({
-          type: AUTH_ACTIONS.LOGIN_SUCCESS,
-          payload: { user: response.data.user }
-        });
-
-        // Set access token if provided
-        if (response.data.access_token) {
-          authService.setAccessToken(response.data.access_token);
-        }
-
-        // Get CSRF token (but don't fail if it doesn't work)
+      if (storedToken && storedUser) {
+        // Restore session from localStorage
         try {
-          await getCsrfToken();
-        } catch (csrfError) {
-          console.warn('CSRF token fetch failed:', csrfError);
+          const user = JSON.parse(storedUser);
+          authService.setAccessToken(storedToken);
+
+          dispatch({
+            type: AUTH_ACTIONS.LOGIN_SUCCESS,
+            payload: { user }
+          });
+
+          // Get CSRF token (but don't fail if it doesn't work)
+          try {
+            await getCsrfToken();
+          } catch (csrfError) {
+            console.warn('CSRF token fetch failed:', csrfError);
+          }
+        } catch (parseError) {
+          console.error('Failed to parse stored user data:', parseError);
+          dispatch({ type: AUTH_ACTIONS.LOGOUT });
         }
       } else {
-        dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        // No stored session, try to get current user from backend (cookie-based)
+        try {
+          const response = await authService.getCurrentUser();
+
+          if (response.data.user) {
+            dispatch({
+              type: AUTH_ACTIONS.LOGIN_SUCCESS,
+              payload: { user: response.data.user }
+            });
+
+            // Set access token if provided
+            if (response.data.access_token) {
+              authService.setAccessToken(response.data.access_token);
+              localStorage.setItem('user', JSON.stringify(response.data.user));
+            }
+
+            // Get CSRF token (but don't fail if it doesn't work)
+            try {
+              await getCsrfToken();
+            } catch (csrfError) {
+              console.warn('CSRF token fetch failed:', csrfError);
+            }
+          } else {
+            dispatch({ type: AUTH_ACTIONS.LOGOUT });
+          }
+        } catch (getUserError) {
+          // Failed to get user from backend, clear session
+          dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        }
       }
     } catch (error) {
       // Handle network errors gracefully - don't spam console
@@ -195,6 +231,9 @@ export const AuthProvider = ({ children }) => {
       if (accessToken) {
         authService.setAccessToken(accessToken);
       }
+
+      // Store user in localStorage for session persistence
+      localStorage.setItem('user', JSON.stringify(userData));
 
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -265,6 +304,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.warn('Logout API call failed:', error);
     } finally {
+      // Clear localStorage
+      localStorage.removeItem('user');
+      localStorage.removeItem('access_token');
+
       // Always clear local state
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     }
