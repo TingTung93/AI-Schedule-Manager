@@ -121,8 +121,15 @@ const ShiftManager = () => {
   const loadShifts = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/shifts');
-      setShifts(response.data.shifts || []);
+      const response = await api.get('/api/shift-definitions', {
+        params: {
+          page: 1,
+          size: 100,
+          sort_by: 'name',
+          sort_order: 'asc'
+        }
+      });
+      setShifts(response.data.items || []);
     } catch (error) {
       setNotification({ type: 'error', message: getErrorMessage(error) });
     } finally {
@@ -209,11 +216,11 @@ const ShiftManager = () => {
   };
 
   const handleDeleteShift = async (shiftId) => {
-    if (!window.confirm('Are you sure you want to delete this shift?')) return;
+    if (!window.confirm('Are you sure you want to delete this shift definition?')) return;
 
     try {
-      await api.delete(`/api/shifts/${shiftId}`);
-      setNotification({ type: 'success', message: 'Shift deleted successfully' });
+      await api.delete(`/api/shift-definitions/${shiftId}`);
+      setNotification({ type: 'success', message: 'Shift definition deleted successfully' });
       loadShifts();
     } catch (error) {
       setNotification({ type: 'error', message: getErrorMessage(error) });
@@ -253,15 +260,17 @@ const ShiftManager = () => {
         abbreviation: shiftForm.abbreviation.toUpperCase(),
         required_staff: parseInt(shiftForm.requiredStaff),
         department_id: shiftForm.departmentId || null,
-        is_active: shiftForm.isActive
+        is_active: shiftForm.isActive,
+        hourly_rate_multiplier: 1.0,
+        description: ''
       };
 
       if (shiftForm.id) {
-        await api.patch(`/api/shifts/${shiftForm.id}`, payload);
-        setNotification({ type: 'success', message: 'Shift updated successfully' });
+        await api.patch(`/api/shift-definitions/${shiftForm.id}`, payload);
+        setNotification({ type: 'success', message: 'Shift definition updated successfully' });
       } else {
-        await api.post('/api/shifts', payload);
-        setNotification({ type: 'success', message: 'Shift created successfully' });
+        await api.post('/api/shift-definitions', payload);
+        setNotification({ type: 'success', message: 'Shift definition created successfully' });
       }
 
       setDialogOpen(false);
