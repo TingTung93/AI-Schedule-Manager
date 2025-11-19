@@ -14,7 +14,7 @@ from typing import Any, Dict, Optional, Tuple
 import bcrypt
 import redis
 from email_validator import EmailNotValidError, validate_email
-from jose import jwt
+from jose import jwt, JWTError
 
 logger = logging.getLogger(__name__)
 
@@ -172,7 +172,7 @@ class AuthService:
             return payload
         except jwt.ExpiredSignatureError:
             raise AuthenticationError("Token has expired")
-        except jwt.InvalidTokenError as e:
+        except JWTError as e:
             raise AuthenticationError(f"Invalid token: {e}")
 
     def verify_refresh_token(self, token: str) -> Dict[str, Any]:
@@ -202,7 +202,7 @@ class AuthService:
             return payload
         except jwt.ExpiredSignatureError:
             raise AuthenticationError("Refresh token has expired")
-        except jwt.InvalidTokenError as e:
+        except JWTError as e:
             raise AuthenticationError(f"Invalid refresh token: {e}")
 
     def revoke_refresh_token(self, token: str) -> bool:
@@ -282,7 +282,7 @@ class AuthService:
             return payload
         except jwt.ExpiredSignatureError:
             raise AuthenticationError("Reset token has expired")
-        except jwt.InvalidTokenError as e:
+        except JWTError as e:
             raise AuthenticationError(f"Invalid reset token: {e}")
 
     def invalidate_password_reset_token(self, token: str) -> bool:
