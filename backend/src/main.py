@@ -55,12 +55,12 @@ from .schemas import (
     TokenResponse,
 )
 from .services.crud import crud_employee, crud_notification, crud_rule, crud_schedule
+from .core.config import settings
 
 logger = logging.getLogger(__name__)
 
 # Validate SECRET_KEY on startup
-secret_key = os.getenv("SECRET_KEY")
-if not secret_key or len(secret_key) < 32:
+if not settings.SECRET_KEY or len(settings.SECRET_KEY) < 32:
     raise ValueError("SECRET_KEY must be set and at least 32 characters. Generate with: openssl rand -base64 32")
 
 # Initialize rate limiter
@@ -108,6 +108,31 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
 )
+
+
+# Add request timeout middleware to prevent hanging requests
+import asyncio
+from fastapi.responses import JSONResponse
+
+
+@app.middleware("http")
+async def timeout_middleware(request: Request, call_next):
+    """Enforce 30-second timeout on all requests to prevent database deadlocks"""
+    try:
+        return await asyncio.wait_for(call_next(request), timeout=30.0)
+    except asyncio.TimeoutError:
+        logger.error(f"Request timeout: {request.method} {request.url.path}")
+        return JSONResponse(
+            status_code=504,
+            content={
+                "detail": "Request timeout after 30 seconds",
+                "path": str(request.url.path),
+                "method": request.method,
+            },
+        )
+    except Exception as e:
+        logger.error(f"Request error: {e}", exc_info=True)
+        raise
 
 # Include API routers
 app.include_router(auth_router)  # Authentication routes (replaces mock endpoints)

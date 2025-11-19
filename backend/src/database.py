@@ -13,14 +13,22 @@ from .models import Base
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/ai_schedule_manager")
 
-# Create async engine
+# Create async engine with comprehensive timeout configuration
 engine = create_async_engine(
     DATABASE_URL,
     echo=True,  # Set to False in production
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=20,
-    max_overflow=30,
+    pool_pre_ping=True,  # Verify connections before using
+    pool_recycle=3600,  # Recycle connections every hour (was 300s/5min)
+    pool_size=30,  # Increased from 20
+    max_overflow=20,  # Reduced overflow to prevent exhaustion
+    pool_timeout=30,  # Wait max 30s for connection from pool
+    connect_args={
+        "timeout": 10,  # Connection establishment timeout
+        "command_timeout": 30,  # Individual query timeout
+        "server_settings": {
+            "statement_timeout": "30000",  # 30 second statement timeout (PostgreSQL)
+        },
+    },
 )
 
 # Create async session factory
