@@ -45,6 +45,9 @@ class User(Base):
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
 
+    # Department relationship
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True, index=True)
+
     # Account status
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
@@ -74,6 +77,7 @@ class User(Base):
     password_reset_sent_at = Column(DateTime(timezone=True))
 
     # Relationships
+    department = relationship("Department", foreign_keys=[department_id])
     roles = relationship("Role", secondary=user_roles, back_populates="users")
     login_attempts = relationship("LoginAttempt", back_populates="user", cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
@@ -124,6 +128,7 @@ class User(Base):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "full_name": self.full_name,
+            "department_id": self.department_id,
             "is_active": self.is_active,
             "is_verified": self.is_verified,
             "created_at": self.created_at.isoformat() if self.created_at else None,

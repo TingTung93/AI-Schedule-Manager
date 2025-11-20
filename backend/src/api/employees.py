@@ -35,15 +35,18 @@ async def get_employees(
     - **limit**: Maximum number of records to return
     """
     try:
-        # Build query - User model doesn't have department relationship yet
-        query = select(User)
+        # Build query with department relationship
+        query = select(User).options(selectinload(User.department))
 
         # Apply filters
         if is_active is not None:
             query = query.where(User.is_active == is_active)
 
-        # Note: role and department_id filters removed as User model doesn't have these fields yet
-        # These would need to be added via user_roles table join
+        # Filter by department
+        if department_id is not None:
+            query = query.where(User.department_id == department_id)
+
+        # Note: role filter would need to be added via user_roles table join
 
         # Apply pagination - order by last_name, first_name
         query = query.offset(skip).limit(limit).order_by(User.last_name, User.first_name)
@@ -74,7 +77,8 @@ async def get_employee(
 ):
     """Get a specific employee by ID."""
     try:
-        query = select(User).where(User.id == employee_id)
+        # Load employee with department relationship
+        query = select(User).options(selectinload(User.department)).where(User.id == employee_id)
 
         result = await db.execute(query)
         user = result.scalar_one_or_none()
@@ -120,9 +124,18 @@ async def create_employee(
         existing_user = result.scalar_one_or_none()
 
         if existing_user:
+            # Provide helpful error message with suggestions
+            error_detail = {
+                "detail": f"Employee with email {email} already exists",
+                "suggestions": [
+                    "Use a different email address",
+                    "Leave the email field empty to auto-generate a unique email",
+                    f"Existing employee: {existing_user.first_name} {existing_user.last_name} (ID: {existing_user.id})"
+                ]
+            }
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Employee with email {email} already exists"
+                detail=f"Employee with email {email} already exists. Suggestions: Use a different email or leave it empty to auto-generate."
             )
 
         # Hash password - use default password
@@ -137,6 +150,7 @@ async def create_employee(
             password_hash=password_hash,
             first_name=employee_data.first_name,
             last_name=employee_data.last_name,
+            department_id=employee_data.department_id,
             is_active=True
         )
 
@@ -150,7 +164,9 @@ async def create_employee(
         raise
     except Exception as e:
         await db.rollback()
-        print(f"Error creating employee: {e}")
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error creating employee: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create employee: {str(e)}"
@@ -185,7 +201,8 @@ async def update_employee(
             'first_name': 'first_name',
             'last_name': 'last_name',
             'email': 'email',
-            'active': 'is_active'
+            'active': 'is_active',
+            'department_id': 'department_id'
         }
 
         for schema_field, model_field in field_mapping.items():

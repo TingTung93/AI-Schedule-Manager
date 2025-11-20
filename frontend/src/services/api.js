@@ -874,8 +874,26 @@ export const errorHandler = {
    * Extract user-friendly error message
    */
   getErrorMessage(error) {
+    // Handle 409 Conflict errors specially
+    if (error.response?.status === 409) {
+      const detail = error.response?.data?.detail;
+      if (detail) {
+        // Extract email from detail message if present
+        const emailMatch = detail.match(/email\s+([^\s]+)\s+already exists/i);
+        if (emailMatch) {
+          return `This email address (${emailMatch[1]}) is already registered. Please use a different email or leave it empty to auto-generate.`;
+        }
+        return detail;
+      }
+      return 'This employee already exists. Please check the email address or try a different one.';
+    }
+
     if (error.response?.data?.message) {
       return error.response.data.message;
+    }
+
+    if (error.response?.data?.detail) {
+      return error.response.data.detail;
     }
 
     if (error.response?.data?.error) {
@@ -901,6 +919,13 @@ export const errorHandler = {
    */
   isValidationError(error) {
     return error.response?.status === 400;
+  },
+
+  /**
+   * Check if error is conflict related (409)
+   */
+  isConflictError(error) {
+    return error.response?.status === 409;
   },
 
   /**

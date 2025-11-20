@@ -193,6 +193,7 @@ class EmployeeResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    department_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
@@ -204,7 +205,9 @@ class EmployeeResponse(BaseModel):
     # Optional fields that may not exist in User model
     role: Optional[str] = None
     phone: Optional[str] = None
-    department_id: Optional[int] = None
+
+    # Nested department object (will be populated when relationship is loaded)
+    department: Optional["DepartmentResponse"] = None
 
 
 # Rule schemas
