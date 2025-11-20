@@ -27,7 +27,7 @@ async def get_notifications(
     skip = (page - 1) * size
 
     result = await crud_notification.get_multi_with_filters(
-        db=db, skip=skip, limit=size, user_id=current_user.get("id"), read=read
+        db=db, skip=skip, limit=size, employee_id=current_user.id, read=read
     )
 
     return PaginatedResponse(
@@ -65,7 +65,7 @@ async def mark_all_notifications_as_read(
     db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_user)
 ):
     """Mark all notifications as read for current user."""
-    await crud_notification.mark_all_read(db, current_user.get("id"))
+    await crud_notification.mark_all_read(db, current_user.id)
     return MessageResponse(message="All notifications marked as read")
 
 

@@ -34,7 +34,7 @@ from ..services.schedule_service import schedule_service
 router = APIRouter(prefix="/api/schedules", tags=["schedules"])
 
 
-@router.get("/", response_model=List[ScheduleResponse])
+@router.get("", response_model=List[ScheduleResponse])
 async def get_schedules(
     status: Optional[ScheduleStatus] = None,
     week_start: Optional[str] = None,
@@ -123,7 +123,7 @@ async def get_schedule(
         )
 
 
-@router.post("/", response_model=ScheduleResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ScheduleResponse, status_code=status.HTTP_201_CREATED)
 async def create_schedule(
     schedule_data: ScheduleCreate,
     db: AsyncSession = Depends(get_database_session),

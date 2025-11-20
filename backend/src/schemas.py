@@ -6,7 +6,7 @@ from datetime import date, datetime, time
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, root_validator, validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, root_validator, validator
 
 from .validators import (
     validate_availability_pattern,
@@ -27,6 +27,7 @@ class EmployeeRole(str, Enum):
 
     MANAGER = "manager"
     SUPERVISOR = "supervisor"
+    EMPLOYEE = "employee"
     SERVER = "server"
     COOK = "cook"
     CASHIER = "cashier"
@@ -48,7 +49,13 @@ class DepartmentBase(BaseModel):
 class DepartmentCreate(DepartmentBase):
     """Department creation schema."""
 
-    pass
+    @field_validator('parent_id', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        """Convert empty strings to None for optional parent_id field."""
+        if v == '' or v is None:
+            return None
+        return v
 
 
 class DepartmentUpdate(BaseModel):
@@ -128,8 +135,8 @@ class EmployeeBase(BaseModel):
 
     first_name: str = Field(..., min_length=1, max_length=50)
     last_name: str = Field(..., min_length=1, max_length=50)
-    email: EmailStr
-    role: EmployeeRole
+    email: Optional[EmailStr] = None
+    role: Optional[EmployeeRole] = None
     phone: Optional[str] = Field(None, max_length=50)
     hourly_rate: Optional[float] = Field(None, ge=0)
     max_hours_per_week: Optional[int] = Field(40, ge=1, le=168)
@@ -139,10 +146,25 @@ class EmployeeBase(BaseModel):
     active: bool = True
 
 
-class EmployeeCreate(EmployeeBase):
-    """Employee creation schema."""
+class EmployeeCreate(BaseModel):
+    """Employee creation schema - only first_name and last_name required."""
 
-    pass
+    first_name: str = Field(..., min_length=1, max_length=50, alias='firstName')
+    last_name: str = Field(..., min_length=1, max_length=50, alias='lastName')
+    email: Optional[EmailStr] = None
+    role: Optional[EmployeeRole] = None
+    phone: Optional[str] = Field(None, max_length=50)
+    department_id: Optional[int] = Field(None, alias='department')
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator('email', 'department_id', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        """Convert empty strings to None for optional fields."""
+        if v == '' or v is None:
+            return None
+        return v
 
 
 class EmployeeUpdate(BaseModel):
@@ -161,24 +183,28 @@ class EmployeeUpdate(BaseModel):
     active: Optional[bool] = None
 
 
-class EmployeeResponse(EmployeeBase):
-    """Employee response schema."""
+class EmployeeResponse(BaseModel):
+    """Employee response schema - maps to User model."""
 
     id: int
-    full_name: str
+    first_name: str
+    last_name: str
+    email: str
+    is_active: bool
     created_at: datetime
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-    @classmethod
-    def model_validate(cls, obj, **kwargs):
-        """Custom validation to compute full_name from model attributes."""
-        if hasattr(obj, 'first_name') and hasattr(obj, 'last_name'):
-            # Add full_name if not already present
-            if not hasattr(obj, '_full_name_computed'):
-                obj._full_name_computed = True
-        return super().model_validate(obj, **kwargs)
+    @property
+    def full_name(self) -> str:
+        """Compute full name from first and last name."""
+        return f"{self.first_name} {self.last_name}"
+
+    # Optional fields that may not exist in User model
+    role: Optional[str] = None
+    phone: Optional[str] = None
+    department_id: Optional[int] = None
 
 
 # Rule schemas

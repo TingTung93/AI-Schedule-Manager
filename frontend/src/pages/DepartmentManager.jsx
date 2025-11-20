@@ -95,13 +95,16 @@ const DepartmentManager = () => {
       const response = await api.get('/api/departments', {
         params: { page: 1, size: 100 }
       });
+      console.log('[DepartmentManager] API Response:', response.data);
+      console.log('[DepartmentManager] Departments loaded:', response.data.items?.length || 0);
       setDepartments(response.data.items || []);
       // Auto-expand root nodes
       const rootNodes = (response.data.items || [])
-        .filter(dept => !dept.parent_id)
+        .filter(dept => !dept.parentId)
         .map(dept => dept.id);
       setExpandedNodes(new Set(rootNodes));
     } catch (error) {
+      console.error('[DepartmentManager] Error loading departments:', error);
       setNotification({ type: 'error', message: getErrorMessage(error) });
     } finally {
       setLoading(false);
@@ -145,9 +148,9 @@ const DepartmentManager = () => {
 
     // Build tree structure
     filteredDepts.forEach(dept => {
-      if (dept.parent_id && deptMap[dept.parent_id]) {
-        deptMap[dept.parent_id].children.push(deptMap[dept.id]);
-      } else if (!dept.parent_id) {
+      if (dept.parentId && deptMap[dept.parentId]) {
+        deptMap[dept.parentId].children.push(deptMap[dept.id]);
+      } else if (!dept.parentId) {
         rootDepts.push(deptMap[dept.id]);
       }
     });

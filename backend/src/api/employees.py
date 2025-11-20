@@ -9,13 +9,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from ..dependencies import get_current_user, get_database_session
-from ..models.employee import Employee
+from ..models import User
 from ..schemas import EmployeeCreate, EmployeeResponse, EmployeeUpdate
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
 
 
-@router.get("/", response_model=List[EmployeeResponse])
+@router.get("", response_model=List[EmployeeResponse])
 async def get_employees(
     role: Optional[str] = None,
     is_active: Optional[bool] = None,
@@ -35,32 +35,31 @@ async def get_employees(
     - **limit**: Maximum number of records to return
     """
     try:
-        # Build query with eager loading
-        query = select(Employee).options(
-            selectinload(Employee.department)
-        )
+        # Build query - User model doesn't have department relationship yet
+        query = select(User)
 
         # Apply filters
-        if role:
-            query = query.where(Employee.role == role)
-
         if is_active is not None:
-            query = query.where(Employee.is_active == is_active)
+            query = query.where(User.is_active == is_active)
 
-        if department_id:
-            query = query.where(Employee.department_id == department_id)
+        # Note: role and department_id filters removed as User model doesn't have these fields yet
+        # These would need to be added via user_roles table join
 
-        # Apply pagination
-        query = query.offset(skip).limit(limit).order_by(Employee.name)
+        # Apply pagination - order by last_name, first_name
+        query = query.offset(skip).limit(limit).order_by(User.last_name, User.first_name)
 
         # Execute query
+        print(f"[DEBUG] Executing employees query with skip={skip}, limit={limit}")
         result = await db.execute(query)
-        employees = result.scalars().all()
+        users = result.scalars().all()
+        print(f"[DEBUG] Found {len(users)} users")
 
-        return employees
+        return users
 
     except Exception as e:
-        print(f"Error fetching employees: {e}")
+        print(f"[ERROR] Error fetching employees: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch employees: {str(e)}"
@@ -75,20 +74,18 @@ async def get_employee(
 ):
     """Get a specific employee by ID."""
     try:
-        query = select(Employee).options(
-            selectinload(Employee.department)
-        ).where(Employee.id == employee_id)
+        query = select(User).where(User.id == employee_id)
 
         result = await db.execute(query)
-        employee = result.scalar_one_or_none()
+        user = result.scalar_one_or_none()
 
-        if not employee:
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Employee with ID {employee_id} not found"
             )
 
-        return employee
+        return user
 
     except HTTPException:
         raise
@@ -100,54 +97,54 @@ async def get_employee(
         )
 
 
-@router.post("/", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
 async def create_employee(
     employee_data: EmployeeCreate,
     db: AsyncSession = Depends(get_database_session),
     current_user = Depends(get_current_user)
 ):
-    """Create a new employee."""
+    """Create a new employee - only first_name and last_name required."""
     try:
-        # Check if email already exists
-        result = await db.execute(select(Employee).where(Employee.email == employee_data.email))
-        existing_employee = result.scalar_one_or_none()
+        # Generate email if not provided
+        import uuid
+        if not employee_data.email:
+            # Generate email from first_name and last_name
+            email_base = f"{employee_data.first_name.lower()}.{employee_data.last_name.lower()}"
+            # Add random suffix to ensure uniqueness
+            email = f"{email_base}.{uuid.uuid4().hex[:8]}@temp.example.com"
+        else:
+            email = employee_data.email
 
-        if existing_employee:
+        # Check if email already exists
+        result = await db.execute(select(User).where(User.email == email))
+        existing_user = result.scalar_one_or_none()
+
+        if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Employee with email {employee_data.email} already exists"
+                detail=f"Employee with email {email} already exists"
             )
 
-        # Hash password
-        from ..auth.auth import auth_service
-        password_hash = auth_service.hash_password(employee_data.password)
+        # Hash password - use default password
+        import bcrypt
+        default_password = "Employee123!"
+        password_bytes = default_password.encode('utf-8')
+        password_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode('utf-8')
 
-        # Create new employee
-        new_employee = Employee(
-            email=employee_data.email,
+        # Create new user
+        new_user = User(
+            email=email,
             password_hash=password_hash,
-            name=employee_data.name,
-            role=employee_data.role,
-            qualifications=employee_data.qualifications,
-            availability=employee_data.availability,
-            department_id=employee_data.department_id,
-            is_active=True,
-            is_admin=False
+            first_name=employee_data.first_name,
+            last_name=employee_data.last_name,
+            is_active=True
         )
 
-        db.add(new_employee)
+        db.add(new_user)
         await db.commit()
-        await db.refresh(new_employee)
+        await db.refresh(new_user)
 
-        # Reload with relationships
-        query = select(Employee).options(
-            selectinload(Employee.department)
-        ).where(Employee.id == new_employee.id)
-
-        result = await db.execute(query)
-        employee = result.scalar_one()
-
-        return employee
+        return new_user
 
     except HTTPException:
         raise
@@ -160,6 +157,7 @@ async def create_employee(
         )
 
 
+@router.patch("/{employee_id}", response_model=EmployeeResponse)
 @router.put("/{employee_id}", response_model=EmployeeResponse)
 async def update_employee(
     employee_id: int,
@@ -167,42 +165,37 @@ async def update_employee(
     db: AsyncSession = Depends(get_database_session),
     current_user = Depends(get_current_user)
 ):
-    """Update an existing employee."""
+    """Update an existing employee. Supports both PUT and PATCH methods."""
     try:
-        # Find employee
-        result = await db.execute(select(Employee).where(Employee.id == employee_id))
-        employee = result.scalar_one_or_none()
+        # Find user
+        result = await db.execute(select(User).where(User.id == employee_id))
+        user = result.scalar_one_or_none()
 
-        if not employee:
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Employee with ID {employee_id} not found"
             )
 
-        # Update fields
+        # Update fields that exist in User model
         update_data = employee_data.model_dump(exclude_unset=True)
 
-        # Handle password separately if provided
-        if 'password' in update_data:
-            from ..auth.auth import auth_service
-            update_data['password_hash'] = auth_service.hash_password(update_data.pop('password'))
+        # Map fields to User model
+        field_mapping = {
+            'first_name': 'first_name',
+            'last_name': 'last_name',
+            'email': 'email',
+            'active': 'is_active'
+        }
 
-        for field, value in update_data.items():
-            if hasattr(employee, field):
-                setattr(employee, field, value)
+        for schema_field, model_field in field_mapping.items():
+            if schema_field in update_data:
+                setattr(user, model_field, update_data[schema_field])
 
         await db.commit()
-        await db.refresh(employee)
+        await db.refresh(user)
 
-        # Reload with relationships
-        query = select(Employee).options(
-            selectinload(Employee.department)
-        ).where(Employee.id == employee_id)
-
-        result = await db.execute(query)
-        employee = result.scalar_one()
-
-        return employee
+        return user
 
     except HTTPException:
         raise
@@ -223,16 +216,16 @@ async def delete_employee(
 ):
     """Delete an employee."""
     try:
-        result = await db.execute(select(Employee).where(Employee.id == employee_id))
-        employee = result.scalar_one_or_none()
+        result = await db.execute(select(User).where(User.id == employee_id))
+        user = result.scalar_one_or_none()
 
-        if not employee:
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Employee with ID {employee_id} not found"
             )
 
-        await db.delete(employee)
+        await db.delete(user)
         await db.commit()
 
     except HTTPException:

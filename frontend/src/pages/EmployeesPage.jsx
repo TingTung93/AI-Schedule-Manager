@@ -77,8 +77,11 @@ const EmployeesPage = () => {
     try {
       setLoading(true);
       const response = await api.get('/api/employees');
-      setEmployees(response.data.employees || []);
+      console.log('[EmployeesPage] API Response:', response.data);
+      // Backend returns array directly, not wrapped in { employees: [...] }
+      setEmployees(response.data || []);
     } catch (error) {
+      console.error('[EmployeesPage] Error loading employees:', error);
       setNotification({ type: 'error', message: getErrorMessage(error) });
     } finally {
       setLoading(false);
@@ -136,18 +139,24 @@ const EmployeesPage = () => {
 
   const handleFormSubmit = async () => {
     try {
+      // Remove department field temporarily until backend supports it
+      const { department, ...employeeData } = employeeForm;
+
+      console.log('[EmployeesPage] Submitting employee:', employeeData);
+
       if (employeeForm.id) {
         // Update existing employee
-        await api.patch(`/api/employees/${employeeForm.id}`, employeeForm);
+        await api.patch(`/api/employees/${employeeForm.id}`, employeeData);
         setNotification({ type: 'success', message: 'Employee updated successfully' });
       } else {
         // Add new employee
-        await api.post('/api/employees', employeeForm);
+        await api.post('/api/employees', employeeData);
         setNotification({ type: 'success', message: 'Employee created successfully' });
       }
       setDialogOpen(false);
       loadEmployees();
     } catch (error) {
+      console.error('[EmployeesPage] Error submitting employee:', error);
       setNotification({ type: 'error', message: getErrorMessage(error) });
     }
   };
@@ -503,6 +512,8 @@ const EmployeesPage = () => {
                     ...prev,
                     department: e.target.value
                   }))}
+                  disabled
+                  helperText="Department assignment will be enabled in a future update"
                 />
               </Grid>
               <Grid item xs={6}>

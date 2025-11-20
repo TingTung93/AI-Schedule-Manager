@@ -134,6 +134,42 @@ async def timeout_middleware(request: Request, call_next):
         logger.error(f"Request error: {e}", exc_info=True)
         raise
 
+# Application startup and shutdown events
+@app.on_event("startup")
+async def startup_event():
+    """Initialize monitoring and background tasks on startup"""
+    from .database import engine
+    from .monitoring import HealthMonitor, set_health_monitor
+
+    logger.info("Starting application...")
+
+    # Initialize health monitoring
+    monitor = HealthMonitor(engine, check_interval=60)  # Check every 60 seconds
+    set_health_monitor(monitor)
+    await monitor.start()
+
+    logger.info("Application startup complete")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on application shutdown"""
+    from .monitoring import get_health_monitor
+    from .database import close_db_connection
+
+    logger.info("Shutting down application...")
+
+    # Stop health monitoring
+    monitor = get_health_monitor()
+    if monitor:
+        await monitor.stop()
+
+    # Close database connections
+    await close_db_connection()
+
+    logger.info("Application shutdown complete")
+
+
 # Include API routers
 app.include_router(auth_router)  # Authentication routes (replaces mock endpoints)
 app.include_router(assignments_router)  # Assignment CRUD API
@@ -165,7 +201,20 @@ async def root():
 
 @app.get("/health")
 async def health_check():
+    """Basic health check endpoint"""
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """Detailed health check with monitoring metrics"""
+    from .monitoring import get_health_monitor
+
+    monitor = get_health_monitor()
+    if monitor:
+        return monitor.get_health_status()
+    else:
+        return {"status": "monitoring_not_enabled", "timestamp": datetime.utcnow().isoformat()}
 
 
 # ============================================================================
@@ -292,143 +341,124 @@ async def delete_rule(
     return {"message": "Rule deleted successfully"}
 
 
-# Employee endpoints
-@app.get("/api/employees", response_model=PaginatedResponse)
-async def get_employees(
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
-    role: Optional[str] = Query(None),
-    active: Optional[bool] = Query(None),
-    search: Optional[str] = Query(None),
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
-    sort_by: str = Query("name"),
-    sort_order: str = Query("asc", regex="^(asc|desc)$"),
-):
-    """Get all employees with pagination and filtering."""
-    skip = (page - 1) * size
-
-    result = await crud_employee.get_multi_with_search(
-        db=db, skip=skip, limit=size, search=search, role=role, active=active, sort_by=sort_by, sort_order=sort_order
-    )
-
-    return PaginatedResponse(
-        items=result["items"], total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
-    )
+# Employee endpoints - REMOVED IN FAVOR OF employees_router
+# These endpoints query the deprecated employees table.
+# The employees_router in src/api/employees.py uses the users table instead.
+# @app.get("/api/employees", response_model=PaginatedResponse)
 
 
-@app.post("/api/employees", response_model=EmployeeResponse)
-async def create_employee(
-    employee: EmployeeCreate,
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_manager),
-):
-    """Create new employee."""
-    # Check if email already exists
-    existing = await crud_employee.get_by_email(db, employee.email)
-    if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-
-    new_employee = await crud_employee.create(db, employee)
-    return new_employee
-
-
-@app.get("/api/employees/{employee_id}", response_model=EmployeeResponse)
-async def get_employee(
-    employee_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_user)
-):
-    """Get specific employee by ID."""
-    employee = await crud_employee.get(db, employee_id)
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-    return employee
-
-
-@app.patch("/api/employees/{employee_id}", response_model=EmployeeResponse)
-async def update_employee(
-    employee_id: int,
-    employee_update: EmployeeUpdate,
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_manager),
-):
-    """Update employee."""
-    employee = await crud_employee.get(db, employee_id)
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-
-    # Check email uniqueness if being updated
-    if employee_update.email and employee_update.email != employee.email:
-        existing = await crud_employee.get_by_email(db, employee_update.email)
-        if existing:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-
-    updated_employee = await crud_employee.update(db, employee, employee_update)
-    return updated_employee
-
-
-@app.delete("/api/employees/{employee_id}")
-async def delete_employee(
-    employee_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_manager)
-):
-    """Delete employee."""
-    employee = await crud_employee.remove(db, employee_id)
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-    return {"message": "Employee deleted successfully"}
-
-
-@app.get("/api/employees/{employee_id}/schedule", response_model=List[ScheduleResponse])
-async def get_employee_schedule(
-    employee_id: int,
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
-    date_from: Optional[date] = Query(None),
-    date_to: Optional[date] = Query(None),
-):
-    """Get employee schedule."""
-    # Check if employee exists
-    employee = await crud_employee.get(db, employee_id)
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-
-    schedule = await crud_employee.get_schedule(db, employee_id, date_from, date_to)
-    return schedule
-
-
-# Schedule endpoints
-@app.get("/api/schedules", response_model=PaginatedResponse)
-async def get_schedules(
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
-    employee_id: Optional[int] = Query(None),
-    shift_id: Optional[int] = Query(None),
-    date_from: Optional[date] = Query(None),
-    date_to: Optional[date] = Query(None),
-    status: Optional[str] = Query(None),
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
-    sort_by: str = Query("date"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$"),
-):
-    """Get all schedules with pagination and filtering."""
-    skip = (page - 1) * size
-
-    result = await crud_schedule.get_multi_with_relations(
-        db=db,
-        skip=skip,
-        limit=size,
-        employee_id=employee_id,
-        shift_id=shift_id,
-        date_from=date_from,
-        date_to=date_to,
-        status=status,
-        sort_by=sort_by,
-        sort_order=sort_order,
-    )
-
-    return PaginatedResponse(
-        items=result["items"], total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
-    )
+# @app.post("/api/employees", response_model=EmployeeResponse)
+# async def create_employee(
+#     employee: EmployeeCreate,
+#     db: AsyncSession = Depends(get_database_session),
+#     current_user: dict = Depends(get_current_manager),
+# ):
+#     """Create new employee."""
+#     # Check if email already exists
+#     existing = await crud_employee.get_by_email(db, employee.email)
+#     if existing:
+#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+# 
+#     new_employee = await crud_employee.create(db, employee)
+#     return new_employee
+# 
+# 
+# @app.get("/api/employees/{employee_id}", response_model=EmployeeResponse)
+# async def get_employee(
+#     employee_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_user)
+# ):
+#     """Get specific employee by ID."""
+#     employee = await crud_employee.get(db, employee_id)
+#     if not employee:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+#     return employee
+# 
+# 
+# @app.patch("/api/employees/{employee_id}", response_model=EmployeeResponse)
+# async def update_employee(
+#     employee_id: int,
+#     employee_update: EmployeeUpdate,
+#     db: AsyncSession = Depends(get_database_session),
+#     current_user: dict = Depends(get_current_manager),
+# ):
+#     """Update employee."""
+#     employee = await crud_employee.get(db, employee_id)
+#     if not employee:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+# 
+#     # Check email uniqueness if being updated
+#     if employee_update.email and employee_update.email != employee.email:
+#         existing = await crud_employee.get_by_email(db, employee_update.email)
+#         if existing:
+#             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+# 
+#     updated_employee = await crud_employee.update(db, employee, employee_update)
+#     return updated_employee
+# 
+# 
+# @app.delete("/api/employees/{employee_id}")
+# async def delete_employee(
+#     employee_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_manager)
+# ):
+#     """Delete employee."""
+#     employee = await crud_employee.remove(db, employee_id)
+#     if not employee:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+#     return {"message": "Employee deleted successfully"}
+# 
+# 
+# @app.get("/api/employees/{employee_id}/schedule", response_model=List[ScheduleResponse])
+# async def get_employee_schedule(
+#     employee_id: int,
+#     db: AsyncSession = Depends(get_database_session),
+#     current_user: dict = Depends(get_current_user),
+#     date_from: Optional[date] = Query(None),
+#     date_to: Optional[date] = Query(None),
+# ):
+#     """Get employee schedule."""
+#     # Check if employee exists
+#     employee = await crud_employee.get(db, employee_id)
+#     if not employee:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+# 
+#     schedule = await crud_employee.get_schedule(db, employee_id, date_from, date_to)
+#     return schedule
+# 
+# 
+# # Schedule endpoints
+# @app.get("/api/schedules", response_model=PaginatedResponse)
+# async def get_schedules(
+#     db: AsyncSession = Depends(get_database_session),
+#     current_user: dict = Depends(get_current_user),
+#     employee_id: Optional[int] = Query(None),
+#     shift_id: Optional[int] = Query(None),
+#     date_from: Optional[date] = Query(None),
+#     date_to: Optional[date] = Query(None),
+#     status: Optional[str] = Query(None),
+#     page: int = Query(1, ge=1),
+#     size: int = Query(10, ge=1, le=100),
+#     sort_by: str = Query("date"),
+#     sort_order: str = Query("desc", regex="^(asc|desc)$"),
+# ):
+#     """Get all schedules with pagination and filtering."""
+#     skip = (page - 1) * size
+# 
+#     result = await crud_schedule.get_multi_with_relations(
+#         db=db,
+#         skip=skip,
+#         limit=size,
+#         employee_id=employee_id,
+#         shift_id=shift_id,
+#         date_from=date_from,
+#         date_to=date_to,
+#         status=status,
+#         sort_by=sort_by,
+#         sort_order=sort_order,
+#     )
+# 
+#     return PaginatedResponse(
+#         items=result["items"], total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
+#     )
 
 
 @app.get("/api/schedules/{schedule_id}", response_model=ScheduleResponse)

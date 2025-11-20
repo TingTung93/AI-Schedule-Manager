@@ -133,10 +133,20 @@ const api = axios.create({
 });
 
 // Token storage (fallback for non-cookie scenarios)
+// Initialize from localStorage on module load
 let accessToken = null;
 let csrfToken = null;
 let isRefreshing = false;
 let failedQueue = [];
+
+// Load token from localStorage on initialization
+if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+  const storedToken = localStorage.getItem('access_token');
+  if (storedToken) {
+    accessToken = storedToken;
+    console.log('[API] Loaded access token from localStorage on initialization');
+  }
+}
 
 // Process failed requests queue after token refresh
 const processQueue = (error, token = null) => {
@@ -164,9 +174,21 @@ api.interceptors.request.use(
       config.headers['X-CSRF-Token'] = csrfToken;
     }
 
+    // Log request data before transformation
+    console.log(`[API] Request to ${config.method?.toUpperCase()} ${config.url}:`, {
+      dataType: config.data ? (Array.isArray(config.data) ? 'array' : typeof config.data) : 'none',
+      dataKeys: config.data && typeof config.data === 'object' ? Object.keys(config.data) : 'N/A',
+      params: config.params
+    });
+
     // Transform request data from camelCase to snake_case
     if (config.data && !shouldSkipTransformation(config.data)) {
+      const originalData = config.data;
       config.data = camelToSnake(config.data);
+      console.log(`[API] Transformed request data:`, {
+        before: originalData,
+        after: config.data
+      });
     }
 
     // Transform query parameters from camelCase to snake_case
@@ -194,9 +216,22 @@ api.interceptors.response.use(
       console.debug(`API Request: ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`);
     }
 
+    // Log response data before transformation for debugging
+    console.log(`[API] Response from ${response.config.url}:`, {
+      status: response.status,
+      dataType: Array.isArray(response.data) ? 'array' : typeof response.data,
+      dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : 'N/A',
+      sampleData: response.data
+    });
+
     // Transform response data from snake_case to camelCase
     if (response.data) {
+      const originalData = response.data;
       response.data = snakeToCamel(response.data);
+      console.log(`[API] Transformed data:`, {
+        beforeKeys: typeof originalData === 'object' && !Array.isArray(originalData) ? Object.keys(originalData) : 'N/A',
+        afterKeys: typeof response.data === 'object' && !Array.isArray(response.data) ? Object.keys(response.data) : 'N/A'
+      });
     }
 
     return response;
@@ -470,8 +505,10 @@ export const authService = {
     accessToken = token;
     if (token) {
       localStorage.setItem('access_token', token);
+      console.log('[API] Access token set and stored in localStorage');
     } else {
       localStorage.removeItem('access_token');
+      console.log('[API] Access token cleared from localStorage');
     }
   },
 
