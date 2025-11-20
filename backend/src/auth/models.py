@@ -77,7 +77,8 @@ class User(Base):
     password_reset_sent_at = Column(DateTime(timezone=True))
 
     # Relationships
-    department = relationship("Department", foreign_keys=[department_id])
+    # Note: Department relationship removed due to different Base classes (auth vs models)
+    # Department data is loaded manually in the employees API using joins
     roles = relationship("Role", secondary=user_roles, back_populates="users")
     login_attempts = relationship("LoginAttempt", back_populates="user", cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")

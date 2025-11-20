@@ -35,8 +35,11 @@ async def get_employees(
     - **limit**: Maximum number of records to return
     """
     try:
-        # Build query with department relationship
-        query = select(User).options(selectinload(User.department))
+        # Import Department model for manual loading
+        from ..models.department import Department
+
+        # Build query
+        query = select(User)
 
         # Apply filters
         if is_active is not None:
@@ -56,6 +59,14 @@ async def get_employees(
         result = await db.execute(query)
         users = result.scalars().all()
         print(f"[DEBUG] Found {len(users)} users")
+
+        # Manually load department data for each user
+        for user in users:
+            if user.department_id:
+                dept_result = await db.execute(select(Department).where(Department.id == user.department_id))
+                user.department = dept_result.scalar_one_or_none()
+            else:
+                user.department = None
 
         return users
 
@@ -77,8 +88,11 @@ async def get_employee(
 ):
     """Get a specific employee by ID."""
     try:
-        # Load employee with department relationship
-        query = select(User).options(selectinload(User.department)).where(User.id == employee_id)
+        # Import Department model for manual loading
+        from ..models.department import Department
+
+        # Load employee
+        query = select(User).where(User.id == employee_id)
 
         result = await db.execute(query)
         user = result.scalar_one_or_none()
@@ -88,6 +102,13 @@ async def get_employee(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Employee with ID {employee_id} not found"
             )
+
+        # Manually load department data
+        if user.department_id:
+            dept_result = await db.execute(select(Department).where(Department.id == user.department_id))
+            user.department = dept_result.scalar_one_or_none()
+        else:
+            user.department = None
 
         return user
 
