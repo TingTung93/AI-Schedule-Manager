@@ -18,7 +18,7 @@ engine = create_async_engine(
     DATABASE_URL,
     echo=True,  # Set to False in production
     pool_pre_ping=True,  # Verify connections before using
-    pool_recycle=3600,  # Recycle connections every hour (was 300s/5min)
+    pool_recycle=600,  # Recycle connections every 10 minutes (reduced from 3600s/1h to prevent leaks)
     pool_size=30,  # Increased from 20
     max_overflow=20,  # Reduced overflow to prevent exhaustion
     pool_timeout=30,  # Wait max 30s for connection from pool
@@ -27,6 +27,7 @@ engine = create_async_engine(
         "command_timeout": 30,  # Individual query timeout
         "server_settings": {
             "statement_timeout": "30000",  # 30 second statement timeout (PostgreSQL)
+            "idle_in_transaction_session_timeout": "60000",  # 60 second idle transaction timeout - kills stuck connections
         },
     },
 )
