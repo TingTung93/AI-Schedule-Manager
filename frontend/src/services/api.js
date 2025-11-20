@@ -270,12 +270,16 @@ api.interceptors.response.use(
         // Retry original request
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - redirect to login only if not already there
+        // Refresh failed - clear tokens and redirect to login
         processQueue(refreshError, null);
-        authService.logout();
+
+        // Clear stored tokens
+        accessToken = null;
+        csrfToken = null;
 
         // Don't redirect if already on login/register pages to prevent loops
         if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          console.log('[API] Token refresh failed, redirecting to login...');
           window.location.href = '/login';
         }
 
