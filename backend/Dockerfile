@@ -44,9 +44,9 @@ EXPOSE 8000
 # Make startup script executable
 RUN chmod +x /app/scripts/startup.sh
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+# Health check - increased timeout and reduced frequency to prevent overwhelming the app
+HEALTHCHECK --interval=60s --timeout=5s --start-period=60s --retries=3 \
+    CMD curl -f --max-time 4 http://localhost:8000/health || exit 1
 
 # Run the application with startup script
 CMD ["/app/scripts/startup.sh"]

@@ -189,8 +189,11 @@ async def root():
 
 
 @app.get("/health")
-async def health_check():
-    """Basic health check endpoint"""
+def health_check():
+    """
+    Basic health check endpoint - SYNCHRONOUS to avoid event loop blocking.
+    Docker health checks should be fast and simple, without DB queries.
+    """
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
 

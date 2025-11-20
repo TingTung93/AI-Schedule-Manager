@@ -14,12 +14,9 @@ from sqlalchemy.orm import selectinload
 from .auth.auth import auth_service, AuthenticationError
 from .auth.models import User
 from .core.config import settings
-from .core.database import DatabaseManager
+from .database import get_db_session
 
 logger = logging.getLogger(__name__)
-
-# Initialize database manager
-db_manager = DatabaseManager(settings.DATABASE_URL)
 
 # Security
 security = HTTPBearer()
@@ -27,9 +24,12 @@ security = HTTPBearer()
 
 async def get_database_session() -> AsyncGenerator[AsyncSession, None]:
     """Dependency to get database session."""
-    async with db_manager.get_session() as session:
+    from .database import AsyncSessionLocal
+
+    async with AsyncSessionLocal() as session:
         try:
             yield session
+            await session.commit()
         except Exception as e:
             logger.error(f"Database session error: {e}")
             await session.rollback()

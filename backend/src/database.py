@@ -13,21 +13,21 @@ from .models import Base
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/ai_schedule_manager")
 
-# Create async engine with comprehensive timeout configuration
+# Create async engine with optimized connection pool settings
 engine = create_async_engine(
     DATABASE_URL,
-    echo=True,  # Set to False in production
+    echo=False,  # Disable SQL logging to reduce overhead
     pool_pre_ping=True,  # Verify connections before using
-    pool_recycle=600,  # Recycle connections every 10 minutes (reduced from 3600s/1h to prevent leaks)
-    pool_size=30,  # Increased from 20
-    max_overflow=20,  # Reduced overflow to prevent exhaustion
-    pool_timeout=30,  # Wait max 30s for connection from pool
+    pool_recycle=300,  # Recycle connections every 5 minutes to prevent stale connections
+    pool_size=10,  # Reduced from 30 to prevent pool exhaustion
+    max_overflow=10,  # Reduced from 20 to limit total connections
+    pool_timeout=10,  # Reduced from 30s - fail fast if pool is exhausted
     connect_args={
-        "timeout": 10,  # Connection establishment timeout
-        "command_timeout": 30,  # Individual query timeout
+        "timeout": 5,  # Quick connection establishment
+        "command_timeout": 15,  # Faster query timeout to prevent hangs
         "server_settings": {
-            "statement_timeout": "30000",  # 30 second statement timeout (PostgreSQL)
-            "idle_in_transaction_session_timeout": "60000",  # 60 second idle transaction timeout - kills stuck connections
+            "statement_timeout": "15000",  # 15 second statement timeout (reduced from 30s)
+            "idle_in_transaction_session_timeout": "30000",  # 30 second idle transaction timeout (reduced from 60s)
         },
     },
 )
