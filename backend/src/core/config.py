@@ -43,8 +43,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:80"]
     CORS_ALLOW_CREDENTIALS: bool = True
 
-    # Rate Limiting
-    RATE_LIMIT_ENABLED: bool = True
+    # Rate Limiting - DISABLED for LAN-only deployment
+    RATE_LIMIT_ENABLED: bool = False
     RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60
     RATE_LIMIT_BURST_SIZE: int = 10
 
