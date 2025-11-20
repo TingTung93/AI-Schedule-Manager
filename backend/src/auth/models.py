@@ -45,8 +45,8 @@ class User(Base):
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
 
-    # Department relationship
-    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True, index=True)
+    # Department reference (FK constraint exists in DB, not defined here due to different Base)
+    department_id = Column(Integer, nullable=True, index=True)
 
     # Account status
     is_active = Column(Boolean, default=True, nullable=False)
