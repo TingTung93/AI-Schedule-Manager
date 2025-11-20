@@ -74,7 +74,7 @@ class DepartmentResponse(DepartmentBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    parent: Optional["DepartmentResponse"] = None
+    parent_id: Optional[int] = None  # Only include parent ID, not full object to avoid recursion
     children: List["DepartmentResponse"] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)

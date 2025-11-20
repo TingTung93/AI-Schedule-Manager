@@ -64,6 +64,7 @@ class Employee(Base):
     department: Mapped[Optional["Department"]] = relationship("Department", back_populates="employees")
     schedules: Mapped[List["Schedule"]] = relationship("Schedule", back_populates="employee")
     rules: Mapped[List["Rule"]] = relationship("Rule", back_populates="employee")
+    notifications: Mapped[List["Notification"]] = relationship("Notification", back_populates="employee")
 
 
 class Rule(Base):
@@ -151,7 +152,7 @@ class Notification(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    employee: Mapped[Optional["Employee"]] = relationship("Employee")
+    employee: Mapped[Optional["Employee"]] = relationship("Employee", back_populates="notifications")
 
 
 class ScheduleTemplate(Base):

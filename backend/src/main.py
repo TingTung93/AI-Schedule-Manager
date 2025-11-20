@@ -110,29 +110,12 @@ app.add_middleware(
 )
 
 
-# Add request timeout middleware to prevent hanging requests
+# REMOVED: timeout_middleware was causing anyio.WouldBlock errors
+# The asyncio.wait_for() wrapper leaves request streams in invalid state
+# when timeouts occur, causing subsequent requests to fail.
+# Database timeouts are now handled at the connection level instead.
 import asyncio
 from fastapi.responses import JSONResponse
-
-
-@app.middleware("http")
-async def timeout_middleware(request: Request, call_next):
-    """Enforce 30-second timeout on all requests to prevent database deadlocks"""
-    try:
-        return await asyncio.wait_for(call_next(request), timeout=30.0)
-    except asyncio.TimeoutError:
-        logger.error(f"Request timeout: {request.method} {request.url.path}")
-        return JSONResponse(
-            status_code=504,
-            content={
-                "detail": "Request timeout after 30 seconds",
-                "path": str(request.url.path),
-                "method": request.method,
-            },
-        )
-    except Exception as e:
-        logger.error(f"Request error: {e}", exc_info=True)
-        raise
 
 # Application startup and shutdown events
 @app.on_event("startup")
