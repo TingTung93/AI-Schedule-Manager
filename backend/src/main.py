@@ -138,15 +138,21 @@ async def timeout_middleware(request: Request, call_next):
 @app.on_event("startup")
 async def startup_event():
     """Initialize monitoring and background tasks on startup"""
-    from .database import engine
-    from .monitoring import HealthMonitor, set_health_monitor
-
     logger.info("Starting application...")
 
-    # Initialize health monitoring
-    monitor = HealthMonitor(engine, check_interval=60)  # Check every 60 seconds
-    set_health_monitor(monitor)
-    await monitor.start()
+    try:
+        from .database import engine
+        from .monitoring import HealthMonitor, set_health_monitor
+
+        # Initialize health monitoring
+        logger.info("Initializing health monitor...")
+        monitor = HealthMonitor(engine, check_interval=60)  # Check every 60 seconds
+        set_health_monitor(monitor)
+        await monitor.start()
+        logger.info("Health monitoring started successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize health monitoring: {e}", exc_info=True)
+        # Continue startup even if monitoring fails
 
     logger.info("Application startup complete")
 
