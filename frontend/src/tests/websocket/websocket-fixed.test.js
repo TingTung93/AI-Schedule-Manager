@@ -8,35 +8,35 @@ import { WebSocketManager } from '../../services/websocket';
 describe('WebSocketManager - Fixed Tests', () => {
   let manager;
   let mockWebSocket;
-  let mockOnMessage;
-  let mockOnError;
-  let mockOnClose;
 
   beforeEach(() => {
+    // Mock window.location
+    delete window.location;
+    window.location = {
+      protocol: 'http:',
+      host: 'localhost:3000'
+    };
+
     // Create properly configured mock WebSocket
     mockWebSocket = {
       send: jest.fn(),
       close: jest.fn(),
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
+      onopen: null,
+      onmessage: null,
+      onerror: null,
+      onclose: null,
       readyState: 1, // OPEN state
     };
 
-    // Mock WebSocket constructor
+    // Mock WebSocket constructor and constants
     global.WebSocket = jest.fn(() => mockWebSocket);
+    global.WebSocket.CONNECTING = 0;
+    global.WebSocket.OPEN = 1;
+    global.WebSocket.CLOSING = 2;
+    global.WebSocket.CLOSED = 3;
 
-    // Callback mocks
-    mockOnMessage = jest.fn();
-    mockOnError = jest.fn();
-    mockOnClose = jest.fn();
-
-    // Create manager instance
-    manager = new WebSocketManager('ws://localhost:8000/ws', {
-      onMessage: mockOnMessage,
-      onError: mockOnError,
-      onClose: mockOnClose,
-      autoReconnect: false, // Disable auto-reconnect for tests
-    });
+    // Create manager instance (no constructor params)
+    manager = new WebSocketManager();
   });
 
   afterEach(() => {
@@ -44,36 +44,82 @@ describe('WebSocketManager - Fixed Tests', () => {
       manager.disconnect();
     }
     jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   describe('Connection Management', () => {
-    test('should connect successfully', () => {
-      manager.connect();
+    test('should construct correct WebSocket URL with token', async () => {
+      const token = 'test-token-123';
+      const connectPromise = manager.connect(token);
 
-      expect(global.WebSocket).toHaveBeenCalledWith('ws://localhost:8000/ws');
-      expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('open', expect.any(Function));
-      expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('message', expect.any(Function));
-      expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('error', expect.any(Function));
-      expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('close', expect.any(Function));
+      expect(global.WebSocket).toHaveBeenCalledWith(
+        'ws://localhost:3000/ws?token=test-token-123'
+      );
+
+      // Simulate successful connection
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
+
+      await connectPromise;
     });
 
-    test('should handle connection open event', () => {
-      manager.connect();
+    test('should use wss:// for https pages', async () => {
+      window.location.protocol = 'https:';
+
+      const token = 'test-token';
+      const connectPromise = manager.connect(token);
+
+      expect(global.WebSocket).toHaveBeenCalledWith(
+        'wss://localhost:3000/ws?token=test-token'
+      );
+
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
+
+      await connectPromise;
+    });
+
+    test('should handle connection open event', async () => {
+      const connectPromise = manager.connect('token');
 
       // Simulate open event
-      const openHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'open'
-      )[1];
-      openHandler();
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
 
-      expect(manager.isConnected()).toBe(true);
+      await connectPromise;
+
+      expect(manager.isConnected).toBe(true);
     });
 
-    test('should disconnect gracefully', () => {
-      manager.connect();
+    test('should prevent multiple simultaneous connections', async () => {
+      const connect1 = manager.connect('token1');
+      const connect2 = manager.connect('token2');
+
+      expect(global.WebSocket).toHaveBeenCalledTimes(1);
+
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
+
+      await connect1;
+    });
+
+    test('should disconnect gracefully', async () => {
+      const connectPromise = manager.connect('token');
+
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
+
+      await connectPromise;
+
       manager.disconnect();
 
       expect(mockWebSocket.close).toHaveBeenCalled();
+      expect(manager.isConnected).toBe(false);
     });
 
     test('should handle disconnect when not connected', () => {
@@ -81,63 +127,83 @@ describe('WebSocketManager - Fixed Tests', () => {
       expect(() => manager.disconnect()).not.toThrow();
     });
 
-    test('should auto-reconnect on connection loss', (done) => {
-      const autoReconnectManager = new WebSocketManager('ws://localhost:8000/ws', {
-        autoReconnect: true,
-        reconnectInterval: 100,
-      });
+    test('should timeout if connection takes too long', async () => {
+      jest.useFakeTimers();
 
-      autoReconnectManager.connect();
+      const connectPromise = manager.connect('token');
 
-      // Simulate close event
-      const closeHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'close'
-      )[1];
-      closeHandler({ code: 1006, reason: 'Connection lost' });
+      // Fast-forward past timeout (10 seconds)
+      jest.advanceTimersByTime(10000);
 
-      // Check reconnection attempt
-      setTimeout(() => {
-        expect(global.WebSocket).toHaveBeenCalledTimes(2); // Initial + reconnect
-        autoReconnectManager.disconnect();
-        done();
-      }, 150);
+      await expect(connectPromise).rejects.toThrow('Connection timeout');
+
+      jest.useRealTimers();
     });
   });
 
   describe('Message Sending', () => {
-    beforeEach(() => {
-      manager.connect();
-      // Simulate connected state
-      const openHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'open'
-      )[1];
-      openHandler();
+    beforeEach(async () => {
+      const connectPromise = manager.connect('test-token');
+
+      // Simulate successful connection
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
+
+      await connectPromise;
     });
 
     test('should send message when connected', () => {
-      const message = { type: 'test', data: 'hello' };
-      manager.send(message);
+      manager.send('test', { data: 'hello' });
 
-      expect(mockWebSocket.send).toHaveBeenCalledWith(JSON.stringify(message));
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('"type":"test"')
+      );
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('"data":{"data":"hello"}')
+      );
     });
 
-    test('should queue messages when not connected', () => {
+    test('should queue messages when not connected', async () => {
       manager.disconnect();
 
-      const message = { type: 'test', data: 'queued' };
-      manager.send(message);
+      manager.send('test', { data: 'queued' });
 
-      // Message should be queued, not sent immediately
-      expect(mockWebSocket.send).not.toHaveBeenCalledWith(JSON.stringify(message));
+      // Message should be queued
+      expect(manager.messageQueue).toHaveLength(1);
+      expect(manager.messageQueue[0]).toHaveProperty('type', 'test');
+    });
 
-      // Reconnect and verify message is sent
-      manager.connect();
-      const openHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'open'
-      )[1];
-      openHandler();
+    test('should send queued messages after reconnection', async () => {
+      manager.disconnect();
 
-      expect(mockWebSocket.send).toHaveBeenCalledWith(JSON.stringify(message));
+      manager.send('test1', 'queued1');
+      manager.send('test2', 'queued2');
+
+      // Reconnect
+      mockWebSocket.send.mockClear();
+      const connectPromise = manager.connect('token');
+
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
+
+      await connectPromise;
+
+      // Simulate 'connected' message from server to trigger sendQueuedMessages
+      if (mockWebSocket.onmessage) {
+        mockWebSocket.onmessage({
+          data: JSON.stringify({ type: 'connected', data: { connection_id: '123' } })
+        });
+      }
+
+      // Check that queued messages were sent
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('"type":"test1"')
+      );
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('"type":"test2"')
+      );
     });
 
     test('should handle send errors gracefully', () => {
@@ -145,265 +211,257 @@ describe('WebSocketManager - Fixed Tests', () => {
         throw new Error('Send failed');
       });
 
-      expect(() => manager.send({ type: 'test' })).not.toThrow();
+      expect(() => manager.send('test', {})).not.toThrow();
+    });
+
+    test('should respect max queue size', () => {
+      manager.disconnect();
+
+      // Try to queue more than maxQueueSize (100) messages
+      for (let i = 0; i < 150; i++) {
+        manager.send('test', { id: i });
+      }
+
+      expect(manager.messageQueue.length).toBeLessThanOrEqual(100);
     });
   });
 
   describe('Message Reception', () => {
-    beforeEach(() => {
-      manager.connect();
+    beforeEach(async () => {
+      const connectPromise = manager.connect('test-token');
+
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
+
+      await connectPromise;
     });
 
     test('should receive and parse messages', () => {
-      const testMessage = { type: 'notification', data: { text: 'Test' } };
+      const testMessage = { type: 'notification', data: { message: 'test' } };
+      const messageHandler = jest.fn();
 
-      // Get message handler
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
+      manager.addEventListener('notification', messageHandler);
 
-      // Simulate message
-      messageHandler({ data: JSON.stringify(testMessage) });
+      // Simulate incoming message
+      if (mockWebSocket.onmessage) {
+        mockWebSocket.onmessage({
+          data: JSON.stringify(testMessage)
+        });
+      }
 
-      expect(mockOnMessage).toHaveBeenCalledWith(testMessage);
+      // Handler receives the data object, not the full message
+      expect(messageHandler).toHaveBeenCalledWith({ message: 'test' });
     });
 
     test('should handle invalid JSON gracefully', () => {
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
+      const consoleError = jest.spyOn(console, 'error').mockImplementation();
 
       // Send invalid JSON
-      messageHandler({ data: 'invalid json' });
+      if (mockWebSocket.onmessage) {
+        mockWebSocket.onmessage({ data: 'invalid json' });
+      }
 
-      expect(mockOnError).toHaveBeenCalled();
+      expect(consoleError).toHaveBeenCalled();
+      consoleError.mockRestore();
     });
 
     test('should route messages to specific handlers', () => {
       const scheduleHandler = jest.fn();
-      manager.on('schedule.update', scheduleHandler);
+      const notificationHandler = jest.fn();
 
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
+      manager.addEventListener('schedule.update', scheduleHandler);
+      manager.addEventListener('notification', notificationHandler);
 
-      messageHandler({
-        data: JSON.stringify({
-          type: 'schedule.update',
-          data: { id: 123, name: 'Updated' }
-        })
-      });
+      // Send schedule update
+      if (mockWebSocket.onmessage) {
+        mockWebSocket.onmessage({
+          data: JSON.stringify({ type: 'schedule.update', data: {} })
+        });
+      }
 
-      expect(scheduleHandler).toHaveBeenCalledWith({ id: 123, name: 'Updated' });
-    });
-  });
+      expect(scheduleHandler).toHaveBeenCalled();
+      expect(notificationHandler).not.toHaveBeenCalled();
 
-  describe('Presence Features', () => {
-    beforeEach(() => {
-      manager.connect();
-      const openHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'open'
-      )[1];
-      openHandler();
-    });
+      // Send notification
+      scheduleHandler.mockClear();
+      if (mockWebSocket.onmessage) {
+        mockWebSocket.onmessage({
+          data: JSON.stringify({ type: 'notification', data: {} })
+        });
+      }
 
-    test('should send typing indicators', () => {
-      manager.sendTyping('schedule-123');
-
-      expect(mockWebSocket.send).toHaveBeenCalled();
-      const sentData = JSON.parse(mockWebSocket.send.mock.calls[0][0]);
-      expect(sentData.type).toBe('user_typing');
-      expect(sentData.data.location).toBe('schedule-123');
+      expect(notificationHandler).toHaveBeenCalled();
+      expect(scheduleHandler).not.toHaveBeenCalled();
     });
 
-    test('should send editing indicators', () => {
-      manager.sendEditing('shift', 456);
+    test('should handle message event for all messages', () => {
+      const messageHandler = jest.fn();
 
-      expect(mockWebSocket.send).toHaveBeenCalled();
-      const sentData = JSON.parse(mockWebSocket.send.mock.calls[0][0]);
-      expect(sentData.type).toBe('user_editing');
-      expect(sentData.data.resource_type).toBe('shift');
-      expect(sentData.data.resource_id).toBe(456);
-    });
+      // Listen to 'message' event which fires for all messages
+      manager.addEventListener('message', messageHandler);
 
-    test('should update presence status', () => {
-      manager.updatePresence('busy', { location: 'dashboard' });
+      // Send various messages
+      if (mockWebSocket.onmessage) {
+        mockWebSocket.onmessage({
+          data: JSON.stringify({ type: 'test1', data: {} })
+        });
+        mockWebSocket.onmessage({
+          data: JSON.stringify({ type: 'test2', data: {} })
+        });
+      }
 
-      expect(mockWebSocket.send).toHaveBeenCalled();
-      const sentData = JSON.parse(mockWebSocket.send.mock.calls[0][0]);
-      expect(sentData.type).toBe('user_status_update');
-      expect(sentData.data.status).toBe('busy');
-    });
-
-    test('should handle presence updates from server', () => {
-      const presenceHandler = jest.fn();
-      manager.on('presence.update', presenceHandler);
-
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
-
-      messageHandler({
-        data: JSON.stringify({
-          type: 'presence.update',
-          data: { user_id: 1, status: 'online' }
-        })
-      });
-
-      expect(presenceHandler).toHaveBeenCalledWith({ user_id: 1, status: 'online' });
+      expect(messageHandler).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('Heartbeat and Health', () => {
-    test('should send periodic heartbeat', (done) => {
-      const heartbeatManager = new WebSocketManager('ws://localhost:8000/ws', {
-        heartbeatInterval: 100,
-      });
+    beforeEach(async () => {
+      jest.useFakeTimers();
 
-      heartbeatManager.connect();
-      const openHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'open'
-      )[1];
-      openHandler();
+      const connectPromise = manager.connect('test-token');
 
-      setTimeout(() => {
-        // Should have sent at least one heartbeat
-        const heartbeats = mockWebSocket.send.mock.calls.filter(call => {
-          const data = JSON.parse(call[0]);
-          return data.type === 'heartbeat';
-        });
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
 
-        expect(heartbeats.length).toBeGreaterThan(0);
-        heartbeatManager.disconnect();
-        done();
-      }, 250);
+      await connectPromise;
     });
 
-    test('should detect connection timeout', (done) => {
-      const timeoutManager = new WebSocketManager('ws://localhost:8000/ws', {
-        heartbeatInterval: 50,
-        connectionTimeout: 150,
-        onError: mockOnError,
-      });
+    afterEach(() => {
+      jest.useRealTimers();
+    });
 
-      timeoutManager.connect();
-      const openHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'open'
-      )[1];
-      openHandler();
+    test('should send periodic heartbeat', () => {
+      // Fast-forward past heartbeat interval (30 seconds)
+      jest.advanceTimersByTime(30000);
 
-      // Don't respond to heartbeats
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('"type":"ping"')
+      );
+    });
 
-      setTimeout(() => {
-        expect(mockOnError).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'timeout' })
-        );
-        timeoutManager.disconnect();
-        done();
-      }, 200);
+    test('should track last activity time', () => {
+      const initialActivity = manager.lastActivity;
+
+      // Send a message
+      manager.send('test', {});
+
+      expect(manager.lastActivity).toBeGreaterThanOrEqual(initialActivity);
     });
   });
 
   describe('Error Handling', () => {
-    test('should handle connection errors', () => {
-      manager.connect();
+    test('should handle connection errors', async () => {
+      const connectPromise = manager.connect('token');
 
-      const errorHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'error'
-      )[1];
+      // Simulate connection error
+      if (mockWebSocket.onerror) {
+        mockWebSocket.onerror({ message: 'Connection failed' });
+      }
 
-      errorHandler(new Event('error'));
-
-      expect(mockOnError).toHaveBeenCalled();
+      await expect(connectPromise).rejects.toThrow('Connection failed');
     });
 
-    test('should handle unexpected close', () => {
-      manager.connect();
+    test('should handle unexpected close', async () => {
+      const connectPromise = manager.connect('token');
 
-      const closeHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'close'
-      )[1];
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
 
-      closeHandler({ code: 1006, reason: 'Unexpected close' });
+      await connectPromise;
 
-      expect(mockOnClose).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 1006 })
-      );
-    });
+      // Simulate unexpected close
+      if (mockWebSocket.onclose) {
+        mockWebSocket.onclose({ code: 1006, reason: 'Abnormal closure' });
+      }
 
-    test('should emit error on failed send', () => {
-      manager.connect();
-      mockWebSocket.send.mockImplementation(() => {
-        throw new Error('Network error');
-      });
-
-      manager.send({ type: 'test' });
-
-      expect(mockOnError).toHaveBeenCalled();
+      expect(manager.isConnected).toBe(false);
     });
   });
 
-  describe('Event Subscription', () => {
-    test('should subscribe to events', () => {
+  describe('Event Listeners', () => {
+    test('should register event listeners', () => {
       const handler = jest.fn();
-      manager.on('test.event', handler);
 
-      manager.connect();
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
+      manager.addEventListener('test-event', handler);
 
-      messageHandler({
-        data: JSON.stringify({
-          type: 'test.event',
-          data: { value: 123 }
-        })
-      });
-
-      expect(handler).toHaveBeenCalledWith({ value: 123 });
+      expect(manager.eventListeners.has('test-event')).toBe(true);
     });
 
-    test('should unsubscribe from events', () => {
+    test('should remove event listeners', () => {
       const handler = jest.fn();
-      manager.on('test.event', handler);
-      manager.off('test.event', handler);
 
-      manager.connect();
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
+      manager.addEventListener('test-event', handler);
+      manager.removeEventListener('test-event', handler);
 
-      messageHandler({
-        data: JSON.stringify({
-          type: 'test.event',
-          data: { value: 123 }
-        })
-      });
-
-      expect(handler).not.toHaveBeenCalled();
+      const listeners = manager.eventListeners.get('test-event');
+      expect(listeners).toBeDefined();
+      expect(listeners.has(handler)).toBe(false);
     });
 
-    test('should support multiple handlers per event', () => {
+    test('should call multiple listeners for same event', async () => {
+      const connectPromise = manager.connect('token');
+
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
+
+      await connectPromise;
+
       const handler1 = jest.fn();
       const handler2 = jest.fn();
 
-      manager.on('test.event', handler1);
-      manager.on('test.event', handler2);
+      manager.addEventListener('test', handler1);
+      manager.addEventListener('test', handler2);
 
-      manager.connect();
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
+      if (mockWebSocket.onmessage) {
+        mockWebSocket.onmessage({
+          data: JSON.stringify({ type: 'test', data: {} })
+        });
+      }
 
-      messageHandler({
-        data: JSON.stringify({
-          type: 'test.event',
-          data: { value: 123 }
-        })
-      });
+      expect(handler1).toHaveBeenCalled();
+      expect(handler2).toHaveBeenCalled();
+    });
+  });
 
-      expect(handler1).toHaveBeenCalledWith({ value: 123 });
-      expect(handler2).toHaveBeenCalledWith({ value: 123 });
+  describe('Room Management', () => {
+    beforeEach(async () => {
+      const connectPromise = manager.connect('test-token');
+
+      if (mockWebSocket.onopen) {
+        mockWebSocket.onopen({});
+      }
+
+      await connectPromise;
+    });
+
+    test('should join room', () => {
+      manager.joinRoom('schedule-123');
+
+      expect(manager.rooms.has('schedule-123')).toBe(true);
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('"type":"join_room"')
+      );
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('schedule-123')
+      );
+    });
+
+    test('should leave room', () => {
+      manager.joinRoom('schedule-123');
+      manager.leaveRoom('schedule-123');
+
+      expect(manager.rooms.has('schedule-123')).toBe(false);
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        expect.stringContaining('"type":"leave_room"')
+      );
+    });
+
+    test('should handle leaving non-existent room', () => {
+      expect(() => manager.leaveRoom('non-existent')).not.toThrow();
     });
   });
 });
