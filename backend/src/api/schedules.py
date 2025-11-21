@@ -2,11 +2,15 @@
 Schedule management API routes
 """
 
+import logging
+from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+
+logger = logging.getLogger(__name__)
 
 from ..dependencies import get_current_user, get_database_session
 from ..models.schedule import Schedule
@@ -612,9 +616,29 @@ async def publish_schedule(
             if assignment.status in ["assigned", "confirmed"]
         ))
 
-        # TODO: Implement notification service integration
-        # For now, just count employees
-        notifications_sent = len(employee_ids) if settings.send_notifications else 0
+        # Send notifications to employees
+        notifications_sent = 0
+        if settings.send_notifications and employee_ids:
+            try:
+                from ..services.notification_service import get_notification_service
+
+                notification_service = get_notification_service(db)
+                notification_result = await notification_service.send_schedule_published_notification(
+                    employee_ids=employee_ids,
+                    schedule_id=schedule_id,
+                    week_start=schedule.week_start.isoformat(),
+                    week_end=schedule.week_end.isoformat(),
+                    schedule_url=f"/schedules/{schedule_id}"
+                )
+
+                if notification_result.get("success"):
+                    notifications_sent = notification_result.get("emails_sent", 0)
+                    logger.info(f"Sent {notifications_sent} notifications for schedule {schedule_id}")
+                else:
+                    logger.error(f"Failed to send notifications: {notification_result.get('error')}")
+            except Exception as notification_error:
+                # Don't fail the publish if notifications fail
+                logger.error(f"Error sending notifications: {notification_error}")
 
         await db.commit()
         await db.refresh(schedule)

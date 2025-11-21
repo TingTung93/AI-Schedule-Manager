@@ -529,10 +529,29 @@ def forgot_password():
             # Log password reset request
             log_audit_event("password_reset_request", user_id=user.id, resource="user", action="reset_request", success=True)
 
-            # TODO: Send email with reset link
-            # send_password_reset_email(email, reset_token)
+            # Send email with reset link
+            try:
+                from ..services.notification_service import get_notification_service
+                from ..config import settings
 
-            logger.info(f"Password reset token generated for {email}: {reset_token}")
+                # Get base URL from config or use default
+                base_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
+
+                notification_service = get_notification_service(session)
+                email_result = await notification_service.send_password_reset_email(
+                    email=email,
+                    reset_token=reset_token,
+                    user_id=user.id,
+                    base_url=base_url
+                )
+
+                if email_result.get("success"):
+                    logger.info(f"Password reset email sent successfully to {email}")
+                else:
+                    logger.warning(f"Failed to send password reset email to {email}: {email_result.get('error')}")
+            except Exception as email_error:
+                # Don't fail the request if email fails, just log it
+                logger.error(f"Error sending password reset email: {email_error}")
 
         session.close()
 
