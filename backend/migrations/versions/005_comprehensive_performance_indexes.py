@@ -1,7 +1,7 @@
 """Comprehensive performance indexes for database optimization
 
 Revision ID: 005
-Revises: 004
+Revises: bdfb51b08055
 Create Date: 2025-11-21 19:15:00.000000
 
 This migration adds comprehensive indexes identified through performance analysis
@@ -21,7 +21,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '005'
-down_revision = '004'
+down_revision = 'bdfb51b08055'
 branch_labels = None
 depends_on = None
 
