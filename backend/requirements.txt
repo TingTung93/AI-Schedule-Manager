@@ -43,3 +43,30 @@ icalendar==6.1.0
 
 # Caching
 cachetools==5.5.1
+
+# Data Processing & Export
+pandas==2.2.3
+reportlab==4.2.5
+xlsxwriter==3.2.0
+
+# Background Tasks & Messaging
+celery==5.4.0
+kombu==5.4.2
+sendgrid==6.11.0
+python-http-client==3.3.7
+
+# NLP & Text Processing
+spacy==3.8.3
+
+# Cloud Services
+boto3==1.35.95
+
+# Utilities
+chardet==5.2.0
+python-magic==0.4.27
+pythonjsonlogger==3.3.1
+dnspython==2.7.0
+
+# Web Framework (WSGI middleware support)
+flask==3.1.0
+jinja2==3.1.5
