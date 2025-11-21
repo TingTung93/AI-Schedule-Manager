@@ -154,7 +154,7 @@ class EmployeeCreate(BaseModel):
     email: Optional[EmailStr] = None
     role: Optional[EmployeeRole] = None
     phone: Optional[str] = Field(None, max_length=50)
-    department_id: Optional[int] = Field(None, alias='department')
+    department_id: Optional[int] = Field(None, alias='department', gt=0, description="Department ID for employee assignment")
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -179,8 +179,16 @@ class EmployeeUpdate(BaseModel):
     max_hours_per_week: Optional[int] = Field(None, ge=1, le=168)
     qualifications: Optional[List[str]] = None
     availability_pattern: Optional[Dict[str, Any]] = None
-    department_id: Optional[int] = None
+    department_id: Optional[int] = Field(None, gt=0, description="Department ID for employee assignment")
     active: Optional[bool] = None
+
+    @field_validator('department_id', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        """Convert empty strings to None for department_id."""
+        if v == '' or v is None:
+            return None
+        return v
 
 
 class EmployeeResponse(BaseModel):
@@ -193,7 +201,7 @@ class EmployeeResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
-    department_id: Optional[int] = None
+    department_id: Optional[int] = Field(None, description="Department ID if employee is assigned to a department")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
@@ -206,8 +214,8 @@ class EmployeeResponse(BaseModel):
     role: Optional[str] = None
     phone: Optional[str] = None
 
-    # Nested department object (will be populated when relationship is loaded)
-    department: Optional["DepartmentResponse"] = None
+    # Nested department object (will be populated when relationship is loaded via joinedload)
+    department: Optional[DepartmentResponse] = Field(None, description="Department details if assigned and loaded")
 
 
 # Rule schemas
