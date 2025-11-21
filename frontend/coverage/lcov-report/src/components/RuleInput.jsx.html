@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/64</span>
+                <span class='fraction'>0/67</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/27</span>
+                <span class='fraction'>0/30</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/61</span>
+                <span class='fraction'>0/64</span>
             </div>
         
             
@@ -586,20 +586,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -612,7 +599,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1020,7 +1020,7 @@ import {
   Schedule as ScheduleIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-import { ruleService } from '../services/api';
+import api from '../services/api';
 import { useApi, useApiMutation } from '../hooks/useApi';
 &nbsp;
 const RuleInput = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
@@ -1033,7 +1033,7 @@ const RuleInput = <span class="cstat-no" title="statement not covered" ><span cl
 &nbsp;
   // Fetch existing rules on mount
   const { data: rulesData, loading: loadingRules, refetch: refetchRules } = <span class="cstat-no" title="statement not covered" >useApi(</span>
-<span class="fstat-no" title="function not covered" >    ()</span> =&gt; <span class="cstat-no" title="statement not covered" >ruleService.getRules(),</span>
+<span class="fstat-no" title="function not covered" >    ()</span> =&gt; <span class="cstat-no" title="statement not covered" >api.get('/api/rules'),</span>
     [],
     {
       onSuccess: <span class="fstat-no" title="function not covered" >(d</span>ata) =&gt; {
@@ -1047,7 +1047,7 @@ const RuleInput = <span class="cstat-no" title="statement not covered" ><span cl
 &nbsp;
   // Setup mutations for API calls
   const { mutate: parseRuleMutation, loading: parsingApi } = <span class="cstat-no" title="statement not covered" >useApiMutation(</span>
-    ruleService.parseRule,
+<span class="fstat-no" title="function not covered" >    (r</span>uleText) =&gt; <span class="cstat-no" title="statement not covered" >api.post('/api/rules/parse', { rule_text: ruleText }),</span>
     {
       onSuccess: <span class="fstat-no" title="function not covered" >(r</span>esult) =&gt; {
 <span class="cstat-no" title="statement not covered" >        setParsedResult(result);</span>
@@ -1060,7 +1060,7 @@ const RuleInput = <span class="cstat-no" title="statement not covered" ><span cl
   );
 &nbsp;
   const { mutate: deleteRuleMutation } = <span class="cstat-no" title="statement not covered" >useApiMutation(</span>
-    ruleService.deleteRule,
+<span class="fstat-no" title="function not covered" >    (i</span>d) =&gt; <span class="cstat-no" title="statement not covered" >api.delete(`/api/rules/${id}`),</span>
     {
       onSuccess: <span class="fstat-no" title="function not covered" >()</span> =&gt; {
 <span class="cstat-no" title="statement not covered" >        refetchRules();</span>
@@ -1073,7 +1073,7 @@ const RuleInput = <span class="cstat-no" title="statement not covered" ><span cl
   );
 &nbsp;
   const { mutate: updateRuleMutation } = <span class="cstat-no" title="statement not covered" >useApiMutation(</span>
-    ruleService.updateRule,
+<span class="fstat-no" title="function not covered" >    ({</span> id, data }) =&gt; <span class="cstat-no" title="statement not covered" >api.put(`/api/rules/${id}`, data),</span>
     {
       onSuccess: <span class="fstat-no" title="function not covered" >()</span> =&gt; {
 <span class="cstat-no" title="statement not covered" >        refetchRules();</span>
@@ -1453,7 +1453,7 @@ export default RuleInput;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-15T19:31:02.827Z
+                at 2025-11-21T18:55:02.493Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
