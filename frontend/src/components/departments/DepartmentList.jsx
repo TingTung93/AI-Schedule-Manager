@@ -16,7 +16,7 @@ const DepartmentList = ({
   onDelete
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortAscending, setSortAscending] = useState(true);
+  const [sortAscending, setSortAscending] = useState(false); // Start unsorted/descending
 
   // Filter and sort departments
   const filteredAndSortedDepartments = useMemo(() => {
@@ -29,17 +29,17 @@ const DepartmentList = ({
       );
     }
 
-    // Sort by name
-    result.sort((a, b) => {
-      const comparison = a.name.localeCompare(b.name);
-      return sortAscending ? comparison : -comparison;
-    });
+    // Sort by name if sortAscending is true
+    if (sortAscending) {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    }
 
     return result;
   }, [departments, searchTerm, sortAscending]);
 
   const handleDelete = (department) => {
-    if (window.confirm(`Are you sure you want to delete ${department.name}?`)) {
+    const confirmed = window.confirm(`Are you sure you want to delete ${department.name}?`);
+    if (confirmed) {
       onDelete?.(department.id);
     }
   };
@@ -97,10 +97,10 @@ const DepartmentList = ({
         {filteredAndSortedDepartments.map((department) => (
           <div
             key={department.id}
-            className={`department-item ${selectedId === department.id ? 'selected' : ''}`}
+            className={`department-item`}
             onClick={() => onSelect?.(department)}
           >
-            <div className="department-info">
+            <div className={`department-info ${selectedId === department.id ? 'selected' : ''}`}>
               <h3 data-testid="department-name">{department.name}</h3>
               <p className="department-stats">
                 Employees: {department.employee_count || 0}
