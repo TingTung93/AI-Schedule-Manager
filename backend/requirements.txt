@@ -23,3 +23,6 @@ pydantic-settings==2.7.0
 
 # Rate Limiting
 slowapi==0.1.9
+
+# Validation
+phonenumbers==8.13.50
