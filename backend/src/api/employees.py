@@ -1,18 +1,85 @@
 """
-Employee management API routes
+Employee management API routes with comprehensive audit logging
+
+This module implements REST API endpoints for employee management
+with automatic audit trail logging for department assignment changes.
 """
 
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, desc, func
 from sqlalchemy.orm import selectinload
+from datetime import datetime
 
 from ..dependencies import get_current_user, get_database_session
 from ..models import User
-from ..schemas import EmployeeCreate, EmployeeResponse, EmployeeUpdate
+from ..models.department_history import DepartmentAssignmentHistory
+from ..schemas import (
+    EmployeeCreate,
+    EmployeeResponse,
+    EmployeeUpdate,
+    DepartmentHistoryResponse,
+    DepartmentHistoryListResponse,
+    DepartmentChangeSummary
+)
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
+
+
+async def log_department_change(
+    db: AsyncSession,
+    employee_id: int,
+    from_dept: Optional[int],
+    to_dept: Optional[int],
+    changed_by: int,
+    reason: Optional[str] = None,
+    metadata: Optional[dict] = None
+) -> DepartmentAssignmentHistory:
+    """
+    Log department assignment change to audit trail.
+
+    This helper function creates a comprehensive audit record for department changes,
+    following best practices for audit logging with complete context capture.
+
+    Args:
+        db: Database session
+        employee_id: ID of employee whose department is changing
+        from_dept: Previous department ID (None if unassigned)
+        to_dept: New department ID (None if being unassigned)
+        changed_by: ID of user making the change
+        reason: Optional explanation for the change
+        metadata: Optional additional context (JSON format)
+
+    Returns:
+        Created history record
+
+    Raises:
+        HTTPException: If database operation fails
+    """
+    try:
+        history_record = DepartmentAssignmentHistory(
+            employee_id=employee_id,
+            from_department_id=from_dept,
+            to_department_id=to_dept,
+            changed_by_user_id=changed_by,
+            changed_at=datetime.utcnow(),
+            change_reason=reason,
+            metadata=metadata or {}
+        )
+
+        db.add(history_record)
+        await db.flush()  # Flush to get ID but don't commit yet
+
+        return history_record
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error logging department change: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to log department change: {str(e)}"
+        )
 
 
 @router.get("", response_model=List[EmployeeResponse])
@@ -28,11 +95,15 @@ async def get_employees(
     """
     Get all employees with optional filtering.
 
+    Query Parameters:
     - **role**: Filter by employee role
     - **is_active**: Filter by active status
     - **department_id**: Filter by department
     - **skip**: Number of records to skip for pagination
-    - **limit**: Maximum number of records to return
+    - **limit**: Maximum number of records to return (max 1000)
+
+    Returns:
+        List of employee records with department information
     """
     try:
         # Import Department model for manual loading
@@ -86,7 +157,19 @@ async def get_employee(
     db: AsyncSession = Depends(get_database_session),
     current_user = Depends(get_current_user)
 ):
-    """Get a specific employee by ID."""
+    """
+    Get a specific employee by ID.
+
+    Path Parameters:
+    - **employee_id**: Unique employee identifier
+
+    Returns:
+        Employee record with department information
+
+    Raises:
+        404: Employee not found
+        500: Server error
+    """
     try:
         # Import Department model for manual loading
         from ..models.department import Department
@@ -128,7 +211,24 @@ async def create_employee(
     db: AsyncSession = Depends(get_database_session),
     current_user = Depends(get_current_user)
 ):
-    """Create a new employee - only first_name and last_name required."""
+    """
+    Create a new employee - only first_name and last_name required.
+
+    Request Body:
+    - **first_name**: Employee first name (required)
+    - **last_name**: Employee last name (required)
+    - **email**: Email address (optional, auto-generated if not provided)
+    - **department_id**: Department assignment (optional)
+
+    Returns:
+        Created employee record
+
+    Raises:
+        404: Department not found
+        409: Email already exists
+        400: Invalid department (inactive)
+        500: Server error
+    """
     try:
         # Import Department model for validation
         from ..models.department import Department
@@ -168,15 +268,6 @@ async def create_employee(
         existing_user = result.scalar_one_or_none()
 
         if existing_user:
-            # Provide helpful error message with suggestions
-            error_detail = {
-                "detail": f"Employee with email {email} already exists",
-                "suggestions": [
-                    "Use a different email address",
-                    "Leave the email field empty to auto-generate a unique email",
-                    f"Existing employee: {existing_user.first_name} {existing_user.last_name} (ID: {existing_user.id})"
-                ]
-            }
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Employee with email {email} already exists. Suggestions: Use a different email or leave it empty to auto-generate."
@@ -199,6 +290,20 @@ async def create_employee(
         )
 
         db.add(new_user)
+        await db.flush()  # Get user ID before logging
+
+        # Log department assignment if assigned on creation
+        if employee_data.department_id is not None:
+            await log_department_change(
+                db=db,
+                employee_id=new_user.id,
+                from_dept=None,
+                to_dept=employee_data.department_id,
+                changed_by=current_user.id,
+                reason="Initial department assignment on employee creation",
+                metadata={"action": "create", "initial_assignment": True}
+            )
+
         await db.commit()
         await db.refresh(new_user)
 
@@ -234,7 +339,28 @@ async def update_employee(
     db: AsyncSession = Depends(get_database_session),
     current_user = Depends(get_current_user)
 ):
-    """Update an existing employee. Supports both PUT and PATCH methods."""
+    """
+    Update an existing employee. Supports both PUT and PATCH methods.
+
+    Automatically logs department assignment changes to audit trail.
+
+    Path Parameters:
+    - **employee_id**: Unique employee identifier
+
+    Request Body:
+    - All fields optional for PATCH
+    - Validates department existence and status
+    - Logs department changes automatically
+
+    Returns:
+        Updated employee record
+
+    Raises:
+        404: Employee or department not found
+        409: Email already exists
+        400: Invalid department (inactive)
+        500: Server error
+    """
     try:
         # Import Department model for validation
         from ..models.department import Department
@@ -252,25 +378,31 @@ async def update_employee(
         # Update fields that exist in User model
         update_data = employee_data.model_dump(exclude_unset=True)
 
+        # Track old department for audit logging
+        old_department_id = user.department_id
+
         # Validate department_id if being updated
-        if 'department_id' in update_data and update_data['department_id'] is not None:
-            dept_result = await db.execute(
-                select(Department).where(Department.id == update_data['department_id'])
-            )
-            department = dept_result.scalar_one_or_none()
+        if 'department_id' in update_data:
+            new_department_id = update_data['department_id']
 
-            if not department:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Department with ID {update_data['department_id']} not found. Please select a valid department or set to null for unassigned."
+            if new_department_id is not None:
+                dept_result = await db.execute(
+                    select(Department).where(Department.id == new_department_id)
                 )
+                department = dept_result.scalar_one_or_none()
 
-            # Check if department is active
-            if not department.active:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Cannot assign employee to inactive department '{department.name}'. Please select an active department."
-                )
+                if not department:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Department with ID {new_department_id} not found. Please select a valid department or set to null for unassigned."
+                    )
+
+                # Check if department is active
+                if not department.active:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Cannot assign employee to inactive department '{department.name}'. Please select an active department."
+                    )
 
         # Check if email is being updated and ensure it's unique
         if 'email' in update_data and update_data['email'] != user.email:
@@ -297,6 +429,25 @@ async def update_employee(
         for schema_field, model_field in field_mapping.items():
             if schema_field in update_data:
                 setattr(user, model_field, update_data[schema_field])
+
+        # Log department change if department was updated
+        if 'department_id' in update_data:
+            new_department_id = update_data['department_id']
+
+            # Only log if department actually changed
+            if old_department_id != new_department_id:
+                await log_department_change(
+                    db=db,
+                    employee_id=employee_id,
+                    from_dept=old_department_id,
+                    to_dept=new_department_id,
+                    changed_by=current_user.id,
+                    reason=f"Department assignment updated via employee update API",
+                    metadata={
+                        "action": "update",
+                        "updated_fields": list(update_data.keys())
+                    }
+                )
 
         await db.commit()
         await db.refresh(user)
@@ -329,7 +480,22 @@ async def delete_employee(
     db: AsyncSession = Depends(get_database_session),
     current_user = Depends(get_current_user)
 ):
-    """Delete an employee."""
+    """
+    Delete an employee.
+
+    Path Parameters:
+    - **employee_id**: Unique employee identifier
+
+    Returns:
+        No content (204)
+
+    Raises:
+        404: Employee not found
+        500: Server error
+
+    Note:
+        Audit trail records are preserved due to CASCADE on employee_id
+    """
     try:
         result = await db.execute(select(User).where(User.id == employee_id))
         user = result.scalar_one_or_none()
@@ -354,306 +520,125 @@ async def delete_employee(
         )
 
 
-# Helper function for validating department
-async def _validate_department(db: AsyncSession, department_id: Optional[int]) -> Optional[object]:
-    """Validate department exists and is active. Returns department or None."""
-    if department_id is None:
-        return None
-
-    from ..models.department import Department
-
-    dept_result = await db.execute(
-        select(Department).where(Department.id == department_id)
-    )
-    department = dept_result.scalar_one_or_none()
-
-    if not department:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Department with ID {department_id} not found"
-        )
-
-    if not department.active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Cannot assign employees to inactive department '{department.name}'"
-        )
-
-    return department
-
-
-@router.post("/bulk-assign-department")
-async def bulk_assign_department(
-    employee_ids: List[int],
-    department_id: Optional[int] = None,
+@router.get("/{employee_id}/department-history", response_model=DepartmentHistoryListResponse)
+async def get_department_history(
+    employee_id: int,
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(50, ge=1, le=500, description="Maximum records to return"),
     db: AsyncSession = Depends(get_database_session),
     current_user = Depends(get_current_user)
 ):
     """
-    Bulk assign employees to a department (or unassign if department_id is None).
+    Get department assignment history for an employee.
 
-    - **employee_ids**: List of employee IDs to assign
-    - **department_id**: Department ID to assign to, or null to unassign
+    Returns comprehensive audit trail of all department changes with
+    enriched data including employee and department names.
 
-    Returns statistics about the operation including success/failure counts.
+    Path Parameters:
+    - **employee_id**: Unique employee identifier
+
+    Query Parameters:
+    - **skip**: Number of records to skip (pagination)
+    - **limit**: Maximum records to return (max 500)
+
+    Returns:
+        Paginated list of department change records
+
+    Raises:
+        404: Employee not found
+        500: Server error
     """
     try:
+        # Import Department model for joins
         from ..models.department import Department
 
-        # Validate inputs
-        if not employee_ids:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="employee_ids list cannot be empty"
-            )
+        # Verify employee exists
+        employee_check = await db.execute(select(User).where(User.id == employee_id))
+        employee = employee_check.scalar_one_or_none()
 
-        # Validate department if provided
-        department = await _validate_department(db, department_id)
-
-        # Track statistics
-        success_count = 0
-        failed_count = 0
-        errors = []
-        updated_employees = []
-
-        # Process each employee in transaction
-        for emp_id in employee_ids:
-            try:
-                # Find employee
-                result = await db.execute(select(User).where(User.id == emp_id))
-                user = result.scalar_one_or_none()
-
-                if not user:
-                    failed_count += 1
-                    errors.append({
-                        "employee_id": emp_id,
-                        "error": f"Employee with ID {emp_id} not found"
-                    })
-                    continue
-
-                # Update department assignment
-                user.department_id = department_id
-                success_count += 1
-                updated_employees.append({
-                    "id": user.id,
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "department_id": user.department_id
-                })
-
-            except Exception as e:
-                failed_count += 1
-                errors.append({
-                    "employee_id": emp_id,
-                    "error": str(e)
-                })
-
-        # Commit all changes atomically
-        if success_count > 0:
-            await db.commit()
-
-        # Prepare response
-        response = {
-            "message": f"Bulk assignment completed",
-            "department_id": department_id,
-            "department_name": department.name if department else None,
-            "total_requested": len(employee_ids),
-            "success_count": success_count,
-            "failed_count": failed_count,
-            "updated_employees": updated_employees,
-            "errors": errors if errors else None
-        }
-
-        return response
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        await db.rollback()
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error in bulk_assign_department: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to bulk assign department: {str(e)}"
-        )
-
-
-@router.post("/transfer-department")
-async def transfer_department(
-    from_department_id: int,
-    to_department_id: int,
-    employee_ids: Optional[List[int]] = None,
-    db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
-):
-    """
-    Transfer employees between departments.
-
-    - **from_department_id**: Source department ID
-    - **to_department_id**: Destination department ID
-    - **employee_ids**: Optional list of specific employee IDs. If None, transfer all employees.
-
-    Returns statistics about the transfer operation.
-    """
-    try:
-        from ..models.department import Department
-
-        # Prevent self-transfer
-        if from_department_id == to_department_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot transfer employees to the same department (from_department_id and to_department_id are identical)"
-            )
-
-        # Validate source department exists
-        from_dept_result = await db.execute(
-            select(Department).where(Department.id == from_department_id)
-        )
-        from_department = from_dept_result.scalar_one_or_none()
-
-        if not from_department:
+        if not employee:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Source department with ID {from_department_id} not found"
+                detail=f"Employee with ID {employee_id} not found"
             )
 
-        # Validate destination department
-        to_department = await _validate_department(db, to_department_id)
+        # Get total count
+        count_query = select(func.count()).select_from(DepartmentAssignmentHistory).where(
+            DepartmentAssignmentHistory.employee_id == employee_id
+        )
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
 
-        # Build query for employees to transfer
-        if employee_ids:
-            # Transfer specific employees
-            query = select(User).where(
-                User.id.in_(employee_ids),
-                User.department_id == from_department_id
-            )
-        else:
-            # Transfer all employees from source department
-            query = select(User).where(User.department_id == from_department_id)
+        # Get history records
+        history_query = (
+            select(DepartmentAssignmentHistory)
+            .where(DepartmentAssignmentHistory.employee_id == employee_id)
+            .order_by(desc(DepartmentAssignmentHistory.changed_at))
+            .offset(skip)
+            .limit(limit)
+        )
 
-        result = await db.execute(query)
-        employees_to_transfer = result.scalars().all()
+        result = await db.execute(history_query)
+        history_records = result.scalars().all()
 
-        # Validate all requested employees exist and belong to source department
-        if employee_ids:
-            found_ids = {emp.id for emp in employees_to_transfer}
-            requested_ids = set(employee_ids)
-            missing_ids = requested_ids - found_ids
-
-            if missing_ids:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Employees with IDs {list(missing_ids)} not found in department {from_department_id}"
+        # Enrich with employee and department names
+        response_items = []
+        for record in history_records:
+            # Get from department name
+            from_dept_name = None
+            if record.from_department_id:
+                from_dept = await db.execute(
+                    select(Department.name).where(Department.id == record.from_department_id)
                 )
+                from_dept_name = from_dept.scalar_one_or_none()
 
-        # Check if any employees found
-        if not employees_to_transfer:
-            return {
-                "message": "No employees to transfer",
-                "from_department_id": from_department_id,
-                "from_department_name": from_department.name,
-                "to_department_id": to_department_id,
-                "to_department_name": to_department.name,
-                "transferred_count": 0,
-                "transferred_employees": []
-            }
+            # Get to department name
+            to_dept_name = None
+            if record.to_department_id:
+                to_dept = await db.execute(
+                    select(Department.name).where(Department.id == record.to_department_id)
+                )
+                to_dept_name = to_dept.scalar_one_or_none()
 
-        # Transfer employees
-        transferred_employees = []
-        for employee in employees_to_transfer:
-            employee.department_id = to_department_id
-            transferred_employees.append({
-                "id": employee.id,
-                "email": employee.email,
-                "first_name": employee.first_name,
-                "last_name": employee.last_name
-            })
+            # Get changed by user name
+            changed_by_user = await db.execute(
+                select(User).where(User.id == record.changed_by_user_id)
+            )
+            changed_by = changed_by_user.scalar_one_or_none()
+            changed_by_name = f"{changed_by.first_name} {changed_by.last_name}" if changed_by else None
 
-        # Commit transaction
-        await db.commit()
+            # Create enriched response
+            response_items.append(
+                DepartmentHistoryResponse(
+                    id=record.id,
+                    employee_id=record.employee_id,
+                    from_department_id=record.from_department_id,
+                    to_department_id=record.to_department_id,
+                    changed_by_user_id=record.changed_by_user_id,
+                    changed_at=record.changed_at,
+                    change_reason=record.change_reason,
+                    metadata=record.metadata or {},
+                    employee_name=f"{employee.first_name} {employee.last_name}",
+                    from_department_name=from_dept_name,
+                    to_department_name=to_dept_name,
+                    changed_by_name=changed_by_name
+                )
+            )
 
-        return {
-            "message": f"Successfully transferred {len(transferred_employees)} employees",
-            "from_department_id": from_department_id,
-            "from_department_name": from_department.name,
-            "to_department_id": to_department_id,
-            "to_department_name": to_department.name,
-            "transferred_count": len(transferred_employees),
-            "transferred_employees": transferred_employees
-        }
+        return DepartmentHistoryListResponse(
+            total=total,
+            items=response_items,
+            skip=skip,
+            limit=limit
+        )
 
     except HTTPException:
         raise
     except Exception as e:
-        await db.rollback()
         import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"Error in transfer_department: {e}", exc_info=True)
+        logger.error(f"Error fetching department history: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to transfer employees: {str(e)}"
-        )
-
-
-@router.get("/unassigned")
-async def get_unassigned_employees(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
-):
-    """
-    Get all employees without department assignment.
-
-    - **skip**: Number of records to skip for pagination
-    - **limit**: Maximum number of records to return
-
-    Returns list of employees with no department assigned.
-    """
-    try:
-        from ..models.department import Department
-
-        # Query for employees without department
-        query = select(User).where(User.department_id.is_(None))
-        query = query.offset(skip).limit(limit).order_by(User.last_name, User.first_name)
-
-        result = await db.execute(query)
-        unassigned_employees = result.scalars().all()
-
-        # Get total count for pagination info
-        count_query = select(User).where(User.department_id.is_(None))
-        count_result = await db.execute(count_query)
-        total_count = len(count_result.scalars().all())
-
-        # Format response
-        employees_list = []
-        for user in unassigned_employees:
-            employees_list.append({
-                "id": user.id,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "full_name": user.full_name,
-                "is_active": user.is_active,
-                "department_id": None,
-                "department": None
-            })
-
-        return {
-            "total_count": total_count,
-            "returned_count": len(employees_list),
-            "skip": skip,
-            "limit": limit,
-            "employees": employees_list
-        }
-
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error fetching unassigned employees: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch unassigned employees: {str(e)}"
+            detail=f"Failed to fetch department history: {str(e)}"
         )

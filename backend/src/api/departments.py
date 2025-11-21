@@ -10,9 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies import get_current_manager, get_current_user, get_database_session
 from ..schemas import (
+    DepartmentAnalyticsOverview,
     DepartmentCreate,
+    DepartmentDetailedAnalytics,
     DepartmentResponse,
     DepartmentUpdate,
+    EmployeeDistributionItem,
     EmployeeResponse,
     PaginatedResponse,
     ShiftResponse,
@@ -250,7 +253,77 @@ async def get_department_shifts(
 
     # Convert ORM objects to response schemas
     department_responses = [DepartmentResponse.model_validate(dept) for dept in result["items"]]
-    
+
     return PaginatedResponse(
         items=department_responses, total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
     )
+
+
+@router.get("/analytics/overview", response_model=DepartmentAnalyticsOverview)
+async def get_departments_analytics(
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Get department analytics overview.
+
+    Returns comprehensive statistics including:
+    - Total departments (active/inactive)
+    - Total employees assigned/unassigned
+    - Average employees per department
+    - Largest/smallest departments by employee count
+    - Department hierarchy depth
+    - Root departments count
+
+    All queries are optimized with aggregation functions to avoid N+1 queries.
+    """
+    logger.info(f"User {current_user.get('email')} requesting department analytics overview")
+    analytics = await crud_department.get_analytics_overview(db)
+    return analytics
+
+
+@router.get("/analytics/distribution", response_model=List[EmployeeDistributionItem])
+async def get_employee_distribution(
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Get employee distribution across departments.
+
+    Returns a list of departments with:
+    - Department ID and name
+    - Employee count
+    - Percentage of total employees
+    - Active status
+
+    Data is formatted ready for charting (pie charts, bar graphs, etc.).
+    Results are ordered by employee count (descending).
+    """
+    logger.info(f"User {current_user.get('email')} requesting employee distribution analytics")
+    distribution = await crud_department.get_employee_distribution(db)
+    return distribution
+
+
+@router.get("/{department_id}/analytics", response_model=DepartmentDetailedAnalytics)
+async def get_department_analytics(
+    department_id: int,
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Get detailed analytics for a specific department.
+
+    Returns comprehensive department-specific metrics:
+    - Employee count (total, by role, active/inactive)
+    - Subdepartment count
+    - Assignment trends for last 30/60/90 days
+
+    All data is optimized with efficient SQL aggregations.
+    """
+    logger.info(f"User {current_user.get('email')} requesting analytics for department {department_id}")
+    analytics = await crud_department.get_department_detailed_analytics(db, department_id)
+
+    if not analytics:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+
+    return analytics

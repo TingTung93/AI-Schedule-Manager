@@ -98,6 +98,65 @@ class ScheduleStatus(str, Enum):
     NO_SHOW = "no_show"
 
 
+# Department Analytics Schemas
+class DepartmentSizeInfo(BaseModel):
+    """Department size information."""
+
+    id: int
+    name: str
+    employee_count: int
+    active: bool
+
+
+class DepartmentAnalyticsOverview(BaseModel):
+    """Overall department analytics overview."""
+
+    total_departments: int
+    active_departments: int
+    inactive_departments: int
+    total_employees_assigned: int
+    total_employees_unassigned: int
+    average_employees_per_department: float
+    largest_department: Optional[DepartmentSizeInfo] = None
+    smallest_department: Optional[DepartmentSizeInfo] = None
+    max_hierarchy_depth: int
+    root_departments_count: int
+
+
+class EmployeeDistributionItem(BaseModel):
+    """Employee distribution per department."""
+
+    department_id: int
+    department_name: str
+    employee_count: int
+    percentage: float
+    active: bool
+
+
+class AssignmentTrendData(BaseModel):
+    """Assignment trend data point."""
+
+    period: str
+    assignments: int
+    unassignments: int
+    net_change: int
+
+
+class DepartmentDetailedAnalytics(BaseModel):
+    """Detailed analytics for a specific department."""
+
+    department_id: int
+    department_name: str
+    total_employees: int
+    employee_by_role: Dict[str, int]
+    active_employees: int
+    inactive_employees: int
+    subdepartment_count: int
+    assignment_trends_30d: List[AssignmentTrendData]
+    assignment_trends_60d: List[AssignmentTrendData]
+    assignment_trends_90d: List[AssignmentTrendData]
+
+
 class NotificationType(str, Enum):
     """Notification type enumeration."""
 
@@ -981,6 +1040,70 @@ class AssignmentDeclineRequest(BaseModel):
     """Assignment decline request schema."""
 
     reason: Optional[str] = Field(None, max_length=500, description="Reason for declining")
+
+
+# Department Assignment History schemas
+class DepartmentHistoryBase(BaseModel):
+    """Base schema for department history records."""
+
+    employee_id: int = Field(..., description="ID of the employee")
+    from_department_id: Optional[int] = Field(None, description="Previous department ID (NULL if unassigned)")
+    to_department_id: Optional[int] = Field(None, description="New department ID (NULL if being unassigned)")
+    changed_by_user_id: int = Field(..., description="ID of user who made the change")
+    change_reason: Optional[str] = Field(None, description="Reason for the department change")
+    change_metadata: Optional[dict] = Field(default_factory=dict, description="Additional context as JSON")
+
+
+class DepartmentHistoryCreate(DepartmentHistoryBase):
+    """Schema for creating a new department history record."""
+    pass
+
+
+class DepartmentHistoryResponse(DepartmentHistoryBase):
+    """
+    Schema for department history response.
+
+    Includes all fields from the database plus computed fields
+    for employee and department names.
+    """
+
+    id: int = Field(..., description="Unique identifier for the history record")
+    changed_at: datetime = Field(..., description="Timestamp when the change occurred")
+
+    # Optional enriched data (loaded from joins)
+    employee_name: Optional[str] = Field(None, description="Full name of the employee")
+    from_department_name: Optional[str] = Field(None, description="Name of previous department")
+    to_department_name: Optional[str] = Field(None, description="Name of new department")
+    changed_by_name: Optional[str] = Field(None, description="Full name of user who made change")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DepartmentHistoryListResponse(BaseModel):
+    """Schema for paginated list of department history records."""
+
+    total: int = Field(..., description="Total number of history records")
+    items: list[DepartmentHistoryResponse] = Field(..., description="List of history records")
+    skip: int = Field(..., description="Number of records skipped")
+    limit: int = Field(..., description="Maximum records returned")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DepartmentChangeSummary(BaseModel):
+    """Summary of department assignment changes for an employee."""
+
+    employee_id: int
+    employee_name: str
+    total_changes: int
+    first_change: Optional[datetime] = None
+    last_change: Optional[datetime] = None
+    current_department_id: Optional[int] = None
+    current_department_name: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 """
 Pydantic schemas for Shift Definitions
 """
