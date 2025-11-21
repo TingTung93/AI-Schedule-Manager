@@ -106,11 +106,10 @@ async def get_employees(
         List of employee records with department information
     """
     try:
-        # Import Department model for manual loading
-        from ..models.department import Department
-
-        # Build query
-        query = select(User)
+        # Build query with eager loading to eliminate N+1 queries
+        query = select(User).options(
+            selectinload(User.department)  # Single JOIN query for all departments
+        )
 
         # Apply filters
         if is_active is not None:
@@ -125,19 +124,11 @@ async def get_employees(
         # Apply pagination - order by last_name, first_name
         query = query.offset(skip).limit(limit).order_by(User.last_name, User.first_name)
 
-        # Execute query
+        # Execute query - department data is already loaded via selectinload
         print(f"[DEBUG] Executing employees query with skip={skip}, limit={limit}")
         result = await db.execute(query)
         users = result.scalars().all()
-        print(f"[DEBUG] Found {len(users)} users")
-
-        # Manually load department data for each user
-        for user in users:
-            if user.department_id:
-                dept_result = await db.execute(select(Department).where(Department.id == user.department_id))
-                user.department = dept_result.scalar_one_or_none()
-            else:
-                user.department = None
+        print(f"[DEBUG] Found {len(users)} users with eager-loaded departments")
 
         return users
 
@@ -171,11 +162,10 @@ async def get_employee(
         500: Server error
     """
     try:
-        # Import Department model for manual loading
-        from ..models.department import Department
-
-        # Load employee
-        query = select(User).where(User.id == employee_id)
+        # Load employee with eager-loaded department (single query)
+        query = select(User).options(
+            selectinload(User.department)
+        ).where(User.id == employee_id)
 
         result = await db.execute(query)
         user = result.scalar_one_or_none()
@@ -185,13 +175,6 @@ async def get_employee(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Employee with ID {employee_id} not found"
             )
-
-        # Manually load department data
-        if user.department_id:
-            dept_result = await db.execute(select(Department).where(Department.id == user.department_id))
-            user.department = dept_result.scalar_one_or_none()
-        else:
-            user.department = None
 
         return user
 
@@ -569,10 +552,15 @@ async def get_department_history(
         total_result = await db.execute(count_query)
         total = total_result.scalar()
 
-        # Get history records
+        # Get history records with eager-loaded relationships (eliminates N+1 queries)
         history_query = (
             select(DepartmentAssignmentHistory)
             .where(DepartmentAssignmentHistory.employee_id == employee_id)
+            .options(
+                selectinload(DepartmentAssignmentHistory.from_department),
+                selectinload(DepartmentAssignmentHistory.to_department),
+                selectinload(DepartmentAssignmentHistory.changed_by_user)
+            )
             .order_by(desc(DepartmentAssignmentHistory.changed_at))
             .offset(skip)
             .limit(limit)
@@ -581,31 +569,13 @@ async def get_department_history(
         result = await db.execute(history_query)
         history_records = result.scalars().all()
 
-        # Enrich with employee and department names
+        # Build response with already-loaded relationships
         response_items = []
         for record in history_records:
-            # Get from department name
-            from_dept_name = None
-            if record.from_department_id:
-                from_dept = await db.execute(
-                    select(Department.name).where(Department.id == record.from_department_id)
-                )
-                from_dept_name = from_dept.scalar_one_or_none()
-
-            # Get to department name
-            to_dept_name = None
-            if record.to_department_id:
-                to_dept = await db.execute(
-                    select(Department.name).where(Department.id == record.to_department_id)
-                )
-                to_dept_name = to_dept.scalar_one_or_none()
-
-            # Get changed by user name
-            changed_by_user = await db.execute(
-                select(User).where(User.id == record.changed_by_user_id)
-            )
-            changed_by = changed_by_user.scalar_one_or_none()
-            changed_by_name = f"{changed_by.first_name} {changed_by.last_name}" if changed_by else None
+            # All relationships already loaded via selectinload
+            from_dept_name = record.from_department.name if record.from_department else None
+            to_dept_name = record.to_department.name if record.to_department else None
+            changed_by_name = f"{record.changed_by_user.first_name} {record.changed_by_user.last_name}" if record.changed_by_user else None
 
             # Create enriched response
             response_items.append(

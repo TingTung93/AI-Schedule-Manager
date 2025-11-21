@@ -526,8 +526,19 @@ def forgot_password():
             user.password_reset_sent_at = datetime.now(timezone.utc)
             session.commit()
 
-            # Log password reset request
-            log_audit_event("password_reset_request", user_id=user.id, resource="user", action="reset_request", success=True)
+            # SECURITY FIX: Log audit event WITHOUT the token (GDPR/SOC2 compliance)
+            log_audit_event(
+                "password_reset_request",
+                user_id=user.id,
+                resource="user",
+                action="reset_request",
+                success=True,
+                details={
+                    "email_sent_to": email[:3] + "***",  # Partially redacted
+                    "token_expiry_minutes": 60
+                    # CRITICAL: Do NOT log reset_token - security vulnerability
+                }
+            )
 
             # Send email with reset link
             try:

@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react';
+import logger from './logger';
 
 // Initialize Sentry (should be called in your main App component)
 export const initErrorReporting = (config = {}) => {
@@ -63,9 +64,7 @@ export const reportError = async (error, context = {}) => {
   }
 
   // Also log to console in development
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Error reported:', errorData);
-  }
+  logger.error('Error reported:', errorData);
 
   // Send to custom backend endpoint if configured
   try {
@@ -79,7 +78,7 @@ export const reportError = async (error, context = {}) => {
       });
     }
   } catch (reportingError) {
-    console.error('Failed to send error to backend:', reportingError);
+    logger.error('Failed to send error to backend:', reportingError);
   }
 };
 
@@ -104,9 +103,7 @@ export const reportPerformance = (name, value, context = {}) => {
   }
 
   // Log in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Performance metric:', performanceData);
-  }
+  logger.debug('Performance metric:', performanceData);
 };
 
 // Report user actions for debugging
@@ -129,9 +126,7 @@ export const reportUserAction = (action, details = {}) => {
   }
 
   // Log in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('User action:', actionData);
-  }
+  logger.debug('User action:', actionData);
 };
 
 // Capture unhandled promise rejections

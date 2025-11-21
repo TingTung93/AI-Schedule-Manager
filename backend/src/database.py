@@ -14,20 +14,27 @@ from .models import Base
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/ai_schedule_manager")
 
 # Create async engine with optimized connection pool settings
+# Performance optimizations (P2):
+# - Increased pool size to 20 (from 10) for better concurrency
+# - Pool recycle at 3600s (1 hour) to maintain long-lived connections
+# - Pre-ping enabled to verify connection health
+# - Statement timeout increased to 30s for complex analytics queries
 engine = create_async_engine(
     DATABASE_URL,
-    echo=False,  # Disable SQL logging to reduce overhead
-    pool_pre_ping=True,  # Verify connections before using
-    pool_recycle=300,  # Recycle connections every 5 minutes to prevent stale connections
-    pool_size=10,  # Reduced from 30 to prevent pool exhaustion
-    max_overflow=10,  # Reduced from 20 to limit total connections
-    pool_timeout=10,  # Reduced from 30s - fail fast if pool is exhausted
+    echo=False,  # Disable SQL logging in production
+    pool_pre_ping=True,  # Verify connections are alive before using
+    pool_recycle=3600,  # Recycle connections after 1 hour
+    pool_size=20,  # Increased from 10 for better concurrency
+    max_overflow=10,  # Max connections beyond pool size
+    pool_timeout=10,  # Timeout waiting for available connection
     connect_args={
-        "timeout": 5,  # Quick connection establishment
-        "command_timeout": 15,  # Faster query timeout to prevent hangs
+        "timeout": 5,  # Connection establishment timeout
+        "command_timeout": 30,  # Increased to 30s for complex queries
         "server_settings": {
-            "statement_timeout": "15000",  # 15 second statement timeout (reduced from 30s)
-            "idle_in_transaction_session_timeout": "30000",  # 30 second idle transaction timeout (reduced from 60s)
+            "statement_timeout": "30000",  # 30 second statement timeout
+            "idle_in_transaction_session_timeout": "60000",  # 60 second idle transaction timeout
+            "jit": "on",  # Enable JIT compilation for complex queries
+            "work_mem": "16MB",  # Increased work memory for sorting/aggregations
         },
     },
 )

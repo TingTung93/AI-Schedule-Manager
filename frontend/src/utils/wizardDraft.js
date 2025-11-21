@@ -7,6 +7,8 @@
  * @module wizardDraft
  */
 
+import logger from './logger';
+
 const STORAGE_KEY = 'wizard_draft';
 const DRAFT_VERSION = '1.0';
 const MAX_DRAFT_AGE_DAYS = 7;
@@ -26,13 +28,13 @@ export const saveDraft = (wizardData) => {
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-    console.log('Draft saved successfully at', draft.savedAt);
+    logger.debug('Draft saved successfully at', draft.savedAt);
     return true;
   } catch (error) {
-    console.error('Failed to save draft:', error);
+    logger.error('Failed to save draft:', error);
     // Handle quota exceeded or other localStorage errors
     if (error.name === 'QuotaExceededError') {
-      console.warn('localStorage quota exceeded. Clearing old data...');
+      logger.warn('localStorage quota exceeded. Clearing old data...');
       clearDraft();
     }
     return false;
@@ -56,7 +58,7 @@ export const loadDraft = () => {
 
     // Validate draft version
     if (draft.version !== DRAFT_VERSION) {
-      console.warn('Draft version mismatch. Clearing old draft.');
+      logger.warn('Draft version mismatch. Clearing old draft.');
       clearDraft();
       return null;
     }
@@ -66,16 +68,16 @@ export const loadDraft = () => {
     const daysOld = (Date.now() - savedAt.getTime()) / (1000 * 60 * 60 * 24);
 
     if (daysOld > MAX_DRAFT_AGE_DAYS) {
-      console.warn(`Draft is ${Math.round(daysOld)} days old. Clearing expired draft.`);
+      logger.warn(`Draft is ${Math.round(daysOld)} days old. Clearing expired draft.`);
       clearDraft();
       return null;
     }
 
-    console.log('Draft loaded successfully from', draft.savedAt);
+    logger.debug('Draft loaded successfully from', draft.savedAt);
     return draft;
 
   } catch (error) {
-    console.error('Failed to load draft:', error);
+    logger.error('Failed to load draft:', error);
     // Clear corrupted data
     clearDraft();
     return null;
@@ -88,9 +90,9 @@ export const loadDraft = () => {
 export const clearDraft = () => {
   try {
     localStorage.removeItem(STORAGE_KEY);
-    console.log('Draft cleared successfully');
+    logger.debug('Draft cleared successfully');
   } catch (error) {
-    console.error('Failed to clear draft:', error);
+    logger.error('Failed to clear draft:', error);
   }
 };
 
@@ -111,7 +113,7 @@ export const hasDraft = () => {
     return draft !== null;
 
   } catch (error) {
-    console.error('Failed to check draft existence:', error);
+    logger.error('Failed to check draft existence:', error);
     return false;
   }
 };
@@ -142,7 +144,7 @@ export const getDraftMetadata = () => {
     };
 
   } catch (error) {
-    console.error('Failed to get draft metadata:', error);
+    logger.error('Failed to get draft metadata:', error);
     return null;
   }
 };

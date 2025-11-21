@@ -36,6 +36,7 @@ import {
 import api, { getErrorMessage } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { clearDraft } from '../../utils/wizardDraft';
+import logger from '../../utils/logger';
 
 const PublishStep = ({ data, onChange, setNotification }) => {
   const [publishing, setPublishing] = useState(false);
@@ -124,7 +125,7 @@ const PublishStep = ({ data, onChange, setNotification }) => {
       }
 
       // Step 1: Create Schedule container
-      console.log('Creating schedule container...');
+      logger.debug('Creating schedule container...');
       const scheduleResponse = await api.post('/api/schedules', {
         week_start: data.dateRange.start,
         week_end: data.dateRange.end,
@@ -134,7 +135,7 @@ const PublishStep = ({ data, onChange, setNotification }) => {
       });
 
       const scheduleId = scheduleResponse.data.id;
-      console.log(`Schedule created with ID: ${scheduleId}`);
+      logger.info(`Schedule created with ID: ${scheduleId}`);
 
       // Step 2: Create schedule assignments in bulk
       const assignments = data.currentSchedule.assignments.map(assignment => ({
@@ -145,7 +146,7 @@ const PublishStep = ({ data, onChange, setNotification }) => {
         notes: assignment.notes || ''
       }));
 
-      console.log(`Creating ${assignments.length} assignments via bulk endpoint...`);
+      logger.debug(`Creating ${assignments.length} assignments via bulk endpoint...`);
 
       const bulkResponse = await api.post('/api/assignments/bulk', {
         schedule_id: scheduleId,
@@ -153,7 +154,7 @@ const PublishStep = ({ data, onChange, setNotification }) => {
         validate_conflicts: true
       });
 
-      console.log(`Created ${bulkResponse.data.total_created} assignments successfully`);
+      logger.info(`Created ${bulkResponse.data.total_created} assignments successfully`);
 
       // Handle any conflicts or errors
       if (bulkResponse.data.errors && bulkResponse.data.errors.length > 0) {
@@ -175,7 +176,7 @@ const PublishStep = ({ data, onChange, setNotification }) => {
           await api.put(`/api/schedules/${scheduleId}`, {
             status: 'published'
           });
-          console.log('Schedule status changed to published');
+          logger.info('Schedule status changed to published');
         } catch (err) {
           console.warn('Failed to update schedule status:', err);
           // Continue anyway - schedule is created
@@ -206,7 +207,7 @@ const PublishStep = ({ data, onChange, setNotification }) => {
   const handleSaveDraft = async () => {
     try {
       // Create Schedule container with draft status
-      console.log('Saving schedule as draft...');
+      logger.debug('Saving schedule as draft...');
       const scheduleResponse = await api.post('/api/schedules', {
         week_start: data.dateRange.start,
         week_end: data.dateRange.end,
@@ -217,12 +218,12 @@ const PublishStep = ({ data, onChange, setNotification }) => {
       });
 
       const scheduleId = scheduleResponse.data.id;
-      console.log(`Draft schedule created with ID: ${scheduleId}`);
+      logger.info(`Draft schedule created with ID: ${scheduleId}`);
 
       // Save assignments if they exist using bulk endpoint
       const assignmentsData = data.currentSchedule?.assignments || [];
       if (assignmentsData.length > 0) {
-        console.log(`Saving ${assignmentsData.length} draft assignments...`);
+        logger.debug(`Saving ${assignmentsData.length} draft assignments...`);
 
         const assignments = assignmentsData.map(assignment => ({
           employee_id: assignment.employeeId || assignment.employee_id || assignment.staffId,
@@ -238,7 +239,7 @@ const PublishStep = ({ data, onChange, setNotification }) => {
             assignments: assignments,
             validate_conflicts: false  // Don't validate conflicts for drafts
           });
-          console.log(`Saved ${bulkResponse.data.total_created} draft assignments`);
+          logger.info(`Saved ${bulkResponse.data.total_created} draft assignments`);
         } catch (err) {
           console.warn('Failed to save draft assignments:', err);
           // Continue anyway - schedule container is created

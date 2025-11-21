@@ -50,14 +50,60 @@ class AuthService:
             self.init_app(app)
 
     def init_app(self, app):
-        """Initialize the authentication service with Flask app"""
+        """
+        Initialize the authentication service with Flask app.
+
+        SECURITY FIX: Enforce required secret keys for production deployments.
+        Prevents weak fallback secrets that invalidate tokens on restart.
+        """
         self.app = app
-        self.secret_key = app.config.get("JWT_SECRET_KEY", secrets.token_urlsafe(32))
-        self.refresh_secret_key = app.config.get("JWT_REFRESH_SECRET_KEY", secrets.token_urlsafe(32))
+
+        # Get secret keys from config
+        self.secret_key = app.config.get("JWT_SECRET_KEY")
+        self.refresh_secret_key = app.config.get("JWT_REFRESH_SECRET_KEY")
+
+        # SECURITY FIX: Validate secrets are configured (prevent weak fallbacks)
+        if not self.secret_key or len(str(self.secret_key)) < 32:
+            raise RuntimeError(
+                "JWT_SECRET_KEY must be configured with at least 32 characters. "
+                "Generate with: openssl rand -base64 32"
+            )
+
+        if not self.refresh_secret_key or len(str(self.refresh_secret_key)) < 32:
+            raise RuntimeError(
+                "JWT_REFRESH_SECRET_KEY must be configured with at least 32 characters. "
+                "Generate with: openssl rand -base64 32"
+            )
+
+        # SECURITY FIX: Prevent weak/default/placeholder secrets
+        FORBIDDEN_SECRETS = [
+            "your-jwt-secret-key-here",
+            "your-secret-key",
+            "your-jwt-refresh-secret-key-here",
+            "changeme",
+            "secret",
+            "password",
+            "default",
+            "test"
+        ]
+
+        if str(self.secret_key).lower() in [s.lower() for s in FORBIDDEN_SECRETS]:
+            raise RuntimeError(
+                f"JWT_SECRET_KEY is using a forbidden placeholder value. "
+                "Please configure a strong secret in your .env file."
+            )
+
+        if str(self.refresh_secret_key).lower() in [s.lower() for s in FORBIDDEN_SECRETS]:
+            raise RuntimeError(
+                f"JWT_REFRESH_SECRET_KEY is using a forbidden placeholder value. "
+                "Please configure a strong secret in your .env file."
+            )
 
         # Store secrets in app config for consistency
         app.config["JWT_SECRET_KEY"] = self.secret_key
         app.config["JWT_REFRESH_SECRET_KEY"] = self.refresh_secret_key
+
+        logger.info("JWT authentication initialized with validated secret keys")
 
     def hash_password(self, password: str) -> str:
         """

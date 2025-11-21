@@ -7,8 +7,10 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func
 
 from ..dependencies import get_current_manager, get_current_user, get_database_session
+from ..models import Department
 from ..schemas import (
     DepartmentAnalyticsOverview,
     DepartmentCreate,
@@ -49,7 +51,26 @@ async def get_departments(
     - **size**: Items per page
     - **sort_by**: Field to sort by (name, created_at, etc.)
     - **sort_order**: Sort direction (asc or desc)
+
+    SECURITY FIX: SQL injection vulnerability fixed via field whitelisting
     """
+    # SECURITY FIX: Whitelist allowed sort fields to prevent SQL injection
+    ALLOWED_SORT_FIELDS = {
+        'name': Department.name,
+        'created_at': Department.created_at,
+        'updated_at': Department.updated_at,
+        'employee_count': func.count(Department.id),
+        'id': Department.id
+    }
+
+    # Validate sort_by parameter against whitelist
+    if sort_by not in ALLOWED_SORT_FIELDS:
+        logger.warning(f"Invalid sort_by parameter rejected: {sort_by}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid sort_by field. Allowed values: {', '.join(ALLOWED_SORT_FIELDS.keys())}"
+        )
+
     skip = (page - 1) * size
 
     result = await crud_department.get_multi_with_hierarchy(

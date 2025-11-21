@@ -13,6 +13,8 @@
  * - Web Vitals tracking
  */
 
+import logger from './logger';
+
 // Performance thresholds (in milliseconds)
 const THRESHOLDS = {
   RENDER_WARN: 16.67, // 60fps threshold
@@ -57,7 +59,7 @@ export const measureRenderTime = (componentName) => {
     try {
       performance.measure(measureName, markName);
     } catch (e) {
-      console.warn('Performance measurement failed:', e);
+      logger.warn('Performance measurement failed:', e);
     }
 
     // Store metric
@@ -69,16 +71,16 @@ export const measureRenderTime = (componentName) => {
 
     // Warn if render is slow
     if (duration > THRESHOLDS.RENDER_CRITICAL) {
-      console.error(
-        `🔴 ${componentName} render took ${duration.toFixed(2)}ms (CRITICAL - below 30fps)`
+      logger.error(
+        `${componentName} render took ${duration.toFixed(2)}ms (CRITICAL - below 30fps)`
       );
     } else if (duration > THRESHOLDS.RENDER_WARN) {
-      console.warn(
-        `⚠️ ${componentName} render took ${duration.toFixed(2)}ms (WARNING - below 60fps)`
+      logger.warn(
+        `${componentName} render took ${duration.toFixed(2)}ms (WARNING - below 60fps)`
       );
-    } else if (process.env.NODE_ENV === 'development') {
-      console.log(
-        `✅ ${componentName} render took ${duration.toFixed(2)}ms`
+    } else {
+      logger.debug(
+        `${componentName} render took ${duration.toFixed(2)}ms`
       );
     }
 
@@ -114,7 +116,7 @@ export const measureNetworkRequest = async (url, fetchFn) => {
     try {
       performance.measure(measureName, markName);
     } catch (e) {
-      console.warn('Network measurement failed:', e);
+      logger.warn('Network measurement failed:', e);
     }
 
     // Store metric
@@ -127,16 +129,16 @@ export const measureNetworkRequest = async (url, fetchFn) => {
 
     // Warn if request is slow
     if (duration > THRESHOLDS.NETWORK_CRITICAL) {
-      console.error(
-        `🔴 Request to ${url} took ${duration.toFixed(2)}ms (CRITICAL)`
+      logger.error(
+        `Request to ${url} took ${duration.toFixed(2)}ms (CRITICAL)`
       );
     } else if (duration > THRESHOLDS.NETWORK_WARN) {
-      console.warn(
-        `⚠️ Request to ${url} took ${duration.toFixed(2)}ms (WARNING)`
+      logger.warn(
+        `Request to ${url} took ${duration.toFixed(2)}ms (WARNING)`
       );
-    } else if (process.env.NODE_ENV === 'development') {
-      console.log(
-        `✅ Request to ${url} took ${duration.toFixed(2)}ms`
+    } else {
+      logger.debug(
+        `Request to ${url} took ${duration.toFixed(2)}ms`
       );
     }
 
@@ -154,8 +156,8 @@ export const measureNetworkRequest = async (url, fetchFn) => {
       timestamp: Date.now()
     });
 
-    console.error(
-      `❌ Request to ${url} failed after ${duration.toFixed(2)}ms:`,
+    logger.error(
+      `Request to ${url} failed after ${duration.toFixed(2)}ms:`,
       error
     );
 
@@ -192,7 +194,7 @@ export const measureInteraction = (interactionName, handler) => {
       try {
         performance.measure(measureName, markName);
       } catch (e) {
-        console.warn('Interaction measurement failed:', e);
+        logger.warn('Interaction measurement failed:', e);
       }
 
       // Store metric
@@ -205,12 +207,12 @@ export const measureInteraction = (interactionName, handler) => {
 
       // Warn if interaction is slow
       if (duration > THRESHOLDS.INTERACTION_CRITICAL) {
-        console.error(
-          `🔴 ${interactionName} took ${duration.toFixed(2)}ms (CRITICAL)`
+        logger.error(
+          `${interactionName} took ${duration.toFixed(2)}ms (CRITICAL)`
         );
       } else if (duration > THRESHOLDS.INTERACTION_WARN) {
-        console.warn(
-          `⚠️ ${interactionName} took ${duration.toFixed(2)}ms (WARNING)`
+        logger.warn(
+          `${interactionName} took ${duration.toFixed(2)}ms (WARNING)`
         );
       }
 
@@ -249,9 +251,7 @@ export const logBundleSize = () => {
     bundles.push({ src, size });
     metrics.bundles.push({ src, size, timestamp: Date.now() });
 
-    if (process.env.NODE_ENV === 'production') {
-      console.log(`📦 Bundle: ${src} (${size})`);
-    }
+    logger.debug(`Bundle: ${src} (${size})`);
   });
 
   return bundles;
@@ -319,11 +319,11 @@ export const clearMetrics = () => {
  */
 export const exportMetrics = () => {
   const summary = getPerformanceSummary();
-  console.group('📊 Performance Metrics Summary');
-  console.table(summary.renders);
-  console.table(summary.networks);
-  console.table(summary.interactions);
-  console.groupEnd();
+  logger.group('Performance Metrics Summary', () => {
+    logger.table(summary.renders);
+    logger.table(summary.networks);
+    logger.table(summary.interactions);
+  });
 
   return summary;
 };
@@ -342,11 +342,11 @@ export const trackWebVitals = () => {
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1];
-        console.log('LCP:', lastEntry.renderTime || lastEntry.loadTime);
+        logger.debug('LCP:', lastEntry.renderTime || lastEntry.loadTime);
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
     } catch (e) {
-      console.warn('LCP tracking failed:', e);
+      logger.warn('LCP tracking failed:', e);
     }
 
     // First Input Delay (FID)
@@ -354,12 +354,12 @@ export const trackWebVitals = () => {
       const fidObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         entries.forEach((entry) => {
-          console.log('FID:', entry.processingStart - entry.startTime);
+          logger.debug('FID:', entry.processingStart - entry.startTime);
         });
       });
       fidObserver.observe({ entryTypes: ['first-input'] });
     } catch (e) {
-      console.warn('FID tracking failed:', e);
+      logger.warn('FID tracking failed:', e);
     }
   }
 };
@@ -385,7 +385,7 @@ export const initPerformanceMonitoring = () => {
     }
   });
 
-  console.log('✅ Performance monitoring initialized');
+  logger.info('Performance monitoring initialized');
 };
 
 export default {

@@ -67,9 +67,28 @@ class DepartmentAssignmentHistory(Base):
     change_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     change_metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True, default={})
 
-    # Relationships - using explicit foreign_keys to avoid ambiguity
-    # Note: We don't define relationships to User model due to multiple foreign keys
-    # These will be loaded manually in queries to avoid circular dependencies
+    # Relationships with explicit foreign_keys to avoid ambiguity
+    # Using selectinload for optimal performance
+    from_department: Mapped[Optional["Department"]] = relationship(
+        "Department",
+        foreign_keys=[from_department_id],
+        lazy="selectin"
+    )
+    to_department: Mapped[Optional["Department"]] = relationship(
+        "Department",
+        foreign_keys=[to_department_id],
+        lazy="selectin"
+    )
+    employee: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[employee_id],
+        lazy="selectin"
+    )
+    changed_by_user: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[changed_by_user_id],
+        lazy="selectin"
+    )
 
     def to_dict(self, camelCase: bool = True) -> dict:
         """

@@ -1,4 +1,5 @@
 // State debugging tools for development
+import logger from './logger';
 
 /**
  * Debug utility class for state management
@@ -67,9 +68,9 @@ export class StateDebugger {
     this.addLog(logEntry);
 
     if (this.shouldLog(logEntry)) {
-      console.group(`%c[${context}] ${action}`, 'color: #9C27B0; font-weight: bold;');
-      console.log('Payload:', payload);
-      console.groupEnd();
+      logger.group(`[${context}] ${action}`, () => {
+        logger.debug('Payload:', payload);
+      });
     }
   }
 
@@ -96,12 +97,12 @@ export class StateDebugger {
     this.addLog(logEntry);
 
     if (this.shouldLog(logEntry)) {
-      console.group(`%c[${context}] ERROR`, 'color: #F44336; font-weight: bold;');
-      console.error(error);
-      if (Object.keys(additionalInfo).length > 0) {
-        console.log('Additional Info:', additionalInfo);
-      }
-      console.groupEnd();
+      logger.group(`[${context}] ERROR`, () => {
+        logger.error(error);
+        if (Object.keys(additionalInfo).length > 0) {
+          logger.error('Additional Info:', additionalInfo);
+        }
+      });
     }
   }
 
@@ -129,14 +130,11 @@ export class StateDebugger {
     this.addLog(logEntry);
 
     if (this.shouldLog(logEntry)) {
-      const color = duration > 1000 ? '#FF9800' : '#4CAF50';
-      console.log(
-        `%c[${context}] ${operation} took ${duration}ms`,
-        `color: ${color}; font-weight: bold;`
-      );
+      const logFn = duration > 1000 ? logger.warn : logger.info;
+      logFn(`[${context}] ${operation} took ${duration}ms`);
 
       if (Object.keys(metadata).length > 0) {
-        console.log('Metadata:', metadata);
+        logger.debug('Metadata:', metadata);
       }
     }
   }
@@ -194,7 +192,10 @@ export class StateDebugger {
    */
   clearLogs() {
     this.logs = [];
-    console.clear();
+    // Only clear console in development
+    if (process.env.NODE_ENV === 'development' && console.clear) {
+      console.clear();
+    }
   }
 
   /**
@@ -214,7 +215,7 @@ export class StateDebugger {
       this.logs = logs;
       return true;
     } catch (error) {
-      console.error('Failed to import logs:', error);
+      logger.error('Failed to import logs:', error);
       return false;
     }
   }
@@ -261,22 +262,20 @@ export class StateDebugger {
   consoleLog(logEntry) {
     const { context, action, prevState, nextState, diff, payload } = logEntry;
 
-    console.group(`%c[${context}] ${action}`, 'color: #2196F3; font-weight: bold;');
-
-    if (payload !== undefined) {
-      console.log('Payload:', payload);
-    }
-
-    if (prevState && nextState) {
-      console.log('Previous State:', prevState);
-      console.log('Next State:', nextState);
-
-      if (diff && Object.keys(diff).length > 0) {
-        console.log('State Changes:', diff);
+    logger.group(`[${context}] ${action}`, () => {
+      if (payload !== undefined) {
+        logger.debug('Payload:', payload);
       }
-    }
 
-    console.groupEnd();
+      if (prevState && nextState) {
+        logger.debug('Previous State:', prevState);
+        logger.debug('Next State:', nextState);
+
+        if (diff && Object.keys(diff).length > 0) {
+          logger.debug('State Changes:', diff);
+        }
+      }
+    });
   }
 
   /**
@@ -338,7 +337,7 @@ export class StateDebugger {
         try {
           listener(logEntry);
         } catch (error) {
-          console.error('Error in log listener:', error);
+          logger.error('Error in log listener:', error);
         }
       });
     }
@@ -509,11 +508,8 @@ export function setupDevTools() {
       disable: () => stateDebugger.setEnabled(false),
     };
 
-    console.log(
-      '%cSchedule Manager State Debugger Enabled',
-      'color: #4CAF50; font-size: 16px; font-weight: bold;'
-    );
-    console.log('Use window.debugState to access debugging tools');
+    logger.info('Schedule Manager State Debugger Enabled');
+    logger.info('Use window.debugState to access debugging tools');
   }
 }
 

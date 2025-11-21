@@ -855,6 +855,24 @@ export const analyticsService = {
 };
 
 /**
+ * Department Service
+ *
+ * For department operations, import the dedicated departmentService:
+ *   import departmentService from './departmentService';
+ *
+ * Available methods:
+ *   - getDepartments(), getDepartment(), createDepartment(), updateDepartment(), deleteDepartment()
+ *   - bulkAssignDepartment(), transferDepartment(), getUnassignedEmployees()
+ *   - getDepartmentAnalyticsOverview(), getDepartmentDistribution(), getDepartmentAnalytics()
+ *   - getEmployeeDepartmentHistory()
+ *
+ * @deprecated Direct API calls for departments - Use departmentService instead
+ */
+import departmentServiceModule from './departmentService';
+
+export const departmentService = departmentServiceModule;
+
+/**
  * NOTE: Additional API endpoints can be accessed using the 'api' instance directly.
  *
  * For simple CRUD operations without complex logic, use:
