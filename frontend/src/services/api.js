@@ -416,6 +416,161 @@ export const healthCheck = async () => {
   }
 };
 
+/**
+ * Authentication Service
+ * Handles all authentication-related API calls
+ */
+export const authService = {
+  async login(email, password) {
+    const response = await apiClient.post('/api/auth/login', { email, password });
+    if (response.data.accessToken || response.data.access_token) {
+      const token = response.data.accessToken || response.data.access_token;
+      tokenManager.setAccessToken(token);
+    }
+    return response;
+  },
+
+  async register(userData) {
+    const response = await apiClient.post('/api/auth/register', userData);
+    if (response.data.accessToken || response.data.access_token) {
+      const token = response.data.accessToken || response.data.access_token;
+      tokenManager.setAccessToken(token);
+    }
+    return response;
+  },
+
+  async logout() {
+    try {
+      await apiClient.post('/api/auth/logout');
+    } finally {
+      tokenManager.clearAccessToken();
+    }
+  },
+
+  async changePassword(currentPassword, newPassword) {
+    return apiClient.post('/api/auth/change-password', {
+      currentPassword,
+      newPassword
+    });
+  },
+
+  async getCsrfToken() {
+    return tokenManager.getCsrfToken();
+  },
+
+  setAccessToken(token) {
+    tokenManager.setAccessToken(token);
+  },
+
+  getAccessToken() {
+    return tokenManager.getAccessToken();
+  },
+
+  clearAccessToken() {
+    tokenManager.clearAccessToken();
+  },
+
+  isAuthenticated() {
+    return tokenManager.isAuthenticated();
+  }
+};
+
+/**
+ * User Service
+ * Handles user profile and management API calls
+ */
+export const userService = {
+  async getProfile() {
+    return apiClient.get('/api/users/me');
+  },
+
+  async updateProfile(userData) {
+    return apiClient.put('/api/users/me', userData);
+  },
+
+  async getUsers() {
+    return apiClient.get('/api/users');
+  },
+
+  async getUserById(userId) {
+    return apiClient.get(`/api/users/${userId}`);
+  },
+
+  async createUser(userData) {
+    return apiClient.post('/api/users', userData);
+  },
+
+  async updateUser(userId, userData) {
+    return apiClient.put(`/api/users/${userId}`, userData);
+  },
+
+  async deleteUser(userId) {
+    return apiClient.delete(`/api/users/${userId}`);
+  }
+};
+
+/**
+ * Schedule Service
+ * Handles schedule-related API calls
+ */
+export const scheduleService = {
+  async getSchedules() {
+    return apiClient.get('/api/schedules');
+  },
+
+  async getScheduleById(scheduleId) {
+    return apiClient.get(`/api/schedules/${scheduleId}`);
+  },
+
+  async createSchedule(scheduleData) {
+    return apiClient.post('/api/schedules', scheduleData);
+  },
+
+  async updateSchedule(scheduleId, scheduleData) {
+    return apiClient.put(`/api/schedules/${scheduleId}`, scheduleData);
+  },
+
+  async deleteSchedule(scheduleId) {
+    return apiClient.delete(`/api/schedules/${scheduleId}`);
+  }
+};
+
+/**
+ * Analytics Service
+ * Handles analytics and reporting API calls
+ */
+export const analyticsService = {
+  async getAnalytics(params) {
+    return apiClient.get('/api/analytics', { params });
+  },
+
+  async getReports() {
+    return apiClient.get('/api/reports');
+  }
+};
+
+/**
+ * Notification Service
+ * Handles notification-related API calls
+ */
+export const notificationService = {
+  async getNotifications() {
+    return apiClient.get('/api/notifications');
+  },
+
+  async markAsRead(notificationId) {
+    return apiClient.put(`/api/notifications/${notificationId}/read`);
+  },
+
+  async markAllAsRead() {
+    return apiClient.put('/api/notifications/read-all');
+  },
+
+  async deleteNotification(notificationId) {
+    return apiClient.delete(`/api/notifications/${notificationId}`);
+  }
+};
+
 // Convenient named exports
 export const getErrorMessage = errorHandler.getErrorMessage;
 
