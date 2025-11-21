@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/39</span>
+                <span class='fraction'>0/36</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/32</span>
+                <span class='fraction'>0/26</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/39</span>
+                <span class='fraction'>0/36</span>
             </div>
         
             
@@ -210,12 +210,8 @@
 <a name='L145'></a><a href='#L145'>145</a>
 <a name='L146'></a><a href='#L146'>146</a>
 <a name='L147'></a><a href='#L147'>147</a>
-<a name='L148'></a><a href='#L148'>148</a>
-<a name='L149'></a><a href='#L149'>149</a>
-<a name='L150'></a><a href='#L150'>150</a>
-<a name='L151'></a><a href='#L151'>151</a>
-<a name='L152'></a><a href='#L152'>152</a>
-<a name='L153'></a><a href='#L153'>153</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L148'></a><a href='#L148'>148</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -281,8 +277,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -322,8 +316,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -347,8 +339,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -368,6 +358,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as Sentry from '@sentry/react';
+import logger from './logger';
 &nbsp;
 // Initialize Sentry (should be called in your main App component)
 export const initErrorReporting = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>onfig = <span class="branch-0 cbranch-no" title="branch not covered" >{})</span> =&gt; {</span>
@@ -432,9 +423,7 @@ export const reportError = <span class="cstat-no" title="statement not covered" 
   }
 &nbsp;
   // Also log to console in development
-<span class="cstat-no" title="statement not covered" >  if (process.env.NODE_ENV === 'development') {</span>
-<span class="cstat-no" title="statement not covered" >    console.error('Error reported:', errorData);</span>
-  }
+<span class="cstat-no" title="statement not covered" >  logger.error('Error reported:', errorData);</span>
 &nbsp;
   // Send to custom backend endpoint if configured
 <span class="cstat-no" title="statement not covered" >  try {</span>
@@ -448,7 +437,7 @@ export const reportError = <span class="cstat-no" title="statement not covered" 
       });
     }
   } catch (reportingError) {
-<span class="cstat-no" title="statement not covered" >    console.error('Failed to send error to backend:', reportingError);</span>
+<span class="cstat-no" title="statement not covered" >    logger.error('Failed to send error to backend:', reportingError);</span>
   }
 };
 &nbsp;
@@ -473,9 +462,7 @@ export const reportPerformance = <span class="cstat-no" title="statement not cov
   }
 &nbsp;
   // Log in development
-<span class="cstat-no" title="statement not covered" >  if (process.env.NODE_ENV === 'development') {</span>
-<span class="cstat-no" title="statement not covered" >    console.log('Performance metric:', performanceData);</span>
-  }
+<span class="cstat-no" title="statement not covered" >  logger.debug('Performance metric:', performanceData);</span>
 };
 &nbsp;
 // Report user actions for debugging
@@ -498,9 +485,7 @@ export const reportUserAction = <span class="cstat-no" title="statement not cove
   }
 &nbsp;
   // Log in development
-<span class="cstat-no" title="statement not covered" >  if (process.env.NODE_ENV === 'development') {</span>
-<span class="cstat-no" title="statement not covered" >    console.log('User action:', actionData);</span>
-  }
+<span class="cstat-no" title="statement not covered" >  logger.debug('User action:', actionData);</span>
 };
 &nbsp;
 // Capture unhandled promise rejections
@@ -526,7 +511,7 @@ export const reportUserAction = <span class="cstat-no" title="statement not cove
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-21T19:11:18.772Z
+                at 2025-11-21T19:25:43.509Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { persistState, restoreState } from '../utils/persistence';
+import apiClient, { getErrorMessage, tokenManager } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -141,49 +142,47 @@ export function AuthProvider({ children }) {
       if (typeof userData === 'object' && userData.email && userData.password && !accessToken) {
         // Credentials provided - make API call
         const credentials = userData;
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(credentials),
-        });
+        const response = await apiClient.post('/api/auth/login', credentials);
 
-        if (!response.ok) {
-          throw new Error('Login failed');
-        }
+        // Set token in API client
+        const token = response.data.token || response.data.accessToken;
+        tokenManager.setAccessToken(token);
 
-        const data = await response.json();
+        // Get CSRF token for future requests
+        await tokenManager.getCsrfToken();
 
         dispatch({
           type: AUTH_ACTIONS.LOGIN_SUCCESS,
           payload: {
-            user: data.user,
-            token: data.token || data.access_token,
-            refreshToken: data.refreshToken || data.refresh_token,
+            user: response.data.user,
+            token: token,
+            refreshToken: response.data.refreshToken || response.data.refresh_token,
           },
         });
 
-        return { success: true, user: data.user };
+        return { success: true, user: response.data.user };
       } else {
         // User data and token provided directly - update state
+        tokenManager.setAccessToken(accessToken);
+
         dispatch({
           type: AUTH_ACTIONS.LOGIN_SUCCESS,
           payload: {
             user: userData,
             token: accessToken,
-            refreshToken: null, // Will be set by api service if available
+            refreshToken: null,
           },
         });
 
         return { success: true, user: userData };
       }
     } catch (error) {
+      const errorMessage = getErrorMessage(error);
       dispatch({
         type: AUTH_ACTIONS.LOGIN_FAILURE,
-        payload: { error: error.message },
+        payload: { error: errorMessage },
       });
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -191,20 +190,13 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       if (state.token) {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${state.token}`,
-          },
-        });
+        await apiClient.post('/api/auth/logout');
       }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear api service token as well
-      if (typeof window !== 'undefined' && window.authService) {
-        window.authService.clearAccessToken();
-      }
+      // Clear tokens
+      tokenManager.clearAccessToken();
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     }
   };
@@ -212,30 +204,24 @@ export function AuthProvider({ children }) {
   // Refresh token function
   const refreshToken = async (refreshTokenValue) => {
     try {
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken: refreshTokenValue }),
+      const response = await apiClient.post('/api/auth/refresh', {
+        refreshToken: refreshTokenValue
       });
 
-      if (!response.ok) {
-        throw new Error('Token refresh failed');
-      }
-
-      const data = await response.json();
+      const token = response.data.token || response.data.accessToken;
+      tokenManager.setAccessToken(token);
 
       dispatch({
         type: AUTH_ACTIONS.REFRESH_TOKEN,
         payload: {
-          token: data.token,
-          refreshToken: data.refreshToken,
+          token: token,
+          refreshToken: response.data.refreshToken || response.data.refresh_token,
         },
       });
 
       return true;
     } catch (error) {
+      tokenManager.clearAccessToken();
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
       return false;
     }
@@ -244,29 +230,17 @@ export function AuthProvider({ children }) {
   // Update profile function
   const updateProfile = async (updates) => {
     try {
-      const response = await fetch('/api/auth/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${state.token}`,
-        },
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) {
-        throw new Error('Profile update failed');
-      }
-
-      const data = await response.json();
+      const response = await apiClient.put('/api/auth/profile', updates);
 
       dispatch({
         type: AUTH_ACTIONS.UPDATE_PROFILE,
-        payload: { updates: data.user },
+        payload: { updates: response.data.user },
       });
 
-      return { success: true, user: data.user };
+      return { success: true, user: response.data.user };
     } catch (error) {
-      return { success: false, error: error.message };
+      const errorMessage = getErrorMessage(error);
+      return { success: false, error: errorMessage };
     }
   };
 

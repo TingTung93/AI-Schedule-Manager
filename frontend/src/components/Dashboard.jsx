@@ -51,12 +51,7 @@ import {
   Title,
 } from 'chart.js';
 import { format, startOfWeek, addDays, parseISO, isToday, isFuture } from 'date-fns';
-import {
-  analyticsService,
-  scheduleService,
-  employeeService,
-  notificationService
-} from '../services/api';
+import apiClient from '../services/api';
 import { useApi, useRealTimeApi } from '../hooks/useApi';
 import { useNavigate } from 'react-router-dom';
 
@@ -79,7 +74,7 @@ const Dashboard = () => {
 
   // API hooks for dashboard data
   const { data: analyticsData, loading: loadingAnalytics, refetch: refetchAnalytics } = useApi(
-    () => analyticsService.getOverview(),
+    () => apiClient.get('/api/analytics/overview'),
     [],
     {
       onError: (error) => {
@@ -89,7 +84,7 @@ const Dashboard = () => {
   );
 
   const { data: schedulesData, loading: loadingSchedules } = useApi(
-    () => scheduleService.getSchedules(),
+    () => apiClient.get('/api/schedules'),
     [],
     {
       onError: (error) => {
@@ -99,7 +94,7 @@ const Dashboard = () => {
   );
 
   const { data: employeesData, loading: loadingEmployees } = useApi(
-    () => employeeService.getEmployees(),
+    () => apiClient.get('/api/employees'),
     [],
     {
       onError: (error) => {
@@ -109,7 +104,7 @@ const Dashboard = () => {
   );
 
   const { data: notificationsData, loading: loadingNotifications } = useRealTimeApi(
-    () => notificationService.getNotifications(),
+    () => apiClient.get('/api/notifications'),
     30000, // Poll every 30 seconds
     {
       onError: (error) => {

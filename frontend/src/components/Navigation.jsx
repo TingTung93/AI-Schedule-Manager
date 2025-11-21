@@ -41,7 +41,7 @@ import {
   Security as SecurityIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { authService, notificationService } from '../services/api';
+import apiClient, { tokenManager } from '../services/api';
 import { useApi } from '../hooks/useApi';
 import { useAuth } from '../hooks/useAuth';
 
@@ -178,9 +178,16 @@ const Navigation = ({ children, onThemeToggle, darkMode = false }) => {
     }
   };
 
-  const handleLogout = () => {
-    authService.logout();
+  const handleLogout = async () => {
     handleProfileMenuClose();
+    try {
+      await apiClient.post('/api/auth/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      tokenManager.clearAccessToken();
+      navigate('/login');
+    }
   };
 
   const handleProfile = () => {

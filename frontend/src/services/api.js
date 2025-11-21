@@ -1,5 +1,5 @@
 /**
- * API Service Module
+ * API Service Module (Simplified)
  *
  * Centralized HTTP client with JWT authentication, token refresh,
  * CSRF protection, comprehensive error handling, and automatic
@@ -12,6 +12,12 @@
  * - Request/response interceptors
  * - Error handling and retry logic
  * - Rate limiting handling
+ *
+ * Usage:
+ *   import apiClient, { getErrorMessage } from './services/api';
+ *
+ *   const response = await apiClient.post('/api/auth/login', { email, password });
+ *   const data = await apiClient.get('/api/schedules');
  */
 
 import axios from 'axios';
@@ -62,17 +68,14 @@ const snakeToCamel = (obj) => {
     return obj;
   }
 
-  // Skip transformation for special types
   if (shouldSkipTransformation(obj)) {
     return obj;
   }
 
-  // Handle arrays
   if (Array.isArray(obj)) {
     return obj.map((item) => snakeToCamel(item));
   }
 
-  // Handle plain objects
   if (isPlainObject(obj)) {
     const transformed = {};
 
@@ -84,7 +87,6 @@ const snakeToCamel = (obj) => {
     return transformed;
   }
 
-  // Return primitive values as-is
   return obj;
 };
 
@@ -96,17 +98,14 @@ const camelToSnake = (obj) => {
     return obj;
   }
 
-  // Skip transformation for special types
   if (shouldSkipTransformation(obj)) {
     return obj;
   }
 
-  // Handle arrays
   if (Array.isArray(obj)) {
     return obj.map((item) => camelToSnake(item));
   }
 
-  // Handle plain objects
   if (isPlainObject(obj)) {
     const transformed = {};
 
@@ -118,22 +117,20 @@ const camelToSnake = (obj) => {
     return transformed;
   }
 
-  // Return primitive values as-is
   return obj;
 };
 
 // Create axios instance with default configuration
-const api = axios.create({
+const apiClient = axios.create({
   baseURL: process.env.REACT_APP_API_URL || '',
-  timeout: 30000, // Increased from 10s to 30s to handle slower backend responses
-  withCredentials: true, // Enable cookies for HttpOnly JWT tokens
+  timeout: 30000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Token storage (fallback for non-cookie scenarios)
-// Initialize from localStorage on module load
+// Token storage
 let accessToken = null;
 let csrfToken = null;
 let isRefreshing = false;
@@ -162,7 +159,7 @@ const processQueue = (error, token = null) => {
 };
 
 // Request interceptor for adding auth headers and transforming data
-api.interceptors.request.use(
+apiClient.interceptors.request.use(
   (config) => {
     // Add access token to Authorization header if available
     if (accessToken) {
@@ -174,7 +171,7 @@ api.interceptors.request.use(
       config.headers['X-CSRF-Token'] = csrfToken;
     }
 
-    // Log request data before transformation
+    // Log request
     console.log(`[API] Request to ${config.method?.toUpperCase()} ${config.url}:`, {
       dataType: config.data ? (Array.isArray(config.data) ? 'array' : typeof config.data) : 'none',
       dataKeys: config.data && typeof config.data === 'object' ? Object.keys(config.data) : 'N/A',
@@ -183,15 +180,10 @@ api.interceptors.request.use(
 
     // Transform request data from camelCase to snake_case
     if (config.data && !shouldSkipTransformation(config.data)) {
-      const originalData = config.data;
       config.data = camelToSnake(config.data);
-      console.log(`[API] Transformed request data:`, {
-        before: originalData,
-        after: config.data
-      });
     }
 
-    // Transform query parameters from camelCase to snake_case
+    // Transform query parameters
     if (config.params && !shouldSkipTransformation(config.params)) {
       config.params = camelToSnake(config.params);
     }
@@ -206,32 +198,19 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for transforming data and handling token refresh and errors
-api.interceptors.response.use(
+// Response interceptor for transforming data and handling errors
+apiClient.interceptors.response.use(
   (response) => {
-    // Log response time for debugging
+    // Log response time
     if (response.config.metadata?.startTime) {
       const endTime = new Date();
       const duration = endTime - response.config.metadata.startTime;
       console.debug(`API Request: ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`);
     }
 
-    // Log response data before transformation for debugging
-    console.log(`[API] Response from ${response.config.url}:`, {
-      status: response.status,
-      dataType: Array.isArray(response.data) ? 'array' : typeof response.data,
-      dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : 'N/A',
-      sampleData: response.data
-    });
-
     // Transform response data from snake_case to camelCase
     if (response.data) {
-      const originalData = response.data;
       response.data = snakeToCamel(response.data);
-      console.log(`[API] Transformed data:`, {
-        beforeKeys: typeof originalData === 'object' && !Array.isArray(originalData) ? Object.keys(originalData) : 'N/A',
-        afterKeys: typeof response.data === 'object' && !Array.isArray(response.data) ? Object.keys(response.data) : 'N/A'
-      });
     }
 
     return response;
@@ -242,12 +221,11 @@ api.interceptors.response.use(
     // Handle 401 Unauthorized - attempt token refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Queue failed requests while refreshing
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then(() => {
-            return api(originalRequest);
+            return apiClient(originalRequest);
           })
           .catch((err) => {
             return Promise.reject(err);
@@ -258,26 +236,18 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const response = await api.post('/api/auth/refresh');
-        const newToken = response.data.access_token;
+        const response = await apiClient.post('/api/auth/refresh');
+        const newToken = response.data.accessToken || response.data.access_token;
 
-        // Update stored token
         accessToken = newToken;
-
-        // Process queued requests
         processQueue(null, newToken);
 
-        // Retry original request
-        return api(originalRequest);
+        return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - clear tokens and redirect to login
         processQueue(refreshError, null);
-
-        // Clear stored tokens
         accessToken = null;
         csrfToken = null;
 
-        // Don't redirect if already on login/register pages to prevent loops
         if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
           console.log('[API] Token refresh failed, redirecting to login...');
           window.location.href = '/login';
@@ -289,16 +259,10 @@ api.interceptors.response.use(
       }
     }
 
-    // Handle 403 Forbidden - insufficient permissions
+    // Handle 403 Forbidden
     if (error.response?.status === 403) {
       const errorMessage = error.response.data?.message || 'Access denied';
       console.warn('Access denied:', errorMessage);
-
-      // Show user-friendly error for permission issues
-      if (window.location.pathname !== '/login') {
-        // You could dispatch a notification here
-        console.error('Insufficient permissions:', errorMessage);
-      }
     }
 
     // Handle 429 Too Many Requests
@@ -317,576 +281,9 @@ api.interceptors.response.use(
   }
 );
 
-// Authentication service
-export const authService = {
-  /**
-   * Login user with email and password
-   */
-  async login(email, password) {
-    try {
-      const response = await api.post('/api/auth/login', {
-        email,
-        password
-      });
-
-      // Store access token (backup for cookie-less scenarios)
-      if (response.data.accessToken) {
-        accessToken = response.data.accessToken;
-      } else if (response.data.access_token) {
-        accessToken = response.data.access_token;
-      }
-
-      // Get CSRF token for future requests
-      await this.getCsrfToken();
-
-      return response;
-    } catch (error) {
-      console.error('Login failed:', error.response?.data || error.message);
-      throw error;
-    }
-  },
-
-  /**
-   * Register new user account
-   */
-  async register(userData) {
-    try {
-      const response = await api.post('/api/auth/register', userData);
-
-      // Store access token after successful registration
-      if (response.data.access_token) {
-        accessToken = response.data.access_token;
-      }
-
-      // Get CSRF token
-      await this.getCsrfToken();
-
-      return response;
-    } catch (error) {
-      console.error('Registration failed:', error.response?.data || error.message);
-      throw error;
-    }
-  },
-
-  /**
-   * Logout user and clear tokens
-   */
-  async logout() {
-    try {
-      await api.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear stored tokens regardless of API call success
-      accessToken = null;
-      csrfToken = null;
-    }
-  },
-
-  /**
-   * Refresh access token
-   */
-  async refreshToken() {
-    try {
-      const response = await api.post('/api/auth/refresh');
-
-      if (response.data.access_token) {
-        accessToken = response.data.access_token;
-      }
-
-      return response;
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get current user information
-   */
-  async getCurrentUser() {
-    try {
-      const response = await api.get('/api/auth/me');
-      return response;
-    } catch (error) {
-      console.error('Get current user failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Change user password
-   */
-  async changePassword(currentPassword, newPassword) {
-    try {
-      const response = await api.post('/api/auth/change-password', {
-        current_password: currentPassword,
-        new_password: newPassword
-      });
-      return response;
-    } catch (error) {
-      console.error('Password change failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Request password reset
-   */
-  async forgotPassword(email) {
-    try {
-      const response = await api.post('/api/auth/forgot-password', {
-        email
-      });
-      return response;
-    } catch (error) {
-      console.error('Forgot password failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Reset password with token
-   */
-  async resetPassword(token, newPassword) {
-    try {
-      const response = await api.post('/api/auth/reset-password', {
-        token,
-        new_password: newPassword
-      });
-      return response;
-    } catch (error) {
-      console.error('Password reset failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get CSRF token for protected requests
-   */
-  async getCsrfToken() {
-    try {
-      const response = await api.get('/api/auth/csrf-token');
-      csrfToken = response.data.csrf_token;
-      return csrfToken;
-    } catch (error) {
-      console.warn('Failed to get CSRF token:', error);
-      return null;
-    }
-  },
-
-  /**
-   * Get user's active sessions
-   */
-  async getActiveSessions() {
-    try {
-      const response = await api.get('/api/auth/sessions');
-      return response;
-    } catch (error) {
-      console.error('Get active sessions failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Revoke specific session
-   */
-  async revokeSession(tokenJti) {
-    try {
-      const response = await api.delete(`/api/auth/sessions/${tokenJti}`);
-      return response;
-    } catch (error) {
-      console.error('Revoke session failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Set access token manually (for non-cookie scenarios)
-   * Stores in both memory and localStorage for persistence
-   */
-  setAccessToken(token) {
-    accessToken = token;
-    if (token) {
-      localStorage.setItem('access_token', token);
-      console.log('[API] Access token set and stored in localStorage');
-    } else {
-      localStorage.removeItem('access_token');
-      console.log('[API] Access token cleared from localStorage');
-    }
-  },
-
-  /**
-   * Get current access token
-   * Checks memory first, then localStorage
-   */
-  getAccessToken() {
-    if (!accessToken) {
-      accessToken = localStorage.getItem('access_token');
-    }
-    return accessToken;
-  },
-
-  /**
-   * Check if user is authenticated
-   */
-  isAuthenticated() {
-    return !!this.getAccessToken();
-  },
-
-  /**
-   * Clear access token (used during logout)
-   */
-  clearAccessToken() {
-    accessToken = null;
-    csrfToken = null;
-    localStorage.removeItem('access_token');
-  }
-};
-
-// Schedule-related API calls
-export const scheduleService = {
-  /**
-   * Get all schedules for current user
-   */
-  async getSchedules() {
-    try {
-      const response = await api.get('/api/schedules');
-      return response;
-    } catch (error) {
-      console.error('Get schedules failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get specific schedule by ID
-   */
-  async getSchedule(scheduleId) {
-    try {
-      const response = await api.get(`/api/schedules/${scheduleId}`);
-      return response;
-    } catch (error) {
-      console.error('Get schedule failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Create new schedule
-   */
-  async createSchedule(scheduleData) {
-    try {
-      const response = await api.post('/api/schedules', scheduleData);
-      return response;
-    } catch (error) {
-      console.error('Create schedule failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Update existing schedule
-   */
-  async updateSchedule(scheduleId, scheduleData) {
-    try {
-      const response = await api.put(`/api/schedules/${scheduleId}`, scheduleData);
-      return response;
-    } catch (error) {
-      console.error('Update schedule failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Delete schedule
-   */
-  async deleteSchedule(scheduleId) {
-    try {
-      const response = await api.delete(`/api/schedules/${scheduleId}`);
-      return response;
-    } catch (error) {
-      console.error('Delete schedule failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Update a specific shift in a schedule
-   * @param {string|number} scheduleId - The schedule ID
-   * @param {string|number} shiftId - The shift ID to update
-   * @param {Object} updates - Shift update data (e.g., startTime, endTime, employeeId)
-   * @returns {Promise<Object>} Updated shift data
-   */
-  async updateShift(scheduleId, shiftId, updates) {
-    try {
-      const response = await api.patch(`/api/schedules/${scheduleId}/shifts/${shiftId}`, updates);
-      return response;
-    } catch (error) {
-      console.error('Update shift failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Generate a new schedule for a date range using AI optimization
-   * @param {string} startDate - Start date (ISO format or YYYY-MM-DD)
-   * @param {string} endDate - End date (ISO format or YYYY-MM-DD)
-   * @param {Object} options - Additional generation options
-   * @param {number} options.minStaff - Minimum staff per shift
-   * @param {number} options.maxHoursPerEmployee - Max hours per employee
-   * @param {boolean} options.respectPreferences - Whether to respect employee preferences
-   * @returns {Promise<Object>} Generated schedule data
-   */
-  async generateSchedule(startDate, endDate, options = {}) {
-    try {
-      const response = await api.post('/api/schedule/generate', {
-        startDate,
-        endDate,
-        ...options
-      });
-      return response;
-    } catch (error) {
-      console.error('Generate schedule failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Optimize an existing schedule using AI algorithms
-   * @param {string|number} scheduleId - The schedule ID to optimize
-   * @returns {Promise<Object>} Optimized schedule data
-   */
-  async optimizeSchedule(scheduleId) {
-    try {
-      const response = await api.post(`/api/schedules/${scheduleId}/optimize`);
-      return response;
-    } catch (error) {
-      console.error('Optimize schedule failed:', error);
-      throw error;
-    }
-  }
-};
-
-// Task-related API calls
-export const taskService = {
-  /**
-   * Get all tasks
-   */
-  async getTasks(params = {}) {
-    try {
-      const response = await api.get('/api/tasks', { params });
-      return response;
-    } catch (error) {
-      console.error('Get tasks failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get specific task by ID
-   */
-  async getTask(taskId) {
-    try {
-      const response = await api.get(`/api/tasks/${taskId}`);
-      return response;
-    } catch (error) {
-      console.error('Get task failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Create new task
-   */
-  async createTask(taskData) {
-    try {
-      const response = await api.post('/api/tasks', taskData);
-      return response;
-    } catch (error) {
-      console.error('Create task failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Update existing task
-   */
-  async updateTask(taskId, taskData) {
-    try {
-      const response = await api.put(`/api/tasks/${taskId}`, taskData);
-      return response;
-    } catch (error) {
-      console.error('Update task failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Delete task
-   */
-  async deleteTask(taskId) {
-    try {
-      const response = await api.delete(`/api/tasks/${taskId}`);
-      return response;
-    } catch (error) {
-      console.error('Delete task failed:', error);
-      throw error;
-    }
-  }
-};
-
-// User management API calls (admin functions)
-export const userService = {
-  /**
-   * Get all users (admin only)
-   */
-  async getUsers(params = {}) {
-    try {
-      const response = await api.get('/api/users', { params });
-      return response;
-    } catch (error) {
-      console.error('Get users failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get specific user by ID
-   */
-  async getUser(userId) {
-    try {
-      const response = await api.get(`/api/users/${userId}`);
-      return response;
-    } catch (error) {
-      console.error('Get user failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Update user information
-   */
-  async updateUser(userId, userData) {
-    try {
-      const response = await api.put(`/api/users/${userId}`, userData);
-      return response;
-    } catch (error) {
-      console.error('Update user failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Deactivate user account
-   */
-  async deactivateUser(userId) {
-    try {
-      const response = await api.post(`/api/users/${userId}/deactivate`);
-      return response;
-    } catch (error) {
-      console.error('Deactivate user failed:', error);
-      throw error;
-    }
-  }
-};
-
-// Employee-related API calls
-export const employeeService = {
-  /**
-   * Get employee's schedule for a date range
-   * @param {string|number} employeeId - The employee ID
-   * @param {string} startDate - Start date (ISO format or YYYY-MM-DD)
-   * @param {string} endDate - End date (ISO format or YYYY-MM-DD)
-   * @returns {Promise<Object>} Employee's schedule data
-   */
-  async getEmployeeSchedule(employeeId, startDate, endDate) {
-    try {
-      const response = await api.get(`/api/employees/${employeeId}/schedule`, {
-        params: {
-          startDate,
-          endDate
-        }
-      });
-      return response;
-    } catch (error) {
-      console.error('Get employee schedule failed:', error);
-      throw error;
-    }
-  }
-};
-
-// Analytics-related API calls
-export const analyticsService = {
-  /**
-   * Get dashboard analytics overview
-   * @returns {Promise<Object>} Analytics overview with key metrics
-   */
-  async getAnalyticsOverview() {
-    try {
-      const response = await api.get('/api/analytics/overview');
-      return response;
-    } catch (error) {
-      console.error('Get analytics overview failed:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get labor costs for a specific date range
-   * @param {string} startDate - Start date (ISO format or YYYY-MM-DD)
-   * @param {string} endDate - End date (ISO format or YYYY-MM-DD)
-   * @returns {Promise<Object>} Labor cost analysis data
-   */
-  async getLaborCosts(startDate, endDate) {
-    try {
-      const response = await api.get('/api/analytics/labor-costs', {
-        params: {
-          startDate,
-          endDate
-        }
-      });
-      return response;
-    } catch (error) {
-      console.error('Get labor costs failed:', error);
-      throw error;
-    }
-  }
-};
-
 /**
- * Department Service
- *
- * For department operations, import the dedicated departmentService:
- *   import departmentService from './departmentService';
- *
- * Available methods:
- *   - getDepartments(), getDepartment(), createDepartment(), updateDepartment(), deleteDepartment()
- *   - bulkAssignDepartment(), transferDepartment(), getUnassignedEmployees()
- *   - getDepartmentAnalyticsOverview(), getDepartmentDistribution(), getDepartmentAnalytics()
- *   - getEmployeeDepartmentHistory()
- *
- * @deprecated Direct API calls for departments - Use departmentService instead
+ * Error Handler Utilities
  */
-import departmentServiceModule from './departmentService';
-
-export const departmentService = departmentServiceModule;
-
-/**
- * NOTE: Additional API endpoints can be accessed using the 'api' instance directly.
- *
- * For simple CRUD operations without complex logic, use:
- *   import api, { getErrorMessage } from './services/api';
- *
- *   const response = await api.get('/api/resource');
- *   const response = await api.post('/api/resource', data);
- *   const response = await api.patch(`/api/resource/${id}`, data);
- *   const response = await api.delete(`/api/resource/${id}`);
- *
- * Error logging is centralized in the response interceptor.
- * For user-friendly error messages, use: getErrorMessage(error)
- */
-
 export const errorHandler = {
   /**
    * Extract user-friendly error message
@@ -896,14 +293,13 @@ export const errorHandler = {
     if (error.response?.status === 409) {
       const detail = error.response?.data?.detail;
       if (detail) {
-        // Extract email from detail message if present
         const emailMatch = detail.match(/email\s+([^\s]+)\s+already exists/i);
         if (emailMatch) {
           return `This email address (${emailMatch[1]}) is already registered. Please use a different email or leave it empty to auto-generate.`;
         }
         return detail;
       }
-      return 'This employee already exists. Please check the email address or try a different one.';
+      return 'This resource already exists. Please check the details or try a different one.';
     }
 
     if (error.response?.data?.message) {
@@ -954,7 +350,53 @@ export const errorHandler = {
   }
 };
 
-// Request timeout utility
+/**
+ * Token Management Utilities
+ */
+export const tokenManager = {
+  setAccessToken(token) {
+    accessToken = token;
+    if (token) {
+      localStorage.setItem('access_token', token);
+      console.log('[API] Access token set and stored in localStorage');
+    } else {
+      localStorage.removeItem('access_token');
+      console.log('[API] Access token cleared from localStorage');
+    }
+  },
+
+  getAccessToken() {
+    if (!accessToken) {
+      accessToken = localStorage.getItem('access_token');
+    }
+    return accessToken;
+  },
+
+  clearAccessToken() {
+    accessToken = null;
+    csrfToken = null;
+    localStorage.removeItem('access_token');
+  },
+
+  isAuthenticated() {
+    return !!this.getAccessToken();
+  },
+
+  async getCsrfToken() {
+    try {
+      const response = await apiClient.get('/api/auth/csrf-token');
+      csrfToken = response.data.csrfToken || response.data.csrf_token;
+      return csrfToken;
+    } catch (error) {
+      console.warn('Failed to get CSRF token:', error);
+      return null;
+    }
+  }
+};
+
+/**
+ * Utility Functions
+ */
 export const withTimeout = (promise, timeoutMs = 10000) => {
   return Promise.race([
     promise,
@@ -964,10 +406,9 @@ export const withTimeout = (promise, timeoutMs = 10000) => {
   ]);
 };
 
-// API health check
 export const healthCheck = async () => {
   try {
-    const response = await api.get('/api/health');
+    const response = await apiClient.get('/api/health');
     return response.data;
   } catch (error) {
     console.error('Health check failed:', error);
@@ -975,43 +416,9 @@ export const healthCheck = async () => {
   }
 };
 
-// Memory storage for development tracking
-const storeApiImplementation = () => {
-  try {
-    if (typeof window !== 'undefined' && window.memory_store) {
-      const implementation = {
-        api_service: {
-          jwt_integration: 'Complete JWT token handling with refresh',
-          interceptors: 'Request/response interceptors for auth',
-          error_handling: 'Comprehensive error handling and retry logic',
-          csrf_protection: 'CSRF token integration',
-          services: ['auth', 'schedule', 'task', 'user'],
-          features: [
-            'Token refresh mechanism',
-            'Request queueing during refresh',
-            'Rate limiting handling',
-            'Network error handling',
-            'Cookie-based authentication',
-            'CSRF protection',
-            'Request timeout handling'
-          ]
-        }
-      };
-
-      window.memory_store.store('development/auth/api_service', implementation);
-    }
-  } catch (error) {
-    console.warn('Failed to store API implementation details:', error);
-  }
-};
-
-// Store implementation details
-storeApiImplementation();
-
-// Convenient named export for error message extraction
+// Convenient named exports
 export const getErrorMessage = errorHandler.getErrorMessage;
 
-// Export transformation utilities for manual use if needed
 export const transformUtils = {
   snakeToCamel,
   camelToSnake,
@@ -1021,4 +428,5 @@ export const transformUtils = {
   shouldSkipTransformation
 };
 
-export default api;
+// Default export
+export default apiClient;

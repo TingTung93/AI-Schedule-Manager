@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/139</span>
+                <span class='fraction'>0/135</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/50</span>
+                <span class='fraction'>0/44</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/27</span>
+                <span class='fraction'>0/28</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/136</span>
+                <span class='fraction'>0/132</span>
             </div>
         
             
@@ -481,6 +481,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -543,7 +545,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -601,7 +603,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -716,11 +718,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -790,7 +790,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -882,6 +882,8 @@
  * - Web Vitals tracking
  */
 &nbsp;
+import logger from './logger';
+&nbsp;
 // Performance thresholds (in milliseconds)
 const THRESHOLDS = <span class="cstat-no" title="statement not covered" >{</span>
   RENDER_WARN: 16.67, // 60fps threshold
@@ -926,7 +928,7 @@ export const measureRenderTime = <span class="cstat-no" title="statement not cov
 <span class="cstat-no" title="statement not covered" >    try {</span>
 <span class="cstat-no" title="statement not covered" >      performance.measure(measureName, markName);</span>
     } catch (e) {
-<span class="cstat-no" title="statement not covered" >      console.warn('Performance measurement failed:', e);</span>
+<span class="cstat-no" title="statement not covered" >      logger.warn('Performance measurement failed:', e);</span>
     }
 &nbsp;
     // Store metric
@@ -938,16 +940,16 @@ export const measureRenderTime = <span class="cstat-no" title="statement not cov
 &nbsp;
     // Warn if render is slow
 <span class="cstat-no" title="statement not covered" >    if (duration &gt; THRESHOLDS.RENDER_CRITICAL) {</span>
-<span class="cstat-no" title="statement not covered" >      console.error(</span>
-        `🔴 ${componentName} render took ${duration.toFixed(2)}ms (CRITICAL - below 30fps)`
+<span class="cstat-no" title="statement not covered" >      logger.error(</span>
+        `${componentName} render took ${duration.toFixed(2)}ms (CRITICAL - below 30fps)`
       );
     } else <span class="cstat-no" title="statement not covered" >if (duration &gt; THRESHOLDS.RENDER_WARN) {</span>
-<span class="cstat-no" title="statement not covered" >      console.warn(</span>
-        `⚠️ ${componentName} render took ${duration.toFixed(2)}ms (WARNING - below 60fps)`
+<span class="cstat-no" title="statement not covered" >      logger.warn(</span>
+        `${componentName} render took ${duration.toFixed(2)}ms (WARNING - below 60fps)`
       );
-    } else <span class="cstat-no" title="statement not covered" >if (process.env.NODE_ENV === 'development') {</span>
-<span class="cstat-no" title="statement not covered" >      console.log(</span>
-        `✅ ${componentName} render took ${duration.toFixed(2)}ms`
+    } else {
+<span class="cstat-no" title="statement not covered" >      logger.debug(</span>
+        `${componentName} render took ${duration.toFixed(2)}ms`
       );
     }
 &nbsp;
@@ -983,7 +985,7 @@ export const measureNetworkRequest = <span class="cstat-no" title="statement not
 <span class="cstat-no" title="statement not covered" >    try {</span>
 <span class="cstat-no" title="statement not covered" >      performance.measure(measureName, markName);</span>
     } catch (e) {
-<span class="cstat-no" title="statement not covered" >      console.warn('Network measurement failed:', e);</span>
+<span class="cstat-no" title="statement not covered" >      logger.warn('Network measurement failed:', e);</span>
     }
 &nbsp;
     // Store metric
@@ -996,16 +998,16 @@ export const measureNetworkRequest = <span class="cstat-no" title="statement not
 &nbsp;
     // Warn if request is slow
 <span class="cstat-no" title="statement not covered" >    if (duration &gt; THRESHOLDS.NETWORK_CRITICAL) {</span>
-<span class="cstat-no" title="statement not covered" >      console.error(</span>
-        `🔴 Request to ${url} took ${duration.toFixed(2)}ms (CRITICAL)`
+<span class="cstat-no" title="statement not covered" >      logger.error(</span>
+        `Request to ${url} took ${duration.toFixed(2)}ms (CRITICAL)`
       );
     } else <span class="cstat-no" title="statement not covered" >if (duration &gt; THRESHOLDS.NETWORK_WARN) {</span>
-<span class="cstat-no" title="statement not covered" >      console.warn(</span>
-        `⚠️ Request to ${url} took ${duration.toFixed(2)}ms (WARNING)`
+<span class="cstat-no" title="statement not covered" >      logger.warn(</span>
+        `Request to ${url} took ${duration.toFixed(2)}ms (WARNING)`
       );
-    } else <span class="cstat-no" title="statement not covered" >if (process.env.NODE_ENV === 'development') {</span>
-<span class="cstat-no" title="statement not covered" >      console.log(</span>
-        `✅ Request to ${url} took ${duration.toFixed(2)}ms`
+    } else {
+<span class="cstat-no" title="statement not covered" >      logger.debug(</span>
+        `Request to ${url} took ${duration.toFixed(2)}ms`
       );
     }
 &nbsp;
@@ -1023,8 +1025,8 @@ export const measureNetworkRequest = <span class="cstat-no" title="statement not
       timestamp: Date.now()
     });
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    console.error(</span>
-      `❌ Request to ${url} failed after ${duration.toFixed(2)}ms:`,
+<span class="cstat-no" title="statement not covered" >    logger.error(</span>
+      `Request to ${url} failed after ${duration.toFixed(2)}ms:`,
       error
     );
 &nbsp;
@@ -1061,7 +1063,7 @@ export const measureInteraction = <span class="cstat-no" title="statement not co
 <span class="cstat-no" title="statement not covered" >      try {</span>
 <span class="cstat-no" title="statement not covered" >        performance.measure(measureName, markName);</span>
       } catch (e) {
-<span class="cstat-no" title="statement not covered" >        console.warn('Interaction measurement failed:', e);</span>
+<span class="cstat-no" title="statement not covered" >        logger.warn('Interaction measurement failed:', e);</span>
       }
 &nbsp;
       // Store metric
@@ -1074,12 +1076,12 @@ export const measureInteraction = <span class="cstat-no" title="statement not co
 &nbsp;
       // Warn if interaction is slow
 <span class="cstat-no" title="statement not covered" >      if (duration &gt; THRESHOLDS.INTERACTION_CRITICAL) {</span>
-<span class="cstat-no" title="statement not covered" >        console.error(</span>
-          `🔴 ${interactionName} took ${duration.toFixed(2)}ms (CRITICAL)`
+<span class="cstat-no" title="statement not covered" >        logger.error(</span>
+          `${interactionName} took ${duration.toFixed(2)}ms (CRITICAL)`
         );
       } else <span class="cstat-no" title="statement not covered" >if (duration &gt; THRESHOLDS.INTERACTION_WARN) {</span>
-<span class="cstat-no" title="statement not covered" >        console.warn(</span>
-          `⚠️ ${interactionName} took ${duration.toFixed(2)}ms (WARNING)`
+<span class="cstat-no" title="statement not covered" >        logger.warn(</span>
+          `${interactionName} took ${duration.toFixed(2)}ms (WARNING)`
         );
       }
 &nbsp;
@@ -1118,9 +1120,7 @@ export const logBundleSize = <span class="cstat-no" title="statement not covered
 <span class="cstat-no" title="statement not covered" >    bundles.push({ src, size });</span>
 <span class="cstat-no" title="statement not covered" >    metrics.bundles.push({ src, size, timestamp: Date.now() });</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    if (process.env.NODE_ENV === 'production') {</span>
-<span class="cstat-no" title="statement not covered" >      console.log(`📦 Bundle: ${src} (${size})`);</span>
-    }
+<span class="cstat-no" title="statement not covered" >    logger.debug(`Bundle: ${src} (${size})`);</span>
   });
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return bundles;</span>
@@ -1188,11 +1188,11 @@ export const clearMetrics = <span class="cstat-no" title="statement not covered"
  */
 export const exportMetrics = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
   const summary = <span class="cstat-no" title="statement not covered" >getPerformanceSummary();</span>
-<span class="cstat-no" title="statement not covered" >  console.group('📊 Performance Metrics Summary');</span>
-<span class="cstat-no" title="statement not covered" >  console.table(summary.renders);</span>
-<span class="cstat-no" title="statement not covered" >  console.table(summary.networks);</span>
-<span class="cstat-no" title="statement not covered" >  console.table(summary.interactions);</span>
-<span class="cstat-no" title="statement not covered" >  console.groupEnd();</span>
+<span class="cstat-no" title="statement not covered" >  logger.group('Performance Metrics Summary', <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    logger.table(summary.renders);</span>
+<span class="cstat-no" title="statement not covered" >    logger.table(summary.networks);</span>
+<span class="cstat-no" title="statement not covered" >    logger.table(summary.interactions);</span>
+  });
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return summary;</span>
 };
@@ -1211,11 +1211,11 @@ export const trackWebVitals = <span class="cstat-no" title="statement not covere
       const lcpObserver = <span class="cstat-no" title="statement not covered" >new PerformanceObserver(<span class="fstat-no" title="function not covered" >(l</span>ist) =&gt; {</span>
         const entries = <span class="cstat-no" title="statement not covered" >list.getEntries();</span>
         const lastEntry = <span class="cstat-no" title="statement not covered" >entries[entries.length - 1];</span>
-<span class="cstat-no" title="statement not covered" >        console.log('LCP:', lastEntry.renderTime || lastEntry.loadTime);</span>
+<span class="cstat-no" title="statement not covered" >        logger.debug('LCP:', lastEntry.renderTime || lastEntry.loadTime);</span>
       });
 <span class="cstat-no" title="statement not covered" >      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });</span>
     } catch (e) {
-<span class="cstat-no" title="statement not covered" >      console.warn('LCP tracking failed:', e);</span>
+<span class="cstat-no" title="statement not covered" >      logger.warn('LCP tracking failed:', e);</span>
     }
 &nbsp;
     // First Input Delay (FID)
@@ -1223,12 +1223,12 @@ export const trackWebVitals = <span class="cstat-no" title="statement not covere
       const fidObserver = <span class="cstat-no" title="statement not covered" >new PerformanceObserver(<span class="fstat-no" title="function not covered" >(l</span>ist) =&gt; {</span>
         const entries = <span class="cstat-no" title="statement not covered" >list.getEntries();</span>
 <span class="cstat-no" title="statement not covered" >        entries.forEach(<span class="fstat-no" title="function not covered" >(e</span>ntry) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >          console.log('FID:', entry.processingStart - entry.startTime);</span>
+<span class="cstat-no" title="statement not covered" >          logger.debug('FID:', entry.processingStart - entry.startTime);</span>
         });
       });
 <span class="cstat-no" title="statement not covered" >      fidObserver.observe({ entryTypes: ['first-input'] });</span>
     } catch (e) {
-<span class="cstat-no" title="statement not covered" >      console.warn('FID tracking failed:', e);</span>
+<span class="cstat-no" title="statement not covered" >      logger.warn('FID tracking failed:', e);</span>
     }
   }
 };
@@ -1254,7 +1254,7 @@ export const initPerformanceMonitoring = <span class="cstat-no" title="statement
     }
   });
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  console.log('✅ Performance monitoring initialized');</span>
+<span class="cstat-no" title="statement not covered" >  logger.info('Performance monitoring initialized');</span>
 };
 &nbsp;
 export default {
@@ -1276,7 +1276,7 @@ export default {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-21T19:11:18.772Z
+                at 2025-11-21T19:25:43.509Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

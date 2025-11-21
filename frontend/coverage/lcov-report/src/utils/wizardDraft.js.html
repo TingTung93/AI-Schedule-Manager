@@ -241,7 +241,11 @@
 <a name='L176'></a><a href='#L176'>176</a>
 <a name='L177'></a><a href='#L177'>177</a>
 <a name='L178'></a><a href='#L178'>178</a>
-<a name='L179'></a><a href='#L179'>179</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -428,6 +432,8 @@
  * @module wizardDraft
  */
 &nbsp;
+import logger from './logger';
+&nbsp;
 const STORAGE_KEY = <span class="cstat-no" title="statement not covered" >'wizard_draft';</span>
 const DRAFT_VERSION = <span class="cstat-no" title="statement not covered" >'1.0';</span>
 const MAX_DRAFT_AGE_DAYS = <span class="cstat-no" title="statement not covered" >7;</span>
@@ -447,13 +453,13 @@ export const saveDraft = <span class="cstat-no" title="statement not covered" ><
     };
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));</span>
-<span class="cstat-no" title="statement not covered" >    console.log('Draft saved successfully at', draft.savedAt);</span>
+<span class="cstat-no" title="statement not covered" >    logger.debug('Draft saved successfully at', draft.savedAt);</span>
 <span class="cstat-no" title="statement not covered" >    return true;</span>
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error('Failed to save draft:', error);</span>
+<span class="cstat-no" title="statement not covered" >    logger.error('Failed to save draft:', error);</span>
     // Handle quota exceeded or other localStorage errors
 <span class="cstat-no" title="statement not covered" >    if (error.name === 'QuotaExceededError') {</span>
-<span class="cstat-no" title="statement not covered" >      console.warn('localStorage quota exceeded. Clearing old data...');</span>
+<span class="cstat-no" title="statement not covered" >      logger.warn('localStorage quota exceeded. Clearing old data...');</span>
 <span class="cstat-no" title="statement not covered" >      clearDraft();</span>
     }
 <span class="cstat-no" title="statement not covered" >    return false;</span>
@@ -477,7 +483,7 @@ export const loadDraft = <span class="cstat-no" title="statement not covered" ><
 &nbsp;
     // Validate draft version
 <span class="cstat-no" title="statement not covered" >    if (draft.version !== DRAFT_VERSION) {</span>
-<span class="cstat-no" title="statement not covered" >      console.warn('Draft version mismatch. Clearing old draft.');</span>
+<span class="cstat-no" title="statement not covered" >      logger.warn('Draft version mismatch. Clearing old draft.');</span>
 <span class="cstat-no" title="statement not covered" >      clearDraft();</span>
 <span class="cstat-no" title="statement not covered" >      return null;</span>
     }
@@ -487,16 +493,16 @@ export const loadDraft = <span class="cstat-no" title="statement not covered" ><
     const daysOld = <span class="cstat-no" title="statement not covered" >(Date.now() - savedAt.getTime()) / (1000 * 60 * 60 * 24);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    if (daysOld &gt; MAX_DRAFT_AGE_DAYS) {</span>
-<span class="cstat-no" title="statement not covered" >      console.warn(`Draft is ${Math.round(daysOld)} days old. Clearing expired draft.`);</span>
+<span class="cstat-no" title="statement not covered" >      logger.warn(`Draft is ${Math.round(daysOld)} days old. Clearing expired draft.`);</span>
 <span class="cstat-no" title="statement not covered" >      clearDraft();</span>
 <span class="cstat-no" title="statement not covered" >      return null;</span>
     }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    console.log('Draft loaded successfully from', draft.savedAt);</span>
+<span class="cstat-no" title="statement not covered" >    logger.debug('Draft loaded successfully from', draft.savedAt);</span>
 <span class="cstat-no" title="statement not covered" >    return draft;</span>
 &nbsp;
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error('Failed to load draft:', error);</span>
+<span class="cstat-no" title="statement not covered" >    logger.error('Failed to load draft:', error);</span>
     // Clear corrupted data
 <span class="cstat-no" title="statement not covered" >    clearDraft();</span>
 <span class="cstat-no" title="statement not covered" >    return null;</span>
@@ -509,9 +515,9 @@ export const loadDraft = <span class="cstat-no" title="statement not covered" ><
 export const clearDraft = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  try {</span>
 <span class="cstat-no" title="statement not covered" >    localStorage.removeItem(STORAGE_KEY);</span>
-<span class="cstat-no" title="statement not covered" >    console.log('Draft cleared successfully');</span>
+<span class="cstat-no" title="statement not covered" >    logger.debug('Draft cleared successfully');</span>
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error('Failed to clear draft:', error);</span>
+<span class="cstat-no" title="statement not covered" >    logger.error('Failed to clear draft:', error);</span>
   }
 };
 &nbsp;
@@ -532,7 +538,7 @@ export const hasDraft = <span class="cstat-no" title="statement not covered" ><s
 <span class="cstat-no" title="statement not covered" >    return draft !== null;</span>
 &nbsp;
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error('Failed to check draft existence:', error);</span>
+<span class="cstat-no" title="statement not covered" >    logger.error('Failed to check draft existence:', error);</span>
 <span class="cstat-no" title="statement not covered" >    return false;</span>
   }
 };
@@ -563,7 +569,7 @@ export const getDraftMetadata = <span class="cstat-no" title="statement not cove
     };
 &nbsp;
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error('Failed to get draft metadata:', error);</span>
+<span class="cstat-no" title="statement not covered" >    logger.error('Failed to get draft metadata:', error);</span>
 <span class="cstat-no" title="statement not covered" >    return null;</span>
   }
 };
@@ -604,7 +610,7 @@ export default {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-21T19:11:18.772Z
+                at 2025-11-21T19:25:43.509Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

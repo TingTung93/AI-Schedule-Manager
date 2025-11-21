@@ -647,7 +647,9 @@
 <a name='L582'></a><a href='#L582'>582</a>
 <a name='L583'></a><a href='#L583'>583</a>
 <a name='L584'></a><a href='#L584'>584</a>
-<a name='L585'></a><a href='#L585'>585</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L585'></a><a href='#L585'>585</a>
+<a name='L586'></a><a href='#L586'>586</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1269,6 +1271,7 @@ import {
 import api, { getErrorMessage } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { clearDraft } from '../../utils/wizardDraft';
+import logger from '../../utils/logger';
 &nbsp;
 const PublishStep = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >({</span> data, onChange, setNotification }) =&gt; {</span>
   const [publishing, setPublishing] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
@@ -1357,7 +1360,7 @@ const PublishStep = <span class="cstat-no" title="statement not covered" ><span 
       }
 &nbsp;
       // Step 1: Create Schedule container
-<span class="cstat-no" title="statement not covered" >      console.log('Creating schedule container...');</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug('Creating schedule container...');</span>
       const scheduleResponse = <span class="cstat-no" title="statement not covered" >await api.post('/api/schedules', {</span>
         week_start: data.dateRange.start,
         week_end: data.dateRange.end,
@@ -1367,7 +1370,7 @@ const PublishStep = <span class="cstat-no" title="statement not covered" ><span 
       });
 &nbsp;
       const scheduleId = <span class="cstat-no" title="statement not covered" >scheduleResponse.data.id;</span>
-<span class="cstat-no" title="statement not covered" >      console.log(`Schedule created with ID: ${scheduleId}`);</span>
+<span class="cstat-no" title="statement not covered" >      logger.info(`Schedule created with ID: ${scheduleId}`);</span>
 &nbsp;
       // Step 2: Create schedule assignments in bulk
       const assignments = <span class="cstat-no" title="statement not covered" >data.currentSchedule.assignments.map(<span class="fstat-no" title="function not covered" >as</span>signment =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
@@ -1378,7 +1381,7 @@ const PublishStep = <span class="cstat-no" title="statement not covered" ><span 
         notes: assignment.notes || ''
       }));
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      console.log(`Creating ${assignments.length} assignments via bulk endpoint...`);</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug(`Creating ${assignments.length} assignments via bulk endpoint...`);</span>
 &nbsp;
       const bulkResponse = <span class="cstat-no" title="statement not covered" >await api.post('/api/assignments/bulk', {</span>
         schedule_id: scheduleId,
@@ -1386,7 +1389,7 @@ const PublishStep = <span class="cstat-no" title="statement not covered" ><span 
         validate_conflicts: true
       });
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      console.log(`Created ${bulkResponse.data.total_created} assignments successfully`);</span>
+<span class="cstat-no" title="statement not covered" >      logger.info(`Created ${bulkResponse.data.total_created} assignments successfully`);</span>
 &nbsp;
       // Handle any conflicts or errors
 <span class="cstat-no" title="statement not covered" >      if (bulkResponse.data.errors &amp;&amp; bulkResponse.data.errors.length &gt; 0) {</span>
@@ -1408,7 +1411,7 @@ const PublishStep = <span class="cstat-no" title="statement not covered" ><span 
 <span class="cstat-no" title="statement not covered" >          await api.put(`/api/schedules/${scheduleId}`, {</span>
             status: 'published'
           });
-<span class="cstat-no" title="statement not covered" >          console.log('Schedule status changed to published');</span>
+<span class="cstat-no" title="statement not covered" >          logger.info('Schedule status changed to published');</span>
         } catch (err) {
 <span class="cstat-no" title="statement not covered" >          console.warn('Failed to update schedule status:', err);</span>
           // Continue anyway - schedule is created
@@ -1439,7 +1442,7 @@ const PublishStep = <span class="cstat-no" title="statement not covered" ><span 
   const handleSaveDraft = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       // Create Schedule container with draft status
-<span class="cstat-no" title="statement not covered" >      console.log('Saving schedule as draft...');</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug('Saving schedule as draft...');</span>
       const scheduleResponse = <span class="cstat-no" title="statement not covered" >await api.post('/api/schedules', {</span>
         week_start: data.dateRange.start,
         week_end: data.dateRange.end,
@@ -1450,12 +1453,12 @@ const PublishStep = <span class="cstat-no" title="statement not covered" ><span 
       });
 &nbsp;
       const scheduleId = <span class="cstat-no" title="statement not covered" >scheduleResponse.data.id;</span>
-<span class="cstat-no" title="statement not covered" >      console.log(`Draft schedule created with ID: ${scheduleId}`);</span>
+<span class="cstat-no" title="statement not covered" >      logger.info(`Draft schedule created with ID: ${scheduleId}`);</span>
 &nbsp;
       // Save assignments if they exist using bulk endpoint
       const assignmentsData = <span class="cstat-no" title="statement not covered" >data.currentSchedule?.assignments || [];</span>
 <span class="cstat-no" title="statement not covered" >      if (assignmentsData.length &gt; 0) {</span>
-<span class="cstat-no" title="statement not covered" >        console.log(`Saving ${assignmentsData.length} draft assignments...`);</span>
+<span class="cstat-no" title="statement not covered" >        logger.debug(`Saving ${assignmentsData.length} draft assignments...`);</span>
 &nbsp;
         const assignments = <span class="cstat-no" title="statement not covered" >assignmentsData.map(<span class="fstat-no" title="function not covered" >as</span>signment =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
           employee_id: assignment.employeeId || assignment.employee_id || assignment.staffId,
@@ -1471,7 +1474,7 @@ const PublishStep = <span class="cstat-no" title="statement not covered" ><span 
             assignments: assignments,
             validate_conflicts: false  // Don't validate conflicts for drafts
           });
-<span class="cstat-no" title="statement not covered" >          console.log(`Saved ${bulkResponse.data.total_created} draft assignments`);</span>
+<span class="cstat-no" title="statement not covered" >          logger.info(`Saved ${bulkResponse.data.total_created} draft assignments`);</span>
         } catch (err) {
 <span class="cstat-no" title="statement not covered" >          console.warn('Failed to save draft assignments:', err);</span>
           // Continue anyway - schedule container is created
@@ -1822,7 +1825,7 @@ export default PublishStep;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-21T19:11:18.772Z
+                at 2025-11-21T19:25:43.509Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

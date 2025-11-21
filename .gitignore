@@ -163,3 +163,26 @@ coordination/orchestration/*
 claude-flow
 # Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Logs
+*.log
+*.tmp
+debug.log
+error.log
+
+# Backup files
+*_backup.*
+*_old.*
+*.bak
+*~
+
+# Development
+.swarm/
+.claude-flow/metrics/

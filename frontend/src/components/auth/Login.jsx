@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { authService } from '../../services/api';
+import apiClient, { getErrorMessage } from '../../services/api';
 import './Auth.css';
 
 const Login = () => {
@@ -82,10 +82,14 @@ const Login = () => {
     setLockoutInfo(null);
 
     try {
-      const response = await authService.login(formData.email, formData.password);
+      const response = await apiClient.post('/api/auth/login', {
+        email: formData.email,
+        password: formData.password
+      });
 
       // Call login from AuthContext to update app state
-      await login(response.data.user, response.data.access_token);
+      const token = response.data.accessToken || response.data.access_token;
+      await login(response.data.user, token);
 
       // Redirect to intended page or dashboard
       const from = location.state?.from?.pathname || '/dashboard';
@@ -97,10 +101,10 @@ const Login = () => {
       if (error.response?.status === 401) {
         const errorData = error.response.data;
 
-        if (errorData.remaining_attempts !== undefined) {
-          setRemainingAttempts(errorData.remaining_attempts);
+        if (errorData.remainingAttempts !== undefined) {
+          setRemainingAttempts(errorData.remainingAttempts);
           setErrors({
-            general: `Invalid credentials. ${errorData.remaining_attempts} attempts remaining.`
+            general: `Invalid credentials. ${errorData.remainingAttempts} attempts remaining.`
           });
         } else {
           setErrors({ general: 'Invalid email or password' });
@@ -110,7 +114,7 @@ const Login = () => {
         const errorData = error.response.data;
         setLockoutInfo({
           message: errorData.message,
-          lockedUntil: errorData.locked_until
+          lockedUntil: errorData.lockedUntil
         });
         setErrors({ general: 'Account is temporarily locked' });
       } else if (error.response?.status === 429) {
@@ -122,7 +126,7 @@ const Login = () => {
         setErrors({ general: 'Account is deactivated. Please contact support.' });
       } else {
         setErrors({
-          general: 'Login failed. Please try again.'
+          general: getErrorMessage(error)
         });
       }
     } finally {
