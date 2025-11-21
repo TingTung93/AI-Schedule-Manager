@@ -43,8 +43,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:80"]
     CORS_ALLOW_CREDENTIALS: bool = True
 
-    # Rate Limiting
-    RATE_LIMIT_ENABLED: bool = True
+    # Rate Limiting - DISABLED for LAN-only deployment
+    RATE_LIMIT_ENABLED: bool = False
     RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60
     RATE_LIMIT_BURST_SIZE: int = 10
 
@@ -94,7 +94,8 @@ class Settings(BaseSettings):
     @classmethod
     def build_database_url(cls, v: str) -> str:
         """Build database URL from components if needed."""
-        if v and v.startswith("postgresql://"):
+        # Accept any postgresql URL format (postgresql://, postgresql+asyncpg://, etc.)
+        if v and v.startswith("postgresql"):
             return v
 
         # Build from components if available

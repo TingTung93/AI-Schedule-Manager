@@ -4,7 +4,7 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 import { useAuth } from '../../hooks/useAuth';
 
 const ProtectedRoute = ({ children, requiredRoles = [] }) => {
-  const { isAuthenticated, isLoading, user, hasRole } = useAuth();
+  const { isAuthenticated, isLoading, user, hasAnyRole } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -38,7 +38,7 @@ const ProtectedRoute = ({ children, requiredRoles = [] }) => {
   }
 
   // Check role-based access
-  if (requiredRoles.length > 0 && !hasRole(requiredRoles)) {
+  if (requiredRoles.length > 0 && !hasAnyRole(requiredRoles)) {
     return (
       <Box
         display="flex"

@@ -1,29 +1,43 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress, Typography } from '@mui/material';
+import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress, Typography, Alert } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Context and Hooks
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+import useOnlineStatus from './hooks/useOnlineStatus';
 
 // Components
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
-// Pages (Lazy loaded for better performance)
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import EmployeesPage from './pages/EmployeesPage';
-import SchedulePage from './pages/SchedulePage';
-import RulesPage from './pages/RulesPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import SettingsPage from './pages/SettingsPage';
-import ProfilePage from './pages/ProfilePage';
-import NotFoundPage from './pages/NotFoundPage';
+// Performance Monitoring
+import { initPerformanceMonitoring } from './utils/performanceMonitor';
 
 // Route configuration
 import { ROUTES, ROUTE_CONFIG } from './utils/routeConfig';
+
+// Public pages (no code splitting for critical routes)
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import NotFoundPage from './pages/NotFoundPage';
+
+// Dashboard (keep immediate for first render)
+import DashboardPage from './pages/DashboardPage';
+
+// Heavy pages - lazy loaded for code splitting
+const ScheduleBuilder = lazy(() => import(/* webpackChunkName: "schedule-builder" */ './pages/ScheduleBuilder'));
+const SchedulePage = lazy(() => import(/* webpackChunkName: "schedule-page" */ './pages/SchedulePage'));
+const EmployeesPage = lazy(() => import(/* webpackChunkName: "employees-page" */ './pages/EmployeesPage'));
+const AnalyticsPage = lazy(() => import(/* webpackChunkName: "analytics-page" */ './pages/AnalyticsPage'));
+const DepartmentManager = lazy(() => import(/* webpackChunkName: "department-manager" */ './pages/DepartmentManager'));
+const ShiftManager = lazy(() => import(/* webpackChunkName: "shift-manager" */ './pages/ShiftManager'));
+const DepartmentOverview = lazy(() => import(/* webpackChunkName: "department-overview" */ './pages/DepartmentOverview'));
+const RulesPage = lazy(() => import(/* webpackChunkName: "rules-page" */ './pages/RulesPage'));
+const RoleManager = lazy(() => import(/* webpackChunkName: "role-manager" */ './pages/RoleManager'));
+const SettingsPage = lazy(() => import(/* webpackChunkName: "settings-page" */ './pages/SettingsPage'));
+const ProfilePage = lazy(() => import(/* webpackChunkName: "profile-page" */ './pages/ProfilePage'));
 
 // Theme configuration
 const theme = createTheme({
@@ -113,14 +127,25 @@ const routeComponents = {
   RegisterPage,
   DashboardPage,
   EmployeesPage,
+  DepartmentManager,
+  ShiftManager,
   SchedulePage,
+  DepartmentOverview,
   RulesPage,
   AnalyticsPage,
+  RoleManager,
   SettingsPage,
   ProfilePage
 };
 
 function App() {
+  const isOnline = useOnlineStatus();
+
+  // Initialize performance monitoring
+  useEffect(() => {
+    initPerformanceMonitoring();
+  }, []);
+
   // Generate routes from configuration
   const generateRoutes = () => {
     return ROUTE_CONFIG.map((route) => {
@@ -158,13 +183,31 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        <Router>
-          <Suspense fallback={<LoadingFallback />}>
-            <AnimatePresence mode="wait">
-              <Routes>
+    <ErrorBoundary name="App">
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+
+        {/* Offline Banner */}
+        {!isOnline && (
+          <Alert
+            severity="warning"
+            sx={{
+              position: 'fixed',
+              top: 0,
+              width: '100%',
+              zIndex: 9999,
+              borderRadius: 0
+            }}
+          >
+            You are offline. Some features may not work.
+          </Alert>
+        )}
+
+        <AuthProvider>
+          <Router>
+            <Suspense fallback={<LoadingFallback />}>
+              <AnimatePresence mode="wait">
+                <Routes>
                 {/* Root redirect to dashboard */}
                 <Route
                   path="/"
@@ -180,69 +223,133 @@ function App() {
                   path="/*"
                   element={
                     <ProtectedRoute>
-                      <Layout>
-                        <Routes>
-                          {/* Dashboard */}
-                          <Route
-                            path={ROUTES.DASHBOARD}
-                            element={<DashboardPage />}
-                          />
-
-                          {/* Employee Management */}
-                          <Route
-                            path={ROUTES.EMPLOYEES}
-                            element={
-                              <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                                <EmployeesPage />
-                              </ProtectedRoute>
-                            }
-                          />
-
-                          {/* Schedule Management */}
-                          <Route
-                            path={ROUTES.SCHEDULE}
-                            element={<SchedulePage />}
-                          />
-
-                          {/* Business Rules */}
-                          <Route
-                            path={ROUTES.RULES}
-                            element={
-                              <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                                <RulesPage />
-                              </ProtectedRoute>
-                            }
-                          />
-
-                          {/* Analytics */}
-                          <Route
-                            path={ROUTES.ANALYTICS}
-                            element={
-                              <ProtectedRoute requiredRoles={['admin', 'manager']}>
-                                <AnalyticsPage />
-                              </ProtectedRoute>
-                            }
-                          />
-
-                          {/* Settings */}
-                          <Route
-                            path={ROUTES.SETTINGS}
-                            element={<SettingsPage />}
-                          />
-
-                          {/* Profile */}
-                          <Route
-                            path={ROUTES.PROFILE}
-                            element={<ProfilePage />}
-                          />
-
-                          {/* 404 for unmatched protected routes */}
-                          <Route path="*" element={<NotFoundPage />} />
-                        </Routes>
-                      </Layout>
+                      <Layout />
                     </ProtectedRoute>
                   }
-                />
+                >
+                  {/* Dashboard */}
+                  <Route
+                    path="dashboard"
+                    element={
+                      <ErrorBoundary name="Dashboard">
+                        <DashboardPage />
+                      </ErrorBoundary>
+                    }
+                  />
+
+                  {/* Employee Management */}
+                  <Route
+                    path="employees"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <ErrorBoundary name="Employees">
+                          <EmployeesPage />
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Department Management */}
+                  <Route
+                    path="departments"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <ErrorBoundary name="Departments">
+                          <DepartmentManager />
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Shift Management */}
+                  <Route
+                    path="shifts"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <ErrorBoundary name="Shifts">
+                          <ShiftManager />
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Schedule Management */}
+                  <Route
+                    path="schedule"
+                    element={
+                      <ErrorBoundary name="Schedule">
+                        <SchedulePage />
+                      </ErrorBoundary>
+                    }
+                  />
+
+                  {/* Schedule Builder */}
+                  <Route
+                    path="schedule/builder"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <ErrorBoundary name="ScheduleBuilder">
+                          <ScheduleBuilder />
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Department Overview */}
+                  <Route
+                    path="department-overview"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <DepartmentOverview />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Business Rules */}
+                  <Route
+                    path="rules"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <RulesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Analytics */}
+                  <Route
+                    path="analytics"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <AnalyticsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Role Management */}
+                  <Route
+                    path="roles"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <RoleManager />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Settings */}
+                  <Route
+                    path="settings"
+                    element={<SettingsPage />}
+                  />
+
+                  {/* Profile */}
+                  <Route
+                    path="profile"
+                    element={<ProfilePage />}
+                  />
+
+                  {/* 404 for unmatched protected routes */}
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
 
                 {/* 404 for unmatched routes */}
                 <Route path="*" element={<NotFoundPage />} />
@@ -252,6 +359,7 @@ function App() {
         </Router>
       </AuthProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

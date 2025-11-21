@@ -9,12 +9,19 @@ from typing import AsyncGenerator, Generator
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.pool import NullPool
 
 # Add project root to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from src.database import Base
+
 # Configure async test support
 pytest_plugins = ("pytest_asyncio",)
+
+# Test database URL (use in-memory SQLite for tests)
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 
 @pytest.fixture(scope="session")
@@ -170,3 +177,74 @@ def mock_env_variables(monkeypatch):
     monkeypatch.setenv("ENVIRONMENT", "test")
     yield
     # Environment variables are automatically cleaned up by monkeypatch
+
+
+# Integration test fixtures (async database)
+
+
+@pytest.fixture(scope="function")
+async def db_engine():
+    """Create test database engine for integration tests."""
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        poolclass=NullPool,
+    )
+
+    # Create all tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield engine
+
+    # Drop all tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
+
+
+@pytest.fixture(scope="function")
+async def db(db_engine) -> AsyncGenerator[AsyncSession, None]:
+    """Create test database session for integration tests."""
+    async_session = async_sessionmaker(
+        db_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
+    async with async_session() as session:
+        yield session
+        await session.rollback()
+
+
+@pytest.fixture
+async def client(db: AsyncSession) -> AsyncGenerator:
+    """Create test HTTP client for API testing."""
+    from httpx import AsyncClient
+    from backend.src.main import app
+    from backend.src.dependencies import get_database_session
+
+    # Override database dependency
+    async def override_get_db():
+        yield db
+
+    app.dependency_overrides[get_database_session] = override_get_db
+
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+    # Clean up
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def mock_current_user(test_employees):
+    """Mock current authenticated user for API tests."""
+    from unittest.mock import Mock
+    user = Mock()
+    user.id = 1
+    user.email = "test@example.com"
+    user.role = "manager"
+    user.is_admin = False
+    return user

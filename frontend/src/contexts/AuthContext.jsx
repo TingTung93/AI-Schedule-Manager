@@ -61,6 +61,9 @@ const authReducer = (state, action) => {
       };
 
     case AUTH_ACTIONS.LOGOUT:
+      // Clear localStorage on logout
+      localStorage.removeItem('user');
+      localStorage.removeItem('access_token');
       return {
         ...state,
         user: null,
@@ -128,6 +131,7 @@ const AuthContext = createContext(null);
 // Authentication provider component
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const initializingRef = React.useRef(false);
 
   // Initialize authentication state on app load
   useEffect(() => {
@@ -135,31 +139,61 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const initializeAuth = async () => {
+    // Prevent multiple simultaneous initializations
+    if (initializingRef.current) {
+      return;
+    }
+
+    // Don't initialize auth on login/register pages - user is trying to authenticate
+    if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      return;
+    }
+
     try {
+      initializingRef.current = true;
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: { isLoading: true } });
 
-      // Try to get current user (this will use existing cookies)
-      const response = await authService.getCurrentUser();
+      // Check localStorage for stored token and user
+      const storedToken = localStorage.getItem('access_token');
+      const storedUser = localStorage.getItem('user');
 
-      if (response.data.user) {
-        dispatch({
-          type: AUTH_ACTIONS.LOGIN_SUCCESS,
-          payload: { user: response.data.user }
-        });
+      if (storedToken && storedUser) {
+        // Restore session from localStorage
+        try {
+          const user = JSON.parse(storedUser);
+          authService.setAccessToken(storedToken);
 
-        // Set access token if provided
-        if (response.data.access_token) {
-          authService.setAccessToken(response.data.access_token);
+          dispatch({
+            type: AUTH_ACTIONS.LOGIN_SUCCESS,
+            payload: { user }
+          });
+
+          // Get CSRF token (but don't fail if it doesn't work)
+          try {
+            await getCsrfToken();
+          } catch (csrfError) {
+            console.warn('CSRF token fetch failed:', csrfError);
+          }
+        } catch (parseError) {
+          console.error('Failed to parse stored user data:', parseError);
+          dispatch({ type: AUTH_ACTIONS.LOGOUT });
         }
-
-        // Get CSRF token
-        await getCsrfToken();
       } else {
+        // No stored session - user needs to login
+        // Don't call /api/auth/me without a token, just set logged out state
         dispatch({ type: AUTH_ACTIONS.LOGOUT });
       }
     } catch (error) {
-      console.warn('Authentication initialization failed:', error);
+      // Handle network errors gracefully - don't spam console
+      if (error.code === 'ECONNABORTED' || error.message?.includes('Network error')) {
+        console.debug('Auth initialization skipped - network not ready');
+      } else {
+        console.warn('Authentication initialization failed:', error.message);
+      }
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    } finally {
+      initializingRef.current = false;
     }
   };
 
@@ -171,6 +205,9 @@ export const AuthProvider = ({ children }) => {
       if (accessToken) {
         authService.setAccessToken(accessToken);
       }
+
+      // Store user in localStorage for session persistence
+      localStorage.setItem('user', JSON.stringify(userData));
 
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -193,6 +230,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const register = async (userData) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+
+      // Call the registration API
+      const response = await authService.register({
+        email: userData.email,
+        password: userData.password,
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+        role: userData.role,
+        department: userData.department
+      });
+
+      // Set the access token if provided
+      if (response.data.access_token) {
+        authService.setAccessToken(response.data.access_token);
+      }
+
+      // Update auth state with user data
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user: response.data.user }
+      });
+
+      // Get CSRF token for future requests
+      await getCsrfToken();
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed';
+
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: { error: errorMessage }
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const logout = async () => {
     try {
       // Call logout API to clear server-side session
@@ -200,6 +278,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.warn('Logout API call failed:', error);
     } finally {
+      // Clear localStorage
+      localStorage.removeItem('user');
+      localStorage.removeItem('access_token');
+
       // Always clear local state
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     }
@@ -260,9 +342,17 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  // Check if user has specific role
+  // Check if user has specific role (supports both string and array)
   const hasRole = (role) => {
-    return state.user?.roles?.includes(role) || false;
+    if (!state.user?.roles) return false;
+
+    // If role is an array, check if user has ANY of those roles
+    if (Array.isArray(role)) {
+      return role.some(r => state.user.roles.includes(r));
+    }
+
+    // If role is a string, check for that specific role
+    return state.user.roles.includes(role);
   };
 
   // Check if user has specific permission
@@ -299,6 +389,7 @@ export const AuthProvider = ({ children }) => {
 
     // Actions
     login,
+    register,
     logout,
     refreshToken,
     updateUser,

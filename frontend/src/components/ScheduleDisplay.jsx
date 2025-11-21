@@ -49,6 +49,7 @@ import api, { getErrorMessage, scheduleService } from '../services/api';
 import { useApi, useApiMutation } from '../hooks/useApi';
 import { useScheduleUpdates, usePresence, useTypingIndicator, useWebSocket } from '../hooks/useWebSocket';
 import websocketManager from '../services/websocket';
+import { extractShiftsFromSchedule, detectShiftConflicts } from '../utils/assignmentHelpers';
 
 const ScheduleDisplay = () => {
   // State management
@@ -148,15 +149,18 @@ const ScheduleDisplay = () => {
     return Array.from({ length: 7 }, (_, i) => addDays(currentWeek, i));
   }, [currentWeek]);
 
-  // Get shifts for current week
+  // Get shifts from assignments for current week
   const weekShifts = useMemo(() => {
-    if (!selectedSchedule?.shifts) return {};
+    if (!selectedSchedule) return {};
+
+    // Extract shifts from assignments
+    const shifts = extractShiftsFromSchedule(selectedSchedule);
 
     const shiftsMap = {};
     weekDays.forEach(day => {
       const dayKey = format(day, 'yyyy-MM-dd');
-      shiftsMap[dayKey] = selectedSchedule.shifts.filter(shift => {
-        const shiftDate = format(parseISO(shift.startTime), 'yyyy-MM-dd');
+      shiftsMap[dayKey] = shifts.filter(shift => {
+        const shiftDate = shift.startTime ? format(parseISO(shift.startTime), 'yyyy-MM-dd') : null;
         return shiftDate === dayKey;
       });
     });
@@ -166,36 +170,28 @@ const ScheduleDisplay = () => {
 
   // Conflict detection
   useEffect(() => {
-    if (!selectedSchedule?.shifts) return;
+    if (!selectedSchedule) return;
 
-    const detectConflicts = () => {
+    const detectScheduleConflicts = () => {
       const conflicts = [];
-      const shifts = selectedSchedule.shifts;
+      const shifts = extractShiftsFromSchedule(selectedSchedule);
 
       shifts.forEach((shift, index) => {
-        // Check for overlapping shifts for same employee
-        const overlapping = shifts.filter((otherShift, otherIndex) => {
-          if (index === otherIndex || shift.employeeId !== otherShift.employeeId) return false;
-
-          const shiftStart = parseISO(shift.startTime);
-          const shiftEnd = parseISO(shift.endTime);
-          const otherStart = parseISO(otherShift.startTime);
-          const otherEnd = parseISO(otherShift.endTime);
-
-          return (shiftStart < otherEnd && shiftEnd > otherStart);
-        });
+        // Check for overlapping shifts using helper
+        const overlapping = detectShiftConflicts(shift, shifts);
 
         if (overlapping.length > 0) {
+          const employee = employeeMap[shift.employeeId];
           conflicts.push({
             type: 'overlap',
             shift,
-            message: `Overlapping shifts for ${employeeMap[shift.employeeId]?.firstName || 'Unknown'}`,
+            message: `Overlapping shifts for ${employee?.firstName || employee?.first_name || 'Unknown'}`,
           });
         }
 
         // Check for availability conflicts
         const employee = employeeMap[shift.employeeId];
-        if (employee?.availability) {
+        if (employee?.availability && shift.startTime) {
           const shiftDay = format(parseISO(shift.startTime), 'EEEE').toLowerCase();
           const dayAvailability = employee.availability[shiftDay];
 
@@ -203,16 +199,26 @@ const ScheduleDisplay = () => {
             conflicts.push({
               type: 'availability',
               shift,
-              message: `${employee.firstName} not available on ${format(parseISO(shift.startTime), 'EEEE')}`,
+              message: `${employee.firstName || employee.first_name} not available on ${format(parseISO(shift.startTime), 'EEEE')}`,
             });
           }
+        }
+
+        // Check for unconfirmed assignments
+        if (shift.needsConfirmation) {
+          const employee = employeeMap[shift.employeeId];
+          conflicts.push({
+            type: 'confirmation',
+            shift,
+            message: `Assignment needs confirmation from ${employee?.firstName || employee?.first_name || 'employee'}`,
+          });
         }
       });
 
       setConflicts(conflicts);
     };
 
-    detectConflicts();
+    detectScheduleConflicts();
   }, [selectedSchedule, employeeMap]);
 
   // WebSocket event handlers
@@ -712,8 +718,8 @@ const ScheduleDisplay = () => {
 
                 {/* Day shifts list */}
                 <Box>
-                  {selectedSchedule?.shifts
-                    ?.filter(shift => isSameDay(parseISO(shift.startTime), selectedDay))
+                  {extractShiftsFromSchedule(selectedSchedule)
+                    ?.filter(shift => shift.startTime && isSameDay(parseISO(shift.startTime), selectedDay))
                     ?.sort((a, b) => parseISO(a.startTime) - parseISO(b.startTime))
                     ?.map(shift => {
                       const employee = employeeMap[shift.employeeId];

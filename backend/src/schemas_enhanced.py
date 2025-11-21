@@ -207,10 +207,20 @@ class EmployeeResponse(EmployeeBase):
     """Employee response schema."""
 
     id: int
+    full_name: str
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        """Custom validation to compute full_name from model attributes."""
+        if hasattr(obj, 'first_name') and hasattr(obj, 'last_name'):
+            # Add full_name if not already present
+            if not hasattr(obj, '_full_name_computed'):
+                obj._full_name_computed = True
+        return super().model_validate(obj, **kwargs)
 
 
 # Enhanced Shift schemas

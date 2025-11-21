@@ -1,0 +1,335 @@
+/**
+ * Mobile-responsive calendar styles
+ * Touch-friendly event cards and controls
+ */
+
+/* Touch-friendly event cards for all devices */
+.fc-event {
+  min-height: 50px !important; /* iOS guideline: 44px minimum touch target */
+  padding: 8px !important;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  touch-action: manipulation; /* Disable double-tap zoom */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Make day grid cells more tappable */
+.fc .fc-daygrid-day {
+  min-height: 44px !important;
+  cursor: pointer;
+}
+
+/* Larger hit area for time grid slots */
+.fc .fc-timegrid-slot {
+  min-height: 50px !important;
+  cursor: pointer;
+}
+
+.fc-event:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.fc-event:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Touch-friendly buttons - all interactive elements >= 44x44px */
+.fc .fc-button {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  touch-action: manipulation; /* Disable double-tap zoom on buttons */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Calendar header improvements */
+.fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Event content styling */
+.fc-event-title,
+.fc-event-time {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Tablet-specific styles (900px - 1200px) */
+@media (min-width: 900px) and (max-width: 1200px) {
+  .fc-event {
+    min-height: 45px !important;
+    padding: 6px !important;
+  }
+
+  .fc-button {
+    min-width: 42px !important;
+    min-height: 42px !important;
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+  }
+
+  .fc-toolbar-title {
+    font-size: 1.3rem;
+  }
+
+  .fc-event-title,
+  .fc-event-time {
+    font-size: 13px;
+  }
+}
+
+/* Mobile-specific styles (< 900px) */
+@media (max-width: 900px) {
+  .fc-event {
+    min-height: 60px !important;
+    padding: 10px !important;
+    font-size: 16px !important; /* Prevent zoom on iOS when selecting */
+  }
+
+  .fc-event-title {
+    font-size: 16px !important;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .fc-event-time {
+    font-size: 14px !important;
+    opacity: 0.9;
+  }
+
+  .fc-button {
+    min-width: 48px !important;
+    min-height: 48px !important;
+    padding: 10px 14px !important;
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+
+  .fc-toolbar-title {
+    font-size: 1.2rem;
+  }
+
+  /* Stack toolbar buttons vertically on very small screens */
+  .fc-toolbar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .fc-toolbar-chunk {
+    margin: 4px 0 !important;
+  }
+
+  /* Reduce time slot height for better mobile view */
+  .fc-timegrid-slot {
+    height: 50px !important;
+    min-height: 50px !important;
+  }
+
+  /* Larger touch targets for mobile day cells */
+  .fc-daygrid-day {
+    min-height: 60px !important;
+  }
+
+  /* Ensure mobile event text doesn't zoom on tap */
+  .fc-event,
+  .fc-event * {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Make day headers more compact */
+  .fc-col-header-cell {
+    padding: 8px 4px !important;
+  }
+
+  .fc-col-header-cell-cushion {
+    font-size: 14px !important;
+  }
+
+  /* Optimize calendar container */
+  .fc {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+
+  /* Remove horizontal scrolling */
+  .fc-scroller {
+    overflow-x: hidden !important;
+  }
+}
+
+/* Extra small mobile devices (< 375px) */
+@media (max-width: 375px) {
+  .fc-event {
+    min-height: 65px !important;
+    padding: 12px 8px !important;
+  }
+
+  .fc-button {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 8px 10px !important;
+    font-size: 14px !important;
+  }
+
+  .fc-toolbar-title {
+    font-size: 1rem;
+  }
+
+  .fc-event-title {
+    font-size: 15px !important;
+  }
+
+  .fc-event-time {
+    font-size: 13px !important;
+  }
+
+  /* Even more compact time slots */
+  .fc-timegrid-slot {
+    height: 45px !important;
+  }
+}
+
+/* Landscape orientation optimizations */
+@media (max-width: 900px) and (orientation: landscape) {
+  .fc-timegrid-slot {
+    height: 40px !important;
+  }
+
+  .fc-event {
+    min-height: 45px !important;
+  }
+
+  .fc-toolbar {
+    flex-direction: row;
+  }
+}
+
+/* High-DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .fc-event {
+    border-width: 2px;
+  }
+}
+
+/* Accessibility improvements */
+.fc-event:focus,
+.fc-button:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+/* Loading state */
+.fc-calendar-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Event drag-and-drop visual feedback (desktop only) */
+@media (min-width: 900px) {
+  .fc-event-dragging {
+    opacity: 0.7;
+    cursor: move;
+  }
+
+  .fc-event-resizing {
+    opacity: 0.7;
+  }
+}
+
+/* Prevent text selection during drag operations */
+.fc-unselectable {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Custom scrollbar for time grid (desktop only) */
+@media (min-width: 900px) {
+  .fc-scroller::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .fc-scroller::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .fc-scroller::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+
+  .fc-scroller::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+/* List view optimizations for mobile */
+.fc-list-event {
+  min-height: 60px !important;
+  padding: 12px 16px !important;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fc-list-event:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.fc-list-event:active {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Improve spacing between list items on mobile */
+@media (max-width: 900px) {
+  .fc-list-event {
+    min-height: 70px !important;
+    padding: 16px !important;
+    font-size: 16px !important;
+  }
+
+  .fc-list-event-time {
+    font-size: 14px !important;
+  }
+
+  .fc-list-event-title {
+    font-size: 16px !important;
+    font-weight: 500;
+  }
+}
+
+/* Prevent iOS zoom on form inputs within calendar */
+@media (max-width: 900px) {
+  .fc input,
+  .fc select,
+  .fc textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Improve touch feedback for interactive elements */
+.fc-event:active,
+.fc-button:active,
+.fc-daygrid-day:active {
+  opacity: 0.8;
+  transition: opacity 0.1s ease;
+}
+
+/* Ensure adequate spacing between tappable elements */
+.fc-toolbar .fc-button-group .fc-button {
+  margin: 0 2px !important;
+}
+
+@media (max-width: 900px) {
+  .fc-toolbar .fc-button-group .fc-button {
+    margin: 0 4px !important;
+  }
+}

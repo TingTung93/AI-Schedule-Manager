@@ -3,19 +3,34 @@ FastAPI backend for AI Schedule Manager with complete CRUD operations.
 """
 
 import logging
+import os
 import random
-from datetime import date, datetime
+import secrets
+from datetime import date, datetime, timedelta
 from typing import List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query, status
+import redis
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .api.analytics import router as analytics_router
+from .api.assignments import router as assignments_router
 from .api.data_io import router as data_io_router
+from .api.departments import router as departments_router
+from .api.employees import router as employees_router
 from .api.notifications import router as notifications_router
+from .api.rules import router as rules_router
+from .api.schedules import router as schedules_router
 from .api.settings import router as settings_router
+from .api.shift_definitions import router as shift_definitions_router
+from .api.shifts import router as shifts_router
 from .api_docs import setup_docs
+from .auth.auth import auth_service
+from .auth.fastapi_routes import auth_router  # Native FastAPI auth routes
 from .dependencies import get_current_manager, get_current_user, get_database_session
 from .nlp.rule_parser import RuleParser
 from .schemas import (
@@ -34,13 +49,22 @@ from .schemas import (
     RuleUpdate,
     ScheduleCreate,
     ScheduleGenerateRequest,
+    ScheduleOptimizeRequest,
     ScheduleResponse,
     ScheduleUpdate,
     TokenResponse,
 )
 from .services.crud import crud_employee, crud_notification, crud_rule, crud_schedule
+from .core.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Validate SECRET_KEY on startup
+if not settings.SECRET_KEY or len(settings.SECRET_KEY) < 32:
+    raise ValueError("SECRET_KEY must be set and at least 32 characters. Generate with: openssl rand -base64 32")
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title="AI Schedule Manager API",
@@ -51,22 +75,103 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
+# Add rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # Setup enhanced API documentation
 setup_docs(app)
 
+# Initialize authentication service with FastAPI
+# Since FastAPI doesn't have app.config like Flask, we set the values directly
+auth_service.secret_key = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
+auth_service.refresh_secret_key = os.getenv("JWT_REFRESH_SECRET_KEY", secrets.token_urlsafe(32))
+auth_service.access_token_expires = timedelta(minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", "15")))
+auth_service.refresh_token_expires = timedelta(days=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES_DAYS", "30")))
+
+# Initialize Redis client for token management
+try:
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    auth_service.redis_client = redis.from_url(redis_url, decode_responses=False)
+    # Test connection
+    auth_service.redis_client.ping()
+    logger.info("Redis connection established for auth service")
+except Exception as e:
+    logger.warning(f"Redis connection failed: {e}. Using in-memory fallback for auth.")
+    # Fallback to localhost Redis
+    auth_service.redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=False)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=["http://localhost:3000", "http://localhost:80"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
 )
 
+
+# REMOVED: timeout_middleware was causing anyio.WouldBlock errors
+# The asyncio.wait_for() wrapper leaves request streams in invalid state
+# when timeouts occur, causing subsequent requests to fail.
+# Database timeouts are now handled at the connection level instead.
+import asyncio
+from fastapi.responses import JSONResponse
+
+# Application startup and shutdown events
+@app.on_event("startup")
+async def startup_event():
+    """Initialize monitoring and background tasks on startup"""
+    logger.info("Starting application...")
+
+    try:
+        from .database import engine
+        from .monitoring import HealthMonitor, set_health_monitor
+
+        # Initialize health monitoring
+        logger.info("Initializing health monitor...")
+        monitor = HealthMonitor(engine, check_interval=60)  # Check every 60 seconds
+        set_health_monitor(monitor)
+        await monitor.start()
+        logger.info("Health monitoring started successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize health monitoring: {e}", exc_info=True)
+        # Continue startup even if monitoring fails
+
+    logger.info("Application startup complete")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on application shutdown"""
+    from .monitoring import get_health_monitor
+    from .database import close_db_connection
+
+    logger.info("Shutting down application...")
+
+    # Stop health monitoring
+    monitor = get_health_monitor()
+    if monitor:
+        await monitor.stop()
+
+    # Close database connections
+    await close_db_connection()
+
+    logger.info("Application shutdown complete")
+
+
 # Include API routers
+app.include_router(auth_router)  # Authentication routes (replaces mock endpoints)
+app.include_router(assignments_router)  # Assignment CRUD API
 app.include_router(data_io_router)
+app.include_router(departments_router)
+app.include_router(employees_router)
 app.include_router(notifications_router)
+app.include_router(rules_router)
+app.include_router(schedules_router)
 app.include_router(analytics_router)
 app.include_router(settings_router)
+app.include_router(shift_definitions_router)  # Shift definitions (reusable templates)
+app.include_router(shifts_router)
 
 # Initialize rule parser
 rule_parser = RuleParser()
@@ -84,21 +189,52 @@ async def root():
 
 
 @app.get("/health")
-async def health_check():
+def health_check():
+    """
+    Basic health check endpoint - SYNCHRONOUS to avoid event loop blocking.
+    Docker health checks should be fast and simple, without DB queries.
+    """
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
 
-# Authentication endpoints
-@app.post("/api/auth/login", response_model=TokenResponse)
-async def login(request: LoginRequest):
-    """Mock authentication endpoint."""
-    if request.email and request.password:
-        return TokenResponse(
-            access_token=f"mock-jwt-token-{request.email}",
-            token_type="bearer",
-            user={"email": request.email, "role": "manager" if "admin" in request.email else "employee"},
-        )
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """Detailed health check with monitoring metrics"""
+    from .monitoring import get_health_monitor
+
+    monitor = get_health_monitor()
+    if monitor:
+        return monitor.get_health_status()
+    else:
+        return {"status": "monitoring_not_enabled", "timestamp": datetime.utcnow().isoformat()}
+
+
+# ============================================================================
+# DEPRECATED MOCK AUTHENTICATION ENDPOINTS - REMOVED
+# ============================================================================
+# The mock authentication endpoints have been removed and replaced with the
+# complete Flask authentication system located in /backend/src/auth/routes.py
+#
+# The Flask auth routes are now integrated into FastAPI using ASGI middleware.
+# All authentication endpoints are available at /api/auth/* including:
+#   - POST /api/auth/register - User registration
+#   - POST /api/auth/login - User login with JWT tokens
+#   - POST /api/auth/logout - Logout and revoke tokens
+#   - GET /api/auth/me - Get current user information
+#   - POST /api/auth/refresh - Refresh access token
+#   - POST /api/auth/change-password - Change user password
+#   - POST /api/auth/forgot-password - Request password reset
+#   - POST /api/auth/reset-password - Reset password with token
+#   - GET /api/auth/csrf-token - Get CSRF token for protected requests
+#   - GET /api/auth/sessions - Get active refresh token sessions
+#   - DELETE /api/auth/sessions/{token_jti} - Revoke specific session
+#
+# For implementation details, see:
+#   - /backend/src/auth/routes.py - Flask authentication routes
+#   - /backend/src/auth/auth.py - JWT service and password hashing
+#   - /backend/src/auth/middleware.py - Authentication middleware
+#   - /backend/src/auth/models.py - User, Role, Permission models
+# ============================================================================
 
 
 # Rules endpoints
@@ -197,143 +333,124 @@ async def delete_rule(
     return {"message": "Rule deleted successfully"}
 
 
-# Employee endpoints
-@app.get("/api/employees", response_model=PaginatedResponse)
-async def get_employees(
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
-    role: Optional[str] = Query(None),
-    active: Optional[bool] = Query(None),
-    search: Optional[str] = Query(None),
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
-    sort_by: str = Query("name"),
-    sort_order: str = Query("asc", regex="^(asc|desc)$"),
-):
-    """Get all employees with pagination and filtering."""
-    skip = (page - 1) * size
-
-    result = await crud_employee.get_multi_with_search(
-        db=db, skip=skip, limit=size, search=search, role=role, active=active, sort_by=sort_by, sort_order=sort_order
-    )
-
-    return PaginatedResponse(
-        items=result["items"], total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
-    )
+# Employee endpoints - REMOVED IN FAVOR OF employees_router
+# These endpoints query the deprecated employees table.
+# The employees_router in src/api/employees.py uses the users table instead.
+# @app.get("/api/employees", response_model=PaginatedResponse)
 
 
-@app.post("/api/employees", response_model=EmployeeResponse)
-async def create_employee(
-    employee: EmployeeCreate,
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_manager),
-):
-    """Create new employee."""
-    # Check if email already exists
-    existing = await crud_employee.get_by_email(db, employee.email)
-    if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-
-    new_employee = await crud_employee.create(db, employee)
-    return new_employee
-
-
-@app.get("/api/employees/{employee_id}", response_model=EmployeeResponse)
-async def get_employee(
-    employee_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_user)
-):
-    """Get specific employee by ID."""
-    employee = await crud_employee.get(db, employee_id)
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-    return employee
-
-
-@app.patch("/api/employees/{employee_id}", response_model=EmployeeResponse)
-async def update_employee(
-    employee_id: int,
-    employee_update: EmployeeUpdate,
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_manager),
-):
-    """Update employee."""
-    employee = await crud_employee.get(db, employee_id)
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-
-    # Check email uniqueness if being updated
-    if employee_update.email and employee_update.email != employee.email:
-        existing = await crud_employee.get_by_email(db, employee_update.email)
-        if existing:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-
-    updated_employee = await crud_employee.update(db, employee, employee_update)
-    return updated_employee
-
-
-@app.delete("/api/employees/{employee_id}")
-async def delete_employee(
-    employee_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_manager)
-):
-    """Delete employee."""
-    employee = await crud_employee.remove(db, employee_id)
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-    return {"message": "Employee deleted successfully"}
-
-
-@app.get("/api/employees/{employee_id}/schedule", response_model=List[ScheduleResponse])
-async def get_employee_schedule(
-    employee_id: int,
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
-    date_from: Optional[date] = Query(None),
-    date_to: Optional[date] = Query(None),
-):
-    """Get employee schedule."""
-    # Check if employee exists
-    employee = await crud_employee.get(db, employee_id)
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-
-    schedule = await crud_employee.get_schedule(db, employee_id, date_from, date_to)
-    return schedule
-
-
-# Schedule endpoints
-@app.get("/api/schedules", response_model=PaginatedResponse)
-async def get_schedules(
-    db: AsyncSession = Depends(get_database_session),
-    current_user: dict = Depends(get_current_user),
-    employee_id: Optional[int] = Query(None),
-    shift_id: Optional[int] = Query(None),
-    date_from: Optional[date] = Query(None),
-    date_to: Optional[date] = Query(None),
-    status: Optional[str] = Query(None),
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
-    sort_by: str = Query("date"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$"),
-):
-    """Get all schedules with pagination and filtering."""
-    skip = (page - 1) * size
-
-    result = await crud_schedule.get_multi_with_relations(
-        db=db,
-        skip=skip,
-        limit=size,
-        employee_id=employee_id,
-        shift_id=shift_id,
-        date_from=date_from,
-        date_to=date_to,
-        status=status,
-        sort_by=sort_by,
-        sort_order=sort_order,
-    )
-
-    return PaginatedResponse(
-        items=result["items"], total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
-    )
+# @app.post("/api/employees", response_model=EmployeeResponse)
+# async def create_employee(
+#     employee: EmployeeCreate,
+#     db: AsyncSession = Depends(get_database_session),
+#     current_user: dict = Depends(get_current_manager),
+# ):
+#     """Create new employee."""
+#     # Check if email already exists
+#     existing = await crud_employee.get_by_email(db, employee.email)
+#     if existing:
+#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+# 
+#     new_employee = await crud_employee.create(db, employee)
+#     return new_employee
+# 
+# 
+# @app.get("/api/employees/{employee_id}", response_model=EmployeeResponse)
+# async def get_employee(
+#     employee_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_user)
+# ):
+#     """Get specific employee by ID."""
+#     employee = await crud_employee.get(db, employee_id)
+#     if not employee:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+#     return employee
+# 
+# 
+# @app.patch("/api/employees/{employee_id}", response_model=EmployeeResponse)
+# async def update_employee(
+#     employee_id: int,
+#     employee_update: EmployeeUpdate,
+#     db: AsyncSession = Depends(get_database_session),
+#     current_user: dict = Depends(get_current_manager),
+# ):
+#     """Update employee."""
+#     employee = await crud_employee.get(db, employee_id)
+#     if not employee:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+# 
+#     # Check email uniqueness if being updated
+#     if employee_update.email and employee_update.email != employee.email:
+#         existing = await crud_employee.get_by_email(db, employee_update.email)
+#         if existing:
+#             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+# 
+#     updated_employee = await crud_employee.update(db, employee, employee_update)
+#     return updated_employee
+# 
+# 
+# @app.delete("/api/employees/{employee_id}")
+# async def delete_employee(
+#     employee_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_manager)
+# ):
+#     """Delete employee."""
+#     employee = await crud_employee.remove(db, employee_id)
+#     if not employee:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+#     return {"message": "Employee deleted successfully"}
+# 
+# 
+# @app.get("/api/employees/{employee_id}/schedule", response_model=List[ScheduleResponse])
+# async def get_employee_schedule(
+#     employee_id: int,
+#     db: AsyncSession = Depends(get_database_session),
+#     current_user: dict = Depends(get_current_user),
+#     date_from: Optional[date] = Query(None),
+#     date_to: Optional[date] = Query(None),
+# ):
+#     """Get employee schedule."""
+#     # Check if employee exists
+#     employee = await crud_employee.get(db, employee_id)
+#     if not employee:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+# 
+#     schedule = await crud_employee.get_schedule(db, employee_id, date_from, date_to)
+#     return schedule
+# 
+# 
+# # Schedule endpoints
+# @app.get("/api/schedules", response_model=PaginatedResponse)
+# async def get_schedules(
+#     db: AsyncSession = Depends(get_database_session),
+#     current_user: dict = Depends(get_current_user),
+#     employee_id: Optional[int] = Query(None),
+#     shift_id: Optional[int] = Query(None),
+#     date_from: Optional[date] = Query(None),
+#     date_to: Optional[date] = Query(None),
+#     status: Optional[str] = Query(None),
+#     page: int = Query(1, ge=1),
+#     size: int = Query(10, ge=1, le=100),
+#     sort_by: str = Query("date"),
+#     sort_order: str = Query("desc", regex="^(asc|desc)$"),
+# ):
+#     """Get all schedules with pagination and filtering."""
+#     skip = (page - 1) * size
+# 
+#     result = await crud_schedule.get_multi_with_relations(
+#         db=db,
+#         skip=skip,
+#         limit=size,
+#         employee_id=employee_id,
+#         shift_id=shift_id,
+#         date_from=date_from,
+#         date_to=date_to,
+#         status=status,
+#         sort_by=sort_by,
+#         sort_order=sort_order,
+#     )
+# 
+#     return PaginatedResponse(
+#         items=result["items"], total=result["total"], page=page, size=size, pages=(result["total"] + size - 1) // size
+#     )
 
 
 @app.get("/api/schedules/{schedule_id}", response_model=ScheduleResponse)
@@ -474,35 +591,126 @@ async def generate_schedule(
     db: AsyncSession = Depends(get_database_session),
     current_user: dict = Depends(get_current_manager),
 ):
-    """Generate schedule for date range."""
-    # Mock schedule generation for now
-    # In production, this would use the constraint solver
-    return {
-        "id": random.randint(1000, 9999),
-        "start_date": request.start_date.isoformat(),
-        "end_date": request.end_date.isoformat(),
-        "status": "generated",
-        "shifts": [],
-        "created_at": datetime.utcnow().isoformat(),
-        "message": "Schedule generation started. Check back for results.",
-    }
+    """Generate schedule for date range using constraint solver."""
+    from .services.schedule_service import schedule_service
+
+    try:
+        # Generate schedule using constraint solver
+        result = await schedule_service.generate_schedule(
+            db=db, start_date=request.start_date, end_date=request.end_date, constraints=request.constraints
+        )
+
+        # Check for conflicts before returning
+        if result["status"] in ["optimal", "feasible"]:
+            conflicts = await schedule_service.check_conflicts(db=db, start_date=request.start_date, end_date=request.end_date)
+
+            return {
+                "status": result["status"],
+                "start_date": request.start_date.isoformat(),
+                "end_date": request.end_date.isoformat(),
+                "schedule": result.get("schedule", []),
+                "saved_assignments": result.get("saved_assignments", 0),
+                "conflicts": conflicts.get("conflicts", []),
+                "statistics": result.get("statistics", {}),
+                "message": result.get("message", "Schedule generated successfully"),
+                "created_at": datetime.utcnow().isoformat(),
+            }
+        else:
+            # Handle infeasible or error cases
+            return {
+                "status": result["status"],
+                "start_date": request.start_date.isoformat(),
+                "end_date": request.end_date.isoformat(),
+                "schedule": [],
+                "message": result.get(
+                    "message",
+                    "Could not generate feasible schedule. Try relaxing constraints or adjusting employee availability.",
+                ),
+                "suggestions": [
+                    "Increase employee availability windows",
+                    "Reduce required qualifications for some shifts",
+                    "Add more employees to the system",
+                    "Reduce the number of shifts or adjust shift times",
+                ],
+            }
+
+    except Exception as e:
+        logger.error(f"Schedule generation error: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": f"Failed to generate schedule: {str(e)}",
+            "schedule": [],
+        }
 
 
 @app.post("/api/schedule/optimize")
 async def optimize_schedule(
-    schedule_id: int, db: AsyncSession = Depends(get_database_session), current_user: dict = Depends(get_current_manager)
+    request: ScheduleOptimizeRequest,
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_manager),
 ):
-    """Optimize existing schedule."""
-    # Mock optimization
-    return {
-        "status": "optimized",
-        "improvements": {
-            "cost_savings": "$" + str(random.randint(200, 800)),
-            "coverage": str(random.randint(92, 99)) + "%",
-            "satisfaction": str(random.randint(85, 95)) + "%",
-        },
-        "message": "Schedule optimized successfully using AI",
-    }
+    """Optimize existing schedule using constraint solver."""
+    from .services.schedule_service import schedule_service
+
+    try:
+        # Optimize schedule using constraint solver
+        result = await schedule_service.optimize_schedule(db=db, schedule_ids=request.schedule_ids)
+
+        if result["status"] in ["optimal", "feasible"]:
+            return {
+                "status": result["status"],
+                "improvements": result.get("improvements", {}),
+                "schedule": result.get("schedule", []),
+                "statistics": result.get("statistics", {}),
+                "message": "Schedule optimized successfully using constraint-based AI solver",
+            }
+        else:
+            return {
+                "status": result["status"],
+                "message": result.get("message", "Optimization failed"),
+                "suggestions": [
+                    "Review and relax some constraints",
+                    "Ensure all employees have availability set",
+                    "Check for conflicting rules",
+                ],
+            }
+
+    except Exception as e:
+        logger.error(f"Schedule optimization error: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": f"Failed to optimize schedule: {str(e)}",
+        }
+
+
+@app.get("/api/schedule/conflicts")
+async def check_schedule_conflicts(
+    start_date: date = Query(..., description="Start date for conflict check"),
+    end_date: date = Query(..., description="End date for conflict check"),
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_manager),
+):
+    """Check for conflicts in schedule for given date range."""
+    from .services.schedule_service import schedule_service
+
+    try:
+        conflicts = await schedule_service.check_conflicts(db=db, start_date=start_date, end_date=end_date)
+
+        return {
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
+            "conflicts": conflicts.get("conflicts", []),
+            "conflict_count": conflicts.get("conflict_count", 0),
+            "status": "ok" if conflicts.get("conflict_count", 0) == 0 else "conflicts_found",
+        }
+
+    except Exception as e:
+        logger.error(f"Conflict check error: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": f"Failed to check conflicts: {str(e)}",
+            "conflicts": [],
+        }
 
 
 # Analytics endpoint

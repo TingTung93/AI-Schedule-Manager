@@ -1,66 +1,52 @@
-# Multi-stage build for optimized production
-FROM python:3.11-slim AS builder
+# Backend Dockerfile for AI Schedule Manager
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install build dependencies
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    g++ \
-    libpq-dev \
+    postgresql-client \
+    curl \
+    libmagic1 \
+    libmagic-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install dependencies
-COPY requirements.txt ./
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
-
-# Production stage
-FROM python:3.11-slim AS production
-
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
-    libpq5 \
-    curl \
-    dumb-init \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Set working directory
-WORKDIR /app
-
-# Copy wheels and install
-COPY --from=builder /app/wheels /wheels
+# Copy requirements first for better caching
 COPY requirements.txt .
-RUN pip install --no-cache /wheels/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY src/ ./src/
-COPY alembic.ini ./
-COPY migrations/ ./migrations/
+COPY . .
 
-# Create non-root user with proper permissions
-RUN groupadd --gid 1000 appuser && \
-    useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser && \
+# Create necessary directories
+RUN mkdir -p /app/logs /app/uploads
+
+# Create non-root user and set ownership
+RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
 
-# Environment variables
-ENV PYTHONPATH=/app \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
-
 # Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+# Make startup script executable
+RUN chmod +x /app/scripts/startup.sh
 
-# Use dumb-init for proper signal handling
-ENTRYPOINT ["dumb-init", "--"]
+# Health check - increased timeout and reduced frequency to prevent overwhelming the app
+HEALTHCHECK --interval=60s --timeout=5s --start-period=60s --retries=3 \
+    CMD curl -f --max-time 4 http://localhost:8000/health || exit 1
 
-# Start command with production settings
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--access-log"]
+# Run the application with startup script
+CMD ["/app/scripts/startup.sh"]

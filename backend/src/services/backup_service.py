@@ -20,7 +20,7 @@ from cryptography.fernet import Fernet
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..database import get_database_session
+from ..dependencies import get_database_session
 from ..exceptions.import_exceptions import BackupError
 from ..models import Employee, Notification, Rule, Schedule, Shift
 

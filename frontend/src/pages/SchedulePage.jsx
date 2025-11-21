@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -17,28 +18,72 @@ import {
   Select,
   MenuItem,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  Grid,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   Add,
   Today,
   ViewWeek,
-  ViewModule
+  ViewModule,
+  AutoFixHigh,
+  CloudUpload,
+  CloudDownload
 } from '@mui/icons-material';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import api, { getErrorMessage, scheduleService } from '../services/api';
+import { transformScheduleToCalendarEvents } from '../utils/assignmentHelpers';
+import { filterCalendarEvents } from '../utils/filterUtils';
+import AssignmentForm from '../components/forms/AssignmentForm';
+import MobileCalendarControls from '../components/calendar/MobileCalendarControls';
+import SearchBar from '../components/search/SearchBar';
+import FilterPanel from '../components/search/FilterPanel';
+import { useLazyLoad } from '../hooks/useLazyLoad';
+
+// Calendar configuration and styles
+import { getMobileCalendarConfig, getInitialView, getButtonText, customViews } from '../config/calendarConfig';
+import '../styles/calendar.css';
+
+// Lazy load heavy dialog components for better initial load
+const ImportDialog = lazy(() => import(/* webpackChunkName: "import-dialog" */ '../components/data-io/ImportDialog'));
+const ExportDialog = lazy(() => import(/* webpackChunkName: "export-dialog" */ '../components/data-io/ExportDialog'));
 
 const SchedulePage = () => {
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // < 900px
+  const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg')); // 900-1200px
+  const calendarRef = useRef(null);
+
   const [schedules, setSchedules] = useState([]);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState('timeGridWeek');
+  const [view, setView] = useState(() => {
+    // Set initial view based on screen size using config
+    return getInitialView(isMobile, isTablet);
+  });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    departments: [],
+    shiftTypes: [],
+    dateRange: { start: null, end: null }
+  });
+  const [showFilters, setShowFilters] = useState(!isMobile);
   const [scheduleForm, setScheduleForm] = useState({
     title: '',
     employeeId: '',
@@ -53,33 +98,33 @@ const SchedulePage = () => {
     loadData();
   }, []);
 
+  // Update view when screen size changes
+  useEffect(() => {
+    setView(getInitialView(isMobile, isTablet));
+  }, [isMobile, isTablet]);
+
   const loadData = async () => {
     try {
       setLoading(true);
-      const [schedulesRes, employeesRes] = await Promise.all([
+      const [schedulesRes, employeesRes, departmentsRes] = await Promise.all([
         scheduleService.getSchedules(),
-        api.get('/api/employees')
+        api.get('/api/employees'),
+        api.get('/api/departments').catch(() => ({ data: { departments: [] } }))
       ]);
-      
+
       const schedulesData = schedulesRes.data.schedules || [];
       const employeesData = employeesRes.data.employees || [];
-      
-      // Transform schedules to FullCalendar events
-      const events = schedulesData.map(schedule => ({
-        id: schedule.id,
-        title: schedule.title || `Shift - ${schedule.employee_name || 'Employee'}`,
-        start: schedule.start_time || schedule.date,
-        end: schedule.end_time,
-        backgroundColor: getEventColor(schedule.status),
-        extendedProps: {
-          employeeId: schedule.employee_id,
-          type: schedule.type || 'shift',
-          status: schedule.status
-        }
-      }));
-      
-      setSchedules(events);
+      const departmentsData = departmentsRes.data.departments || [];
+
+      // Set schedules, employees, and departments
+      setSchedules(schedulesData);
       setEmployees(employeesData);
+      setDepartments(departmentsData);
+
+      // Select the first schedule by default
+      if (schedulesData.length > 0) {
+        setSelectedSchedule(schedulesData[0]);
+      }
     } catch (error) {
       setNotification({ type: 'error', message: getErrorMessage(error) });
     } finally {
@@ -87,14 +132,33 @@ const SchedulePage = () => {
     }
   };
 
-  const getEventColor = (status) => {
-    switch (status) {
-      case 'confirmed': return '#2e7d32';
-      case 'pending': return '#ed6c02';
-      case 'cancelled': return '#d32f2f';
-      default: return '#1976d2';
+  // Create employee map for quick lookups
+  const employeeMap = React.useMemo(() => {
+    return employees.reduce((acc, emp) => {
+      acc[emp.id] = emp;
+      return acc;
+    }, {});
+  }, [employees]);
+
+  // Transform selected schedule to calendar events and apply filters
+  const calendarEvents = React.useMemo(() => {
+    if (!selectedSchedule) return [];
+    const allEvents = transformScheduleToCalendarEvents(selectedSchedule, employeeMap);
+
+    // Apply search filter
+    let filteredEvents = allEvents;
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filteredEvents = filteredEvents.filter(event => {
+        const title = (event.title || '').toLowerCase();
+        const employee = event.extendedProps?.employeeName || '';
+        return title.includes(term) || employee.toLowerCase().includes(term);
+      });
     }
-  };
+
+    // Apply other filters
+    return filterCalendarEvents(filteredEvents, filters);
+  }, [selectedSchedule, employeeMap, searchTerm, filters]);
 
   const handleDateClick = (arg) => {
     setSelectedDate(arg.date);
@@ -133,10 +197,117 @@ const SchedulePage = () => {
     }
   };
 
+  const handleAssignmentSubmit = async (formData) => {
+    if (!selectedSchedule) {
+      setNotification({ type: 'error', message: 'Please select a schedule first' });
+      return;
+    }
+
+    try {
+      // Call correct assignment endpoint
+      const response = await api.post(
+        `/api/schedules/${selectedSchedule.id}/assignments`,
+        {
+          employee_id: parseInt(formData.employeeId),
+          shift_id: parseInt(formData.shiftId),
+          status: formData.status || 'assigned',
+          priority: formData.priority || 3,
+          notes: formData.notes || ''
+        }
+      );
+
+      // Show success message
+      setNotification({ type: 'success', message: 'Assignment created successfully' });
+
+      // Close form
+      setShowAssignmentForm(false);
+
+      // Reload schedule to show new assignment
+      await loadData();
+
+      // Refresh calendar events
+      setRefreshTrigger(prev => prev + 1);
+
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      setNotification({ type: 'error', message: errorMessage });
+
+      // Show specific error if conflict
+      if (error.response?.data?.conflicts) {
+        setNotification({
+          type: 'warning',
+          message: `Conflict detected: ${error.response.data.conflicts[0]?.message || 'Assignment may have conflicts'}`
+        });
+      }
+    }
+  };
+
   const handleViewChange = (event, newView) => {
     if (newView !== null) {
       setView(newView);
     }
+  };
+
+  // Handler for Today button
+  const handleToday = () => {
+    const calendarApi = calendarRef.current?.getApi();
+    if (calendarApi) {
+      calendarApi.today();
+    }
+  };
+
+  // Handler for cycling through views (mobile)
+  const handleChangeView = () => {
+    const views = isMobile
+      ? ['timeGridDay', 'listWeek']
+      : ['dayGridMonth', 'timeGridWeek', 'timeGridDay'];
+
+    const currentIndex = views.indexOf(view);
+    const nextView = views[(currentIndex + 1) % views.length];
+    setView(nextView);
+  };
+
+  // Handler for filter toggle
+  const handleFilter = () => {
+    setShowFilters(!showFilters);
+  };
+
+  // Handler for search
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
+
+  // Handler for filter changes
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  // Count active filters
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (filters.departments.length > 0) count += filters.departments.length;
+    if (filters.shiftTypes.length > 0) count += filters.shiftTypes.length;
+    if (filters.dateRange.start && filters.dateRange.end) count += 1;
+    if (searchTerm) count += 1;
+    return count;
+  };
+
+  // Handler for successful import
+  const handleImport = (result) => {
+    setNotification({
+      type: 'success',
+      message: `Successfully imported ${result.shifts_created || 0} shifts`
+    });
+    // Reload schedules to show imported data
+    loadData();
+  };
+
+  // Handler for successful export
+  const handleExport = (result) => {
+    setNotification({
+      type: 'success',
+      message: `Successfully exported schedule as ${result.format.toUpperCase()}`
+    });
   };
 
   if (loading) {
@@ -164,32 +335,84 @@ const SchedulePage = () => {
             </Typography>
           </Box>
           <Box display="flex" gap={2} alignItems="center">
-            <ToggleButtonGroup
-              value={view}
-              exclusive
-              onChange={handleViewChange}
-              size="small"
-            >
-              <ToggleButton value="timeGridDay">
-                <Today sx={{ mr: 1 }} fontSize="small" />
-                Day
-              </ToggleButton>
-              <ToggleButton value="timeGridWeek">
-                <ViewWeek sx={{ mr: 1 }} fontSize="small" />
-                Week
-              </ToggleButton>
-              <ToggleButton value="dayGridMonth">
-                <ViewModule sx={{ mr: 1 }} fontSize="small" />
-                Month
-              </ToggleButton>
-            </ToggleButtonGroup>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setDialogOpen(true)}
-            >
-              Add Schedule
-            </Button>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel>Schedule</InputLabel>
+              <Select
+                value={selectedSchedule?.id || ''}
+                label="Schedule"
+                onChange={(e) => {
+                  const schedule = schedules.find(s => s.id === e.target.value);
+                  setSelectedSchedule(schedule);
+                }}
+              >
+                {schedules.map(schedule => (
+                  <MenuItem key={schedule.id} value={schedule.id}>
+                    {schedule.title || `Week of ${schedule.weekStart || schedule.week_start}`}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Desktop controls - hidden on mobile */}
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, alignItems: 'center' }}>
+              <ToggleButtonGroup
+                value={view}
+                exclusive
+                onChange={handleViewChange}
+                size="small"
+              >
+                <ToggleButton value="timeGridDay">
+                  <Today sx={{ mr: 1 }} fontSize="small" />
+                  Day
+                </ToggleButton>
+                <ToggleButton value="timeGridWeek">
+                  <ViewWeek sx={{ mr: 1 }} fontSize="small" />
+                  Week
+                </ToggleButton>
+                <ToggleButton value="dayGridMonth">
+                  <ViewModule sx={{ mr: 1 }} fontSize="small" />
+                  Month
+                </ToggleButton>
+              </ToggleButtonGroup>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AutoFixHigh />}
+                onClick={() => navigate('/schedule/builder')}
+              >
+                Schedule Builder
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={() => setShowAssignmentForm(true)}
+                disabled={!selectedSchedule}
+                sx={{ mr: 1 }}
+              >
+                Assign Employee to Shift
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Add />}
+                onClick={() => setDialogOpen(true)}
+              >
+                Add Schedule
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<CloudUpload />}
+                onClick={() => setShowImportDialog(true)}
+              >
+                Import
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<CloudDownload />}
+                onClick={() => setShowExportDialog(true)}
+              >
+                Export
+              </Button>
+            </Box>
           </Box>
         </Box>
       </motion.div>
@@ -199,26 +422,56 @@ const SchedulePage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, p: 2 }}>
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView={view}
-            headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: ''
-            }}
-            events={schedules}
-            dateClick={handleDateClick}
-            eventClick={handleEventClick}
-            editable={true}
-            selectable={true}
-            selectMirror={true}
-            dayMaxEvents={true}
-            weekends={true}
-            height="auto"
-          />
-        </Box>
+        <Grid container spacing={2}>
+          {/* Filter Sidebar */}
+          {showFilters && (
+            <Grid item xs={12} md={3}>
+              <SearchBar
+                onSearch={handleSearch}
+                placeholder="Search employees or shifts..."
+              />
+              <FilterPanel
+                departments={departments}
+                onFilterChange={handleFilterChange}
+                initialFilters={filters}
+                showDateFilter={true}
+                showShiftTypeFilter={true}
+                showDepartmentFilter={true}
+              />
+            </Grid>
+          )}
+
+          {/* Calendar */}
+          <Grid item xs={12} md={showFilters ? 9 : 12}>
+            <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, p: isMobile ? 1 : 2 }}>
+              {getActiveFilterCount() > 0 && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Showing {calendarEvents.length} event(s) with {getActiveFilterCount()} active filter(s)
+                </Alert>
+              )}
+              <FullCalendar
+                ref={calendarRef}
+                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+                initialView={view}
+                {...getMobileCalendarConfig(isMobile, isTablet)}
+                views={customViews}
+                buttonText={getButtonText(isMobile)}
+                events={calendarEvents}
+                dateClick={handleDateClick}
+                eventClick={handleEventClick}
+              />
+            </Box>
+          </Grid>
+        </Grid>
+
+        {/* Mobile SpeedDial Controls */}
+        <MobileCalendarControls
+          onAddShift={() => setShowAssignmentForm(true)}
+          onChangeView={handleChangeView}
+          onToday={handleToday}
+          onFilter={handleFilter}
+          isMobile={isMobile}
+        />
       </motion.div>
 
       {/* Add Schedule Dialog */}
@@ -304,6 +557,36 @@ const SchedulePage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Assignment Form Dialog */}
+      <AssignmentForm
+        open={showAssignmentForm}
+        onClose={() => setShowAssignmentForm(false)}
+        onSubmit={handleAssignmentSubmit}
+        scheduleId={selectedSchedule?.id}
+      />
+
+      {/* Import Dialog - Lazy Loaded */}
+      <Suspense fallback={<CircularProgress />}>
+        {showImportDialog && (
+          <ImportDialog
+            open={showImportDialog}
+            onClose={() => setShowImportDialog(false)}
+            onImport={handleImport}
+          />
+        )}
+      </Suspense>
+
+      {/* Export Dialog - Lazy Loaded */}
+      <Suspense fallback={<CircularProgress />}>
+        {showExportDialog && (
+          <ExportDialog
+            open={showExportDialog}
+            onClose={() => setShowExportDialog(false)}
+            onExport={handleExport}
+          />
+        )}
+      </Suspense>
 
       {/* Notification Snackbar */}
       <Snackbar

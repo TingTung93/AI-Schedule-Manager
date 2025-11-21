@@ -73,6 +73,7 @@ const EmployeeManagement = () => {
     email: '',
     phone: '',
     role: '',
+    department: null,
     hourlyRate: '',
     qualifications: [],
     availability: {
@@ -98,6 +99,17 @@ const EmployeeManagement = () => {
       },
       onError: (error) => {
         setNotification({ type: 'error', message: getErrorMessage(error) });
+      }
+    }
+  );
+
+  // Fetch departments
+  const { data: departmentsData, loading: loadingDepartments } = useApi(
+    () => api.get('/api/departments'),
+    [],
+    {
+      onError: (error) => {
+        console.error('Error loading departments:', error);
       }
     }
   );
@@ -149,6 +161,7 @@ const EmployeeManagement = () => {
 
   // Data processing
   const employees = employeesData?.employees || [];
+  const departments = useMemo(() => departmentsData?.departments || [], [departmentsData]);
   const roles = ['manager', 'supervisor', 'cashier', 'cook', 'server', 'cleaner'];
   const qualifications = ['First Aid', 'Food Safety', 'Manager Training', 'Customer Service', 'Cash Handling'];
 
@@ -185,6 +198,7 @@ const EmployeeManagement = () => {
         email: employee.email || '',
         phone: employee.phone || '',
         role: employee.role || '',
+        department: employee.departmentId || null,
         hourlyRate: employee.hourlyRate || '',
         qualifications: employee.qualifications || [],
         availability: employee.availability || formData.availability,
@@ -208,6 +222,7 @@ const EmployeeManagement = () => {
       email: '',
       phone: '',
       role: '',
+      department: null,
       hourlyRate: '',
       qualifications: [],
       availability: {
@@ -225,18 +240,40 @@ const EmployeeManagement = () => {
   }, []);
 
   const handleSubmit = useCallback(() => {
+    // Validate email uniqueness before submission (only for new employees with email)
+    if (dialogMode === 'add' && formData.email && formData.email.trim()) {
+      const emailExists = employees.some(
+        emp => emp.email?.toLowerCase() === formData.email.toLowerCase()
+      );
+
+      if (emailExists) {
+        setNotification({
+          type: 'error',
+          message: `Email ${formData.email} is already in use. Please use a different email or leave it empty to auto-generate.`
+        });
+        return;
+      }
+    }
+
     const employeeData = {
       ...formData,
       hourlyRate: parseFloat(formData.hourlyRate) || 0,
       maxHoursPerWeek: parseInt(formData.maxHoursPerWeek) || 40,
+      // Only include email if it's not empty
+      email: formData.email.trim() || undefined,
+      // Send department as departmentId to backend
+      departmentId: formData.department || undefined,
     };
+
+    // Remove the local 'department' field as we're sending 'departmentId'
+    delete employeeData.department;
 
     if (dialogMode === 'add') {
       createEmployee(employeeData);
     } else {
-      updateEmployee(selectedEmployee.id, employeeData);
+      updateEmployee({ id: selectedEmployee.id, data: employeeData });
     }
-  }, [dialogMode, formData, selectedEmployee, createEmployee, updateEmployee]);
+  }, [dialogMode, formData, selectedEmployee, employees, createEmployee, updateEmployee, setNotification]);
 
   const handleDeleteClick = useCallback((employee) => {
     setEmployeeToDelete(employee);
@@ -366,6 +403,7 @@ const EmployeeManagement = () => {
                 <TableCell>Employee</TableCell>
                 <TableCell>Contact</TableCell>
                 <TableCell>Role</TableCell>
+                <TableCell>Department</TableCell>
                 <TableCell>Qualifications</TableCell>
                 <TableCell>Rate</TableCell>
                 <TableCell>Status</TableCell>
@@ -410,6 +448,11 @@ const EmployeeManagement = () => {
                       color={getRoleColor(employee.role)}
                       size="small"
                     />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {employee.department?.name || '-'}
+                    </Typography>
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -523,8 +566,9 @@ const EmployeeManagement = () => {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
+                helperText={dialogMode === 'add' ? "Leave empty to auto-generate a unique email address" : ""}
                 aria-label="Email address"
+                placeholder="Leave empty to auto-generate"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -537,7 +581,7 @@ const EmployeeManagement = () => {
               />
             </Grid>
 
-            {/* Role and Rate */}
+            {/* Role and Department */}
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth required>
                 <InputLabel>Role</InputLabel>
@@ -555,6 +599,29 @@ const EmployeeManagement = () => {
                 </Select>
               </FormControl>
             </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Department</InputLabel>
+                <Select
+                  value={formData.department || ''}
+                  label="Department"
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value || null })}
+                  aria-label="Department"
+                  disabled={loadingDepartments}
+                >
+                  <MenuItem value="">
+                    <em>None</em>
+                  </MenuItem>
+                  {departments.map(dept => (
+                    <MenuItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Rate */}
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth

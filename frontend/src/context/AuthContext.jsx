@@ -133,34 +133,51 @@ export function AuthProvider({ children }) {
   }, [state.user, state.token, state.refreshToken, state.isAuthenticated]);
 
   // Login function
-  const login = async (credentials) => {
+  const login = async (userData, accessToken) => {
     dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      // Support both direct login (with user data and token) and credential-based login
+      if (typeof userData === 'object' && userData.email && userData.password && !accessToken) {
+        // Credentials provided - make API call
+        const credentials = userData;
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credentials),
+        });
 
-      if (!response.ok) {
-        throw new Error('Login failed');
+        if (!response.ok) {
+          throw new Error('Login failed');
+        }
+
+        const data = await response.json();
+
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_SUCCESS,
+          payload: {
+            user: data.user,
+            token: data.token || data.access_token,
+            refreshToken: data.refreshToken || data.refresh_token,
+          },
+        });
+
+        return { success: true, user: data.user };
+      } else {
+        // User data and token provided directly - update state
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_SUCCESS,
+          payload: {
+            user: userData,
+            token: accessToken,
+            refreshToken: null, // Will be set by api service if available
+          },
+        });
+
+        return { success: true, user: userData };
       }
-
-      const data = await response.json();
-
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: {
-          user: data.user,
-          token: data.token,
-          refreshToken: data.refreshToken,
-        },
-      });
-
-      return { success: true, user: data.user };
     } catch (error) {
       dispatch({
         type: AUTH_ACTIONS.LOGIN_FAILURE,
@@ -184,6 +201,10 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear api service token as well
+      if (typeof window !== 'undefined' && window.authService) {
+        window.authService.clearAccessToken();
+      }
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     }
   };

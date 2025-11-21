@@ -37,7 +37,11 @@ import {
   Home,
   ExpandLess,
   ExpandMore,
-  ChevronRight
+  ChevronRight,
+  ViewModule,
+  Business,
+  AccessTime,
+  Security
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTE_CONFIG, NAV_GROUPS, ROUTES } from '../../utils/routeConfig';
@@ -51,7 +55,11 @@ const iconMap = {
   Rule,
   Analytics,
   Settings,
-  Person
+  Person,
+  ViewModule,
+  Business,
+  AccessTime,
+  Security
 };
 
 const Layout = () => {
@@ -116,9 +124,8 @@ const Layout = () => {
 
   const handleNavigation = (path) => {
     navigate(path);
-    if (isMobile) {
-      setMobileOpen(false);
-    }
+    // Always close mobile drawer when navigating
+    setMobileOpen(false);
   };
 
   const toggleGroupExpansion = (groupIndex) => {

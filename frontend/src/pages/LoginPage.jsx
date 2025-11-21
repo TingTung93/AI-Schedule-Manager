@@ -22,6 +22,7 @@ import {
   Login as LoginIcon
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
+import { authService } from '../services/api';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -55,10 +56,28 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await login(formData);
+      // Call backend API to authenticate
+      const response = await authService.login(formData.email, formData.password);
+
+      // Extract token from response (handle both camelCase and snake_case)
+      const token = response.data.accessToken || response.data.access_token;
+      const user = response.data.user;
+
+      if (!token || !user) {
+        throw new Error('Invalid response from server');
+      }
+
+      // Update auth context with user data and token
+      const result = await login(user, token);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Login failed');
+      }
+
       // Navigation will be handled by the auth state change
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || err.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -67,12 +86,26 @@ const LoginPage = () => {
   const handleDemoLogin = async () => {
     setIsLoading(true);
     try {
-      await login({
-        email: 'demo@example.com',
-        password: 'demo123'
-      });
+      // Call backend API to authenticate with demo account
+      const response = await authService.login('demo@example.com', 'Demo123!');
+
+      // Extract token from response (handle both camelCase and snake_case)
+      const token = response.data.accessToken || response.data.access_token;
+      const user = response.data.user;
+
+      if (!token || !user) {
+        throw new Error('Invalid response from server');
+      }
+
+      // Update auth context with user data and token
+      const result = await login(user, token);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Demo login failed');
+      }
     } catch (err) {
-      setError('Demo login failed. Please try manual login.');
+      console.error('Demo login error:', err);
+      setError(err.response?.data?.message || err.message || 'Demo login failed. Please try manual login.');
     } finally {
       setIsLoading(false);
     }

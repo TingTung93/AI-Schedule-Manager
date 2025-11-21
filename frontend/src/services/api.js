@@ -2,15 +2,130 @@
  * API Service Module
  *
  * Centralized HTTP client with JWT authentication, token refresh,
- * CSRF protection, and comprehensive error handling.
+ * CSRF protection, comprehensive error handling, and automatic
+ * data transformation between snake_case (backend) and camelCase (frontend).
+ *
+ * Features:
+ * - Automatic bidirectional data transformation (snake_case <-> camelCase)
+ * - JWT token management with refresh
+ * - CSRF protection
+ * - Request/response interceptors
+ * - Error handling and retry logic
+ * - Rate limiting handling
  */
 
 import axios from 'axios';
 
+/**
+ * Data Transformation Utilities
+ * Convert between snake_case (backend) and camelCase (frontend)
+ */
+
+/**
+ * Check if value is a plain object (not Array, Date, File, etc.)
+ */
+const isPlainObject = (value) => {
+  return value !== null &&
+         typeof value === 'object' &&
+         value.constructor === Object;
+};
+
+/**
+ * Check if value should be excluded from transformation
+ */
+const shouldSkipTransformation = (value) => {
+  return value instanceof File ||
+         value instanceof FileList ||
+         value instanceof FormData ||
+         value instanceof Date;
+};
+
+/**
+ * Convert snake_case string to camelCase
+ */
+const snakeToCamelCase = (str) => {
+  return str.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+};
+
+/**
+ * Convert camelCase string to snake_case
+ */
+const camelToSnakeCase = (str) => {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+};
+
+/**
+ * Recursively convert object keys from snake_case to camelCase
+ */
+const snakeToCamel = (obj) => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  // Skip transformation for special types
+  if (shouldSkipTransformation(obj)) {
+    return obj;
+  }
+
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return obj.map((item) => snakeToCamel(item));
+  }
+
+  // Handle plain objects
+  if (isPlainObject(obj)) {
+    const transformed = {};
+
+    Object.keys(obj).forEach((key) => {
+      const camelKey = snakeToCamelCase(key);
+      transformed[camelKey] = snakeToCamel(obj[key]);
+    });
+
+    return transformed;
+  }
+
+  // Return primitive values as-is
+  return obj;
+};
+
+/**
+ * Recursively convert object keys from camelCase to snake_case
+ */
+const camelToSnake = (obj) => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  // Skip transformation for special types
+  if (shouldSkipTransformation(obj)) {
+    return obj;
+  }
+
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return obj.map((item) => camelToSnake(item));
+  }
+
+  // Handle plain objects
+  if (isPlainObject(obj)) {
+    const transformed = {};
+
+    Object.keys(obj).forEach((key) => {
+      const snakeKey = camelToSnakeCase(key);
+      transformed[snakeKey] = camelToSnake(obj[key]);
+    });
+
+    return transformed;
+  }
+
+  // Return primitive values as-is
+  return obj;
+};
+
 // Create axios instance with default configuration
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
-  timeout: 10000,
+  baseURL: process.env.REACT_APP_API_URL || '',
+  timeout: 30000, // Increased from 10s to 30s to handle slower backend responses
   withCredentials: true, // Enable cookies for HttpOnly JWT tokens
   headers: {
     'Content-Type': 'application/json',
@@ -18,10 +133,20 @@ const api = axios.create({
 });
 
 // Token storage (fallback for non-cookie scenarios)
+// Initialize from localStorage on module load
 let accessToken = null;
 let csrfToken = null;
 let isRefreshing = false;
 let failedQueue = [];
+
+// Load token from localStorage on initialization
+if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+  const storedToken = localStorage.getItem('access_token');
+  if (storedToken) {
+    accessToken = storedToken;
+    console.log('[API] Loaded access token from localStorage on initialization');
+  }
+}
 
 // Process failed requests queue after token refresh
 const processQueue = (error, token = null) => {
@@ -36,7 +161,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Request interceptor for adding auth headers
+// Request interceptor for adding auth headers and transforming data
 api.interceptors.request.use(
   (config) => {
     // Add access token to Authorization header if available
@@ -49,6 +174,28 @@ api.interceptors.request.use(
       config.headers['X-CSRF-Token'] = csrfToken;
     }
 
+    // Log request data before transformation
+    console.log(`[API] Request to ${config.method?.toUpperCase()} ${config.url}:`, {
+      dataType: config.data ? (Array.isArray(config.data) ? 'array' : typeof config.data) : 'none',
+      dataKeys: config.data && typeof config.data === 'object' ? Object.keys(config.data) : 'N/A',
+      params: config.params
+    });
+
+    // Transform request data from camelCase to snake_case
+    if (config.data && !shouldSkipTransformation(config.data)) {
+      const originalData = config.data;
+      config.data = camelToSnake(config.data);
+      console.log(`[API] Transformed request data:`, {
+        before: originalData,
+        after: config.data
+      });
+    }
+
+    // Transform query parameters from camelCase to snake_case
+    if (config.params && !shouldSkipTransformation(config.params)) {
+      config.params = camelToSnake(config.params);
+    }
+
     // Add request timestamp for debugging
     config.metadata = { startTime: new Date() };
 
@@ -59,7 +206,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for handling token refresh and errors
+// Response interceptor for transforming data and handling token refresh and errors
 api.interceptors.response.use(
   (response) => {
     // Log response time for debugging
@@ -67,6 +214,24 @@ api.interceptors.response.use(
       const endTime = new Date();
       const duration = endTime - response.config.metadata.startTime;
       console.debug(`API Request: ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`);
+    }
+
+    // Log response data before transformation for debugging
+    console.log(`[API] Response from ${response.config.url}:`, {
+      status: response.status,
+      dataType: Array.isArray(response.data) ? 'array' : typeof response.data,
+      dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : 'N/A',
+      sampleData: response.data
+    });
+
+    // Transform response data from snake_case to camelCase
+    if (response.data) {
+      const originalData = response.data;
+      response.data = snakeToCamel(response.data);
+      console.log(`[API] Transformed data:`, {
+        beforeKeys: typeof originalData === 'object' && !Array.isArray(originalData) ? Object.keys(originalData) : 'N/A',
+        afterKeys: typeof response.data === 'object' && !Array.isArray(response.data) ? Object.keys(response.data) : 'N/A'
+      });
     }
 
     return response;
@@ -105,10 +270,19 @@ api.interceptors.response.use(
         // Retry original request
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - redirect to login
+        // Refresh failed - clear tokens and redirect to login
         processQueue(refreshError, null);
-        authService.logout();
-        window.location.href = '/login';
+
+        // Clear stored tokens
+        accessToken = null;
+        csrfToken = null;
+
+        // Don't redirect if already on login/register pages to prevent loops
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          console.log('[API] Token refresh failed, redirecting to login...');
+          window.location.href = '/login';
+        }
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -156,7 +330,9 @@ export const authService = {
       });
 
       // Store access token (backup for cookie-less scenarios)
-      if (response.data.access_token) {
+      if (response.data.accessToken) {
+        accessToken = response.data.accessToken;
+      } else if (response.data.access_token) {
         accessToken = response.data.access_token;
       }
 
@@ -327,15 +503,27 @@ export const authService = {
 
   /**
    * Set access token manually (for non-cookie scenarios)
+   * Stores in both memory and localStorage for persistence
    */
   setAccessToken(token) {
     accessToken = token;
+    if (token) {
+      localStorage.setItem('access_token', token);
+      console.log('[API] Access token set and stored in localStorage');
+    } else {
+      localStorage.removeItem('access_token');
+      console.log('[API] Access token cleared from localStorage');
+    }
   },
 
   /**
    * Get current access token
+   * Checks memory first, then localStorage
    */
   getAccessToken() {
+    if (!accessToken) {
+      accessToken = localStorage.getItem('access_token');
+    }
     return accessToken;
   },
 
@@ -343,7 +531,16 @@ export const authService = {
    * Check if user is authenticated
    */
   isAuthenticated() {
-    return !!accessToken;
+    return !!this.getAccessToken();
+  },
+
+  /**
+   * Clear access token (used during logout)
+   */
+  clearAccessToken() {
+    accessToken = null;
+    csrfToken = null;
+    localStorage.removeItem('access_token');
   }
 };
 
@@ -410,6 +607,62 @@ export const scheduleService = {
       return response;
     } catch (error) {
       console.error('Delete schedule failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update a specific shift in a schedule
+   * @param {string|number} scheduleId - The schedule ID
+   * @param {string|number} shiftId - The shift ID to update
+   * @param {Object} updates - Shift update data (e.g., startTime, endTime, employeeId)
+   * @returns {Promise<Object>} Updated shift data
+   */
+  async updateShift(scheduleId, shiftId, updates) {
+    try {
+      const response = await api.patch(`/api/schedules/${scheduleId}/shifts/${shiftId}`, updates);
+      return response;
+    } catch (error) {
+      console.error('Update shift failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Generate a new schedule for a date range using AI optimization
+   * @param {string} startDate - Start date (ISO format or YYYY-MM-DD)
+   * @param {string} endDate - End date (ISO format or YYYY-MM-DD)
+   * @param {Object} options - Additional generation options
+   * @param {number} options.minStaff - Minimum staff per shift
+   * @param {number} options.maxHoursPerEmployee - Max hours per employee
+   * @param {boolean} options.respectPreferences - Whether to respect employee preferences
+   * @returns {Promise<Object>} Generated schedule data
+   */
+  async generateSchedule(startDate, endDate, options = {}) {
+    try {
+      const response = await api.post('/api/schedule/generate', {
+        startDate,
+        endDate,
+        ...options
+      });
+      return response;
+    } catch (error) {
+      console.error('Generate schedule failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Optimize an existing schedule using AI algorithms
+   * @param {string|number} scheduleId - The schedule ID to optimize
+   * @returns {Promise<Object>} Optimized schedule data
+   */
+  async optimizeSchedule(scheduleId) {
+    try {
+      const response = await api.post(`/api/schedules/${scheduleId}/optimize`);
+      return response;
+    } catch (error) {
+      console.error('Optimize schedule failed:', error);
       throw error;
     }
   }
@@ -538,37 +791,109 @@ export const userService = {
   }
 };
 
+// Employee-related API calls
+export const employeeService = {
+  /**
+   * Get employee's schedule for a date range
+   * @param {string|number} employeeId - The employee ID
+   * @param {string} startDate - Start date (ISO format or YYYY-MM-DD)
+   * @param {string} endDate - End date (ISO format or YYYY-MM-DD)
+   * @returns {Promise<Object>} Employee's schedule data
+   */
+  async getEmployeeSchedule(employeeId, startDate, endDate) {
+    try {
+      const response = await api.get(`/api/employees/${employeeId}/schedule`, {
+        params: {
+          startDate,
+          endDate
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error('Get employee schedule failed:', error);
+      throw error;
+    }
+  }
+};
+
+// Analytics-related API calls
+export const analyticsService = {
+  /**
+   * Get dashboard analytics overview
+   * @returns {Promise<Object>} Analytics overview with key metrics
+   */
+  async getAnalyticsOverview() {
+    try {
+      const response = await api.get('/api/analytics/overview');
+      return response;
+    } catch (error) {
+      console.error('Get analytics overview failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get labor costs for a specific date range
+   * @param {string} startDate - Start date (ISO format or YYYY-MM-DD)
+   * @param {string} endDate - End date (ISO format or YYYY-MM-DD)
+   * @returns {Promise<Object>} Labor cost analysis data
+   */
+  async getLaborCosts(startDate, endDate) {
+    try {
+      const response = await api.get('/api/analytics/labor-costs', {
+        params: {
+          startDate,
+          endDate
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error('Get labor costs failed:', error);
+      throw error;
+    }
+  }
+};
+
 /**
- * SERVICE WRAPPERS REMOVED - Use axios 'api' instance directly
+ * NOTE: Additional API endpoints can be accessed using the 'api' instance directly.
  *
- * Previous version had 373 lines of service wrapper methods (employeeService,
- * ruleService, analyticsService, notificationService, shiftService, settingsService)
- * that added no value - just wrapped axios calls with identical try-catch blocks.
- *
- * This violates KISS and DRY principles. Instead, use the axios instance directly:
- *
- * Example:
+ * For simple CRUD operations without complex logic, use:
  *   import api, { getErrorMessage } from './services/api';
  *
- *   const response = await api.get('/api/employees');
- *   const response = await api.post('/api/employees', data);
- *   const response = await api.patch(`/api/employees/${id}`, data);
- *   const response = await api.delete(`/api/employees/${id}`);
+ *   const response = await api.get('/api/resource');
+ *   const response = await api.post('/api/resource', data);
+ *   const response = await api.patch(`/api/resource/${id}`, data);
+ *   const response = await api.delete(`/api/resource/${id}`);
  *
- * Error logging is centralized in the response interceptor (line 74).
+ * Error logging is centralized in the response interceptor.
  * For user-friendly error messages, use: getErrorMessage(error)
  */
-
-// Kept services: authService, scheduleService, taskService, userService
-// These contain authentication logic and are worth keeping
 
 export const errorHandler = {
   /**
    * Extract user-friendly error message
    */
   getErrorMessage(error) {
+    // Handle 409 Conflict errors specially
+    if (error.response?.status === 409) {
+      const detail = error.response?.data?.detail;
+      if (detail) {
+        // Extract email from detail message if present
+        const emailMatch = detail.match(/email\s+([^\s]+)\s+already exists/i);
+        if (emailMatch) {
+          return `This email address (${emailMatch[1]}) is already registered. Please use a different email or leave it empty to auto-generate.`;
+        }
+        return detail;
+      }
+      return 'This employee already exists. Please check the email address or try a different one.';
+    }
+
     if (error.response?.data?.message) {
       return error.response.data.message;
+    }
+
+    if (error.response?.data?.detail) {
+      return error.response.data.detail;
     }
 
     if (error.response?.data?.error) {
@@ -594,6 +919,13 @@ export const errorHandler = {
    */
   isValidationError(error) {
     return error.response?.status === 400;
+  },
+
+  /**
+   * Check if error is conflict related (409)
+   */
+  isConflictError(error) {
+    return error.response?.status === 409;
   },
 
   /**
@@ -660,5 +992,15 @@ storeApiImplementation();
 
 // Convenient named export for error message extraction
 export const getErrorMessage = errorHandler.getErrorMessage;
+
+// Export transformation utilities for manual use if needed
+export const transformUtils = {
+  snakeToCamel,
+  camelToSnake,
+  snakeToCamelCase,
+  camelToSnakeCase,
+  isPlainObject,
+  shouldSkipTransformation
+};
 
 export default api;

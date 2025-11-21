@@ -36,10 +36,14 @@ import {
   ChevronLeft as ChevronLeftIcon,
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
+  Business as BusinessIcon,
+  AccessTime as AccessTimeIcon,
+  Security as SecurityIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService, notificationService } from '../services/api';
 import { useApi } from '../hooks/useApi';
+import { useAuth } from '../hooks/useAuth';
 
 const DRAWER_WIDTH = 280;
 
@@ -48,58 +52,89 @@ const Navigation = ({ children, onThemeToggle, darkMode = false }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth(); // Get user from AuthContext
 
   // State management
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
   const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
   const [notificationMenuAnchor, setNotificationMenuAnchor] = useState(null);
-  const [user, setUser] = useState(null);
 
-  // Get current user
-  useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
-  }, []);
+  // Helper function to check if user has required role
+  const hasRole = (requiredRoles) => {
+    if (!requiredRoles || requiredRoles.length === 0) return true;
+    if (!user || !user.roles) return false;
+    return requiredRoles.some(role => user.roles.includes(role));
+  };
 
-  // Navigation items
-  const navigationItems = [
+  // All navigation items with role-based access control
+  const allNavigationItems = [
     {
       text: 'Dashboard',
       icon: <DashboardIcon />,
       path: '/dashboard',
       description: 'Overview and metrics',
-    },
-    {
-      text: 'Employees',
-      icon: <PeopleIcon />,
-      path: '/employees',
-      description: 'Manage staff members',
+      requiredRoles: [],
     },
     {
       text: 'Schedules',
       icon: <ScheduleIcon />,
       path: '/schedule',
       description: 'View and edit schedules',
+      requiredRoles: [],
+    },
+    {
+      text: 'Employees',
+      icon: <PeopleIcon />,
+      path: '/employees',
+      description: 'Manage staff members',
+      requiredRoles: ['admin', 'manager'],
+    },
+    {
+      text: 'Departments',
+      icon: <BusinessIcon />,
+      path: '/departments',
+      description: 'Manage departments',
+      requiredRoles: ['admin', 'manager'],
+    },
+    {
+      text: 'Shifts',
+      icon: <AccessTimeIcon />,
+      path: '/shifts',
+      description: 'Define shift patterns',
+      requiredRoles: ['admin', 'manager'],
+    },
+    {
+      text: 'Roles',
+      icon: <SecurityIcon />,
+      path: '/roles',
+      description: 'Manage user roles and permissions',
+      requiredRoles: ['admin'],
     },
     {
       text: 'Rules',
       icon: <RuleIcon />,
       path: '/rules',
       description: 'Scheduling rules and constraints',
+      requiredRoles: ['admin', 'manager'],
     },
     {
       text: 'Analytics',
       icon: <AnalyticsIcon />,
       path: '/analytics',
       description: 'Reports and insights',
+      requiredRoles: ['admin', 'manager'],
     },
     {
       text: 'Settings',
       icon: <SettingsIcon />,
       path: '/settings',
       description: 'System configuration',
+      requiredRoles: [],
     },
   ];
+
+  // Filter navigation items based on user roles
+  const navigationItems = allNavigationItems.filter(item => hasRole(item.requiredRoles));
 
   // Get notifications
   const { data: notificationsData } = useApi(
@@ -271,18 +306,23 @@ const Navigation = ({ children, onThemeToggle, darkMode = false }) => {
               {getUserDisplayName()}
             </Typography>
             <Typography variant="caption" color="text.secondary" noWrap>
-              {user?.role || 'User'}
+              {user?.roles && user.roles.length > 0 ? user.roles.join(', ') : 'User'}
             </Typography>
           </Box>
         </Box>
 
-        {user?.role && (
-          <Chip
-            label={user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-            size="small"
-            color="primary"
-            variant="outlined"
-          />
+        {user?.roles && user.roles.length > 0 && (
+          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+            {user.roles.map((role) => (
+              <Chip
+                key={role}
+                label={role.charAt(0).toUpperCase() + role.slice(1)}
+                size="small"
+                color={role === 'admin' ? 'error' : 'primary'}
+                variant="outlined"
+              />
+            ))}
+          </Box>
         )}
       </Box>
     </Box>

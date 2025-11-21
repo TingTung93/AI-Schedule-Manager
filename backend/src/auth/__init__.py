@@ -13,18 +13,20 @@ Provides comprehensive JWT-based authentication system with:
 """
 
 from .auth import AuthenticationError, AuthorizationError, auth_service, init_auth
-from .middleware import (
-    CSRFProtection,
-    RateLimiter,
-    csrf_protect,
-    optional_auth,
-    rate_limit,
-    require_permission,
-    require_role,
-    token_required,
-)
+# Flask middleware - not used in FastAPI
+# from .middleware import (
+#     CSRFProtection,
+#     RateLimiter,
+#     csrf_protect,
+#     optional_auth,
+#     rate_limit,
+#     require_permission,
+#     require_role,
+#     token_required,
+# )
 from .models import AuditLog, LoginAttempt, Permission, RefreshToken, Role, User
-from .routes import auth_bp
+# Flask routes - not used, using fastapi_routes instead
+# from .routes import auth_bp
 
 __all__ = [
     # Core authentication
@@ -32,15 +34,6 @@ __all__ = [
     "init_auth",
     "AuthenticationError",
     "AuthorizationError",
-    # Middleware and decorators
-    "token_required",
-    "require_role",
-    "require_permission",
-    "optional_auth",
-    "rate_limit",
-    "csrf_protect",
-    "RateLimiter",
-    "CSRFProtection",
     # Database models
     "User",
     "Role",
@@ -48,8 +41,6 @@ __all__ = [
     "LoginAttempt",
     "RefreshToken",
     "AuditLog",
-    # Routes blueprint
-    "auth_bp",
 ]
 
 # Version info

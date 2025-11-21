@@ -13,9 +13,13 @@ export const ROUTES = {
   // Protected routes
   DASHBOARD: '/dashboard',
   EMPLOYEES: '/employees',
+  DEPARTMENTS: '/departments',
+  DEPARTMENT_OVERVIEW: '/department-overview',
+  SHIFTS: '/shifts',
   SCHEDULE: '/schedule',
   RULES: '/rules',
   ANALYTICS: '/analytics',
+  ROLES: '/roles',
   SETTINGS: '/settings',
   PROFILE: '/profile',
 
@@ -51,11 +55,32 @@ export const ROUTE_CONFIG = [
     icon: 'People'
   },
   {
+    path: ROUTES.DEPARTMENTS,
+    component: 'DepartmentManager',
+    requiredRoles: [ROLES.ADMIN, ROLES.MANAGER],
+    title: 'Departments',
+    icon: 'Business'
+  },
+  {
+    path: ROUTES.SHIFTS,
+    component: 'ShiftManager',
+    requiredRoles: [ROLES.ADMIN, ROLES.MANAGER],
+    title: 'Shift Management',
+    icon: 'AccessTime'
+  },
+  {
     path: ROUTES.SCHEDULE,
     component: 'SchedulePage',
     requiredRoles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
     title: 'Schedule',
     icon: 'Schedule'
+  },
+  {
+    path: ROUTES.DEPARTMENT_OVERVIEW,
+    component: 'DepartmentOverview',
+    requiredRoles: [ROLES.ADMIN, ROLES.MANAGER],
+    title: 'Department Overview',
+    icon: 'ViewModule'
   },
   {
     path: ROUTES.RULES,
@@ -70,6 +95,13 @@ export const ROUTE_CONFIG = [
     requiredRoles: [ROLES.ADMIN, ROLES.MANAGER],
     title: 'Analytics',
     icon: 'Analytics'
+  },
+  {
+    path: ROUTES.ROLES,
+    component: 'RoleManager',
+    requiredRoles: [ROLES.ADMIN],
+    title: 'Role Management',
+    icon: 'Security'
   },
   {
     path: ROUTES.SETTINGS,
@@ -91,11 +123,11 @@ export const ROUTE_CONFIG = [
 export const NAV_GROUPS = [
   {
     title: 'Main',
-    routes: [ROUTES.DASHBOARD, ROUTES.SCHEDULE]
+    routes: [ROUTES.DASHBOARD, ROUTES.SCHEDULE, ROUTES.DEPARTMENT_OVERVIEW]
   },
   {
     title: 'Management',
-    routes: [ROUTES.EMPLOYEES, ROUTES.RULES, ROUTES.ANALYTICS]
+    routes: [ROUTES.EMPLOYEES, ROUTES.DEPARTMENTS, ROUTES.SHIFTS, ROUTES.RULES, ROUTES.ANALYTICS, ROUTES.ROLES]
   },
   {
     title: 'Account',
