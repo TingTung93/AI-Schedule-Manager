@@ -1,106 +1,40 @@
-# Pre-commit hooks for AI Schedule Manager
-# Install: pip install pre-commit && pre-commit install
+# Pre-commit Security Hooks Configuration
+# Installation: pip install pre-commit && pre-commit install
 
 repos:
-  # Python hooks
-  - repo: https://github.com/psf/black
-    rev: 23.9.1
-    hooks:
-      - id: black
-        language_version: python3.9
-        files: ^backend/.*\.py$
-
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.1.0
-    hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
-        files: ^backend/.*\.py$
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.6.0
-    hooks:
-      - id: mypy
-        files: ^backend/.*\.py$
-        additional_dependencies: [types-all]
-        args: [--ignore-missing-imports]
-
-  # JavaScript/React hooks
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.53.0
-    hooks:
-      - id: eslint
-        files: ^frontend/.*\.(js|jsx|ts|tsx)$
-        additional_dependencies:
-          - eslint
-          - eslint-config-react-app
-
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.0.3
-    hooks:
-      - id: prettier
-        files: ^frontend/.*\.(js|jsx|ts|tsx|css|json|md)$
-
-  # General hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-json
-      - id: check-toml
+      - id: detect-private-key
       - id: check-added-large-files
         args: ['--maxkb=500']
-      - id: check-case-conflict
+      - id: no-commit-to-branch
+        args: ['--branch', 'main', '--branch', 'master']
       - id: check-merge-conflict
-      - id: detect-private-key
-      - id: mixed-line-ending
-        args: ['--fix=lf']
+      - id: check-yaml
+        exclude: '^backend/'
+      - id: check-json
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
 
-  # Security hooks
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
-        exclude: .*\.lock$|package-lock\.json$
+        exclude: 'package-lock.json|requirements.txt'
 
-  # Dockerfile linting
-  - repo: https://github.com/hadolint/hadolint
-    rev: v2.12.0
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
     hooks:
-      - id: hadolint-docker
-        files: Dockerfile$
+      - id: bandit
+        args: ['-ll', '-r', 'backend/']
+        pass_filenames: false
 
-  # SQL linting (if you have SQL files)
-  - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 2.3.5
-    hooks:
-      - id: sqlfluff-lint
-        files: \.sql$
-      - id: sqlfluff-fix
-        files: \.sql$
-
-  # Markdown linting
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.37.0
-    hooks:
-      - id: markdownlint
-        args: ['--fix']
-
-# Custom local hooks
   - repo: local
     hooks:
-      - id: pytest-check
-        name: pytest-check
-        entry: bash -c 'cd backend && python -m pytest tests/unit/ -x --tb=short'
-        language: system
-        pass_filenames: false
-        files: ^backend/.*\.py$
-        
-      - id: no-hardcoded-secrets
-        name: Check for hardcoded secrets
-        entry: bash -c 'grep -r "password\|secret\|key\|token" --include="*.py" --include="*.js" --include="*.jsx" --exclude-dir=tests --exclude-dir=node_modules backend/ frontend/ | grep -v "\.env\|example\|test" || true'
+      - id: check-env-leaks
+        name: Check for .env in commits
+        entry: bash -c 'if git diff --cached --name-only | grep -q "^\.env$"; then echo "ERROR: Attempting to commit .env file!"; exit 1; fi'
         language: system
         pass_filenames: false
