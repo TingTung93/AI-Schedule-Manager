@@ -26,3 +26,20 @@ slowapi==0.1.9
 
 # Validation
 phonenumbers==8.13.50
+# File I/O
+aiofiles==24.1.0
+
+# HTTP Client
+aiohttp==3.12.15
+
+# Email
+aiosmtplib==3.0.2
+
+# File type detection
+filetype==1.2.0
+
+# Calendar
+icalendar==6.1.0
+
+# Caching
+cachetools==5.5.1
