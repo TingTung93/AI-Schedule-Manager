@@ -130,6 +130,29 @@ async def create_employee(
 ):
     """Create a new employee - only first_name and last_name required."""
     try:
+        # Import Department model for validation
+        from ..models.department import Department
+
+        # Validate department_id if provided
+        if employee_data.department_id is not None:
+            dept_result = await db.execute(
+                select(Department).where(Department.id == employee_data.department_id)
+            )
+            department = dept_result.scalar_one_or_none()
+
+            if not department:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Department with ID {employee_data.department_id} not found. Please select a valid department or leave unassigned."
+                )
+
+            # Check if department is active
+            if not department.active:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cannot assign employee to inactive department '{department.name}'. Please select an active department."
+                )
+
         # Generate email if not provided
         import uuid
         if not employee_data.email:
@@ -179,6 +202,15 @@ async def create_employee(
         await db.commit()
         await db.refresh(new_user)
 
+        # Load department relationship for response
+        if new_user.department_id:
+            dept_result = await db.execute(
+                select(Department).where(Department.id == new_user.department_id)
+            )
+            new_user.department = dept_result.scalar_one_or_none()
+        else:
+            new_user.department = None
+
         return new_user
 
     except HTTPException:
@@ -204,6 +236,9 @@ async def update_employee(
 ):
     """Update an existing employee. Supports both PUT and PATCH methods."""
     try:
+        # Import Department model for validation
+        from ..models.department import Department
+
         # Find user
         result = await db.execute(select(User).where(User.id == employee_id))
         user = result.scalar_one_or_none()
@@ -216,6 +251,39 @@ async def update_employee(
 
         # Update fields that exist in User model
         update_data = employee_data.model_dump(exclude_unset=True)
+
+        # Validate department_id if being updated
+        if 'department_id' in update_data and update_data['department_id'] is not None:
+            dept_result = await db.execute(
+                select(Department).where(Department.id == update_data['department_id'])
+            )
+            department = dept_result.scalar_one_or_none()
+
+            if not department:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Department with ID {update_data['department_id']} not found. Please select a valid department or set to null for unassigned."
+                )
+
+            # Check if department is active
+            if not department.active:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cannot assign employee to inactive department '{department.name}'. Please select an active department."
+                )
+
+        # Check if email is being updated and ensure it's unique
+        if 'email' in update_data and update_data['email'] != user.email:
+            email_check = await db.execute(
+                select(User).where(User.email == update_data['email'])
+            )
+            existing_user = email_check.scalar_one_or_none()
+
+            if existing_user:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Employee with email {update_data['email']} already exists. Please use a different email address."
+                )
 
         # Map fields to User model
         field_mapping = {
@@ -232,6 +300,15 @@ async def update_employee(
 
         await db.commit()
         await db.refresh(user)
+
+        # Load department relationship for response
+        if user.department_id:
+            dept_result = await db.execute(
+                select(Department).where(Department.id == user.department_id)
+            )
+            user.department = dept_result.scalar_one_or_none()
+        else:
+            user.department = None
 
         return user
 
