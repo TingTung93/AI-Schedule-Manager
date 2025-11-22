@@ -285,7 +285,7 @@ export const getDepartmentDistribution = async () => {
 };
 
 /**
- * Get department-specific analytics
+ * Get department-specific analytics (legacy, basic analytics)
  *
  * @param {number} departmentId - Department ID
  * @returns {Promise<Object>} Department analytics
@@ -300,12 +300,62 @@ export const getDepartmentDistribution = async () => {
  * console.log(`${analytics.totalEmployees} employees`);
  * console.log('By role:', analytics.employeesByRole);
  */
-export const getDepartmentAnalytics = async (departmentId) => {
+export const getDepartmentAnalytics = async (departmentId, startDate = null, endDate = null, params = {}) => {
   try {
+    // If dates are provided, fetch comprehensive schedule analytics
+    if (startDate && endDate) {
+      const response = await api.get(`/api/departments/${departmentId}/schedule-analytics`, {
+        params: {
+          startDate,
+          endDate,
+          ...params
+        }
+      });
+      return response.data;
+    }
+
+    // Otherwise, return basic department analytics
     const response = await api.get(`/api/departments/${departmentId}/analytics`);
     return response.data;
   } catch (error) {
     console.error('Get department analytics failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Export analytics report in specified format
+ *
+ * @param {number} departmentId - Department ID
+ * @param {string} format - Export format ('pdf', 'excel', or 'csv')
+ * @returns {Promise<Blob>} File download blob
+ *
+ * @example
+ * await exportAnalyticsReport(5, 'pdf');
+ * // Browser will download the PDF report
+ */
+export const exportAnalyticsReport = async (departmentId, format = 'pdf') => {
+  try {
+    const response = await api.get(`/api/departments/${departmentId}/analytics/export`, {
+      params: { format },
+      responseType: 'blob'
+    });
+
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+
+    const extension = format === 'excel' ? 'xlsx' : format;
+    link.setAttribute('download', `department-${departmentId}-analytics.${extension}`);
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    return response.data;
+  } catch (error) {
+    console.error('Export analytics report failed:', error);
     throw error;
   }
 };
