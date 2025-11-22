@@ -106,10 +106,10 @@ async def get_employees(
         List of employee records with department information
     """
     try:
-        # Build query with eager loading to eliminate N+1 queries
-        query = select(User).options(
-            selectinload(User.department)  # Single JOIN query for all departments
-        )
+        # Build query
+        # Note: User.department relationship not available due to different Base classes
+        # Department data can be joined manually if needed via department_id
+        query = select(User)
 
         # Apply filters
         if is_active is not None:
@@ -162,10 +162,9 @@ async def get_employee(
         500: Server error
     """
     try:
-        # Load employee with eager-loaded department (single query)
-        query = select(User).options(
-            selectinload(User.department)
-        ).where(User.id == employee_id)
+        # Load employee
+        # Note: User.department relationship not available due to different Base classes
+        query = select(User).where(User.id == employee_id)
 
         result = await db.execute(query)
         user = result.scalar_one_or_none()
