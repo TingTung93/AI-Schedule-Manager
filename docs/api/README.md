@@ -63,6 +63,34 @@ Complete authentication and security guide:
 
 ---
 
+### 👥 [Department Assignment API](./department-assignment-api.md)
+Department employee assignment and transfer endpoints:
+- ✅ Bulk employee assignment to departments
+- ✅ Employee transfer between departments
+- ✅ Approval workflow support
+- ✅ Complete audit trail tracking
+- ✅ Request/response schemas with examples
+- ✅ Error handling and validation
+- ✅ Code examples in Python, JavaScript, and cURL
+
+**Perfect for:** Managing department assignments and organizational structure
+
+---
+
+### 📅 [Department Schedule Management API](./department-schedule-api.md)
+Department-specific scheduling and template management:
+- ✅ Create and manage department schedules
+- ✅ Schedule template creation and application
+- ✅ Consolidated department schedule views
+- ✅ Coverage analytics and metrics
+- ✅ Staffing gap analysis
+- ✅ Query parameters and filtering
+- ✅ Comprehensive usage examples
+
+**Perfect for:** Department-level schedule planning and optimization
+
+---
+
 ## Quick Start
 
 ### 1. Start the Backend Server
@@ -169,6 +197,14 @@ All endpoints (except `/auth/*`) require JWT authentication via:
 | `GET /api/shifts` | List shifts |
 | `POST /api/shifts` | Create shift |
 | `GET /api/departments` | List departments (hierarchical) |
+| `POST /api/departments/{id}/employees/bulk-assign` | Bulk assign employees to department |
+| `POST /api/departments/{id}/employees/{emp_id}/transfer` | Transfer employee between departments |
+| `GET /api/departments/{id}/schedules` | List department schedules |
+| `POST /api/departments/{id}/schedules` | Create department schedule |
+| `GET /api/departments/{id}/schedule-overview` | Get consolidated schedule view with analytics |
+| `GET /api/departments/{id}/templates` | List schedule templates |
+| `POST /api/departments/{id}/templates` | Create schedule template |
+| `POST /api/departments/{id}/templates/{template_id}/apply` | Apply template to create schedule |
 | `GET /api/data/export/schedules` | Export schedules (CSV/Excel/PDF/iCal) |
 | `POST /api/data/import/upload` | Upload import file |
 
@@ -412,6 +448,8 @@ Import `openapi.yaml` into Postman to auto-generate a complete collection with:
 - [API Reference](./API_REFERENCE.md) - Complete endpoint documentation
 - [Data Models](./DATA_MODELS.md) - Database schema and relationships
 - [Authentication Guide](./AUTHENTICATION.md) - Security and auth flows
+- [Department Assignment API](./department-assignment-api.md) - Employee assignment and transfers
+- [Department Schedule API](./department-schedule-api.md) - Department scheduling and templates
 - [OpenAPI Spec](./openapi.yaml) - Machine-readable API specification
 
 ### Interactive Docs
