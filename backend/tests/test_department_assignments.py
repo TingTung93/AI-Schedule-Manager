@@ -498,17 +498,17 @@ async def test_audit_trail_transfer(
 
     # Verify audit trail entry
     result = await db.execute(
-        select(DepartmentHistory)
-        .where(DepartmentHistory.employee_id == employee.id)
-        .where(DepartmentHistory.new_department_id == sales_dept.id)
-        .order_by(DepartmentHistory.changed_at.desc())
+        select(DepartmentAssignmentHistory)
+        .where(DepartmentAssignmentHistory.employee_id == employee.id)
+        .where(DepartmentAssignmentHistory.to_department_id == sales_dept.id)
+        .order_by(DepartmentAssignmentHistory.changed_at.desc())
     )
     audit_entry = result.scalar_one_or_none()
 
     assert audit_entry is not None
     assert audit_entry.employee_id == employee.id
-    assert audit_entry.previous_department_id == marketing_dept.id
-    assert audit_entry.new_department_id == sales_dept.id
+    assert audit_entry.from_department_id == marketing_dept.id
+    assert audit_entry.to_department_id == sales_dept.id
     assert audit_entry.change_reason == transfer_data["reason"]
 
 
