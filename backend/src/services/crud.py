@@ -446,11 +446,12 @@ class CRUDNotification(CRUDBase):
         sort_order: str = "desc",
     ):
         """Get notifications with filtering."""
-        query = select(Notification).options(selectinload(Notification.employee))
+        # Note: Notification.employee relationship not available due to different Base classes
+        query = select(Notification)
 
         # Apply filters
         if employee_id:
-            query = query.where(Notification.employee_id == employee_id)
+            query = query.where(Notification.user_id == employee_id)
 
         if notification_type:
             query = query.where(Notification.notification_type == notification_type)
