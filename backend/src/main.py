@@ -21,6 +21,7 @@ from .api.analytics import router as analytics_router
 from .api.assignments import router as assignments_router
 from .api.data_io import router as data_io_router
 from .api.departments import router as departments_router
+from .api.departments_assignment import router as departments_assignment_router
 from .api.employees import router as employees_router
 from .api.notifications import router as notifications_router
 from .api.rules import router as rules_router
@@ -164,6 +165,7 @@ app.include_router(auth_router)  # Authentication routes (replaces mock endpoint
 app.include_router(assignments_router)  # Assignment CRUD API
 app.include_router(data_io_router)
 app.include_router(departments_router)
+app.include_router(departments_assignment_router)  # Department assignment endpoints
 app.include_router(employees_router)
 app.include_router(notifications_router)
 app.include_router(rules_router)
