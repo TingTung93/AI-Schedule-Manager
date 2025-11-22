@@ -22,7 +22,7 @@ from unittest.mock import Mock, patch
 
 from src.models import Department
 from src.models.employee import Employee
-from src.models.department_history import DepartmentHistory
+from src.models.department_history import DepartmentAssignmentHistory
 
 
 @pytest_asyncio.fixture
@@ -455,9 +455,9 @@ async def test_audit_trail_bulk_assignment(
 
     # Verify audit trail entries were created
     result = await db.execute(
-        select(DepartmentHistory)
-        .where(DepartmentHistory.employee_id.in_(employee_ids))
-        .where(DepartmentHistory.new_department_id == sales_dept.id)
+        select(DepartmentAssignmentHistory)
+        .where(DepartmentAssignmentHistory.employee_id.in_(employee_ids))
+        .where(DepartmentAssignmentHistory.to_department_id == sales_dept.id)
     )
     audit_entries = result.scalars().all()
 
@@ -465,7 +465,7 @@ async def test_audit_trail_bulk_assignment(
 
     for entry in audit_entries:
         assert entry.employee_id in employee_ids
-        assert entry.new_department_id == sales_dept.id
+        assert entry.to_department_id == sales_dept.id
         assert entry.change_reason == assignment_data["reason"]
         assert entry.changed_at is not None
 
