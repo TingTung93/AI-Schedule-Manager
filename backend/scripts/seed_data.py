@@ -364,14 +364,15 @@ async def seed_users_and_employees(session: AsyncSession):
             # Create user
             hashed_password = hash_password(user_data["password"])
             result = await session.execute(
-                text("INSERT INTO users (email, password_hash, first_name, last_name, is_active, created_at, updated_at) "
-                     "VALUES (:email, :password_hash, :first_name, :last_name, TRUE, NOW(), NOW()) "
+                text("INSERT INTO users (email, password_hash, first_name, last_name, department_id, is_active, created_at, updated_at) "
+                     "VALUES (:email, :password_hash, :first_name, :last_name, :department_id, TRUE, NOW(), NOW()) "
                      "RETURNING id"),
                 {
                     "email": user_data["email"],
                     "password_hash": hashed_password,
                     "first_name": user_data["first_name"],
                     "last_name": user_data["last_name"],
+                    "department_id": user_data["department_id"],
                 }
             )
             user_id = result.scalar()
