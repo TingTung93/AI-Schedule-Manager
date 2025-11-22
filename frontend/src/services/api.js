@@ -120,6 +120,49 @@ const camelToSnake = (obj) => {
   return obj;
 };
 
+/**
+ * JWT Token Validation Utilities
+ */
+
+/**
+ * Parse JWT token to extract payload
+ * @param {string} token - JWT token to parse
+ * @returns {object|null} Parsed token payload or null if invalid
+ */
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.debug('[API] Failed to parse JWT token');
+    return null;
+  }
+};
+
+/**
+ * Check if JWT token is expired
+ * @param {string} token - JWT token to validate
+ * @returns {boolean} True if token is expired or invalid
+ */
+const isTokenExpired = (token) => {
+  if (!token) return true;
+
+  const payload = parseJwt(token);
+  if (!payload || !payload.exp) return true;
+
+  // Check if token is expired (with 10 second buffer to account for clock skew)
+  const expiryTime = payload.exp * 1000;
+  const currentTime = Date.now();
+  return currentTime >= (expiryTime - 10000);
+};
+
 // Create axios instance with default configuration
 const apiClient = axios.create({
   baseURL: process.env.REACT_APP_API_URL || '',
@@ -161,6 +204,27 @@ const processQueue = (error, token = null) => {
 // Request interceptor for adding auth headers and transforming data
 apiClient.interceptors.request.use(
   (config) => {
+    // Validate token expiry before sending request
+    if (accessToken && isTokenExpired(accessToken)) {
+      console.log('[API] Token expired before request - clearing auth state');
+      accessToken = null;
+      csrfToken = null;
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+
+      // Redirect to login if not already on login/register page
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        console.log('[API] Redirecting to login due to expired token');
+        window.location.href = '/login';
+      }
+
+      // Cancel the request
+      const error = new Error('Token expired');
+      error.config = config;
+      error.response = { status: 401, data: { message: 'Token expired' } };
+      return Promise.reject(error);
+    }
+
     // Add access token to Authorization header if available
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;

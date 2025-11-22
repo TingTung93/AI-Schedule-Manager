@@ -8,6 +8,51 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { authService } from '../services/api';
 
+/**
+ * Parse JWT token to extract payload
+ * @param {string} token - JWT token to parse
+ * @returns {object|null} Parsed token payload or null if invalid
+ */
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Failed to parse JWT token:', error);
+    return null;
+  }
+};
+
+/**
+ * Check if JWT token is expired
+ * @param {string} token - JWT token to validate
+ * @returns {boolean} True if token is expired or invalid
+ */
+const isTokenExpired = (token) => {
+  if (!token) return true;
+
+  const payload = parseJwt(token);
+  if (!payload || !payload.exp) return true;
+
+  // Check if token is expired (with 10 second buffer to account for clock skew)
+  const expiryTime = payload.exp * 1000;
+  const currentTime = Date.now();
+  const isExpired = currentTime >= (expiryTime - 10000);
+
+  if (isExpired) {
+    console.debug('[AuthContext] Token is expired');
+  }
+
+  return isExpired;
+};
+
 // Initial authentication state
 const initialState = {
   user: null,
@@ -146,6 +191,7 @@ export const AuthProvider = ({ children }) => {
 
     // Don't initialize auth on login/register pages - user is trying to authenticate
     if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: { isLoading: false } });
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
       return;
     }
@@ -159,7 +205,17 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('user');
 
       if (storedToken && storedUser) {
-        // Restore session from localStorage
+        // Validate token expiry BEFORE restoring session
+        if (isTokenExpired(storedToken)) {
+          console.log('[AuthContext] Stored token is expired - clearing auth state');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          authService.clearAccessToken();
+          dispatch({ type: AUTH_ACTIONS.LOGOUT });
+          return;
+        }
+
+        // Token is valid - restore session from localStorage
         try {
           const user = JSON.parse(storedUser);
           authService.setAccessToken(storedToken);
@@ -177,11 +233,13 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (parseError) {
           console.error('Failed to parse stored user data:', parseError);
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
           dispatch({ type: AUTH_ACTIONS.LOGOUT });
         }
       } else {
         // No stored session - user needs to login
-        // Don't call /api/auth/me without a token, just set logged out state
+        console.debug('[AuthContext] No stored token or user - logging out');
         dispatch({ type: AUTH_ACTIONS.LOGOUT });
       }
     } catch (error) {
