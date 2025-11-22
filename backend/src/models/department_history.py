@@ -79,16 +79,19 @@ class DepartmentAssignmentHistory(Base):
         foreign_keys=[to_department_id],
         lazy="selectin"
     )
-    employee: Mapped["User"] = relationship(
-        "User",
-        foreign_keys=[employee_id],
-        lazy="selectin"
-    )
-    changed_by_user: Mapped["User"] = relationship(
-        "User",
-        foreign_keys=[changed_by_user_id],
-        lazy="selectin"
-    )
+    # Note: User relationships commented out due to different Base classes
+    # User model is in src.auth.models.Base while this model uses src.models.base.Base
+    # Data can be loaded manually using joins when needed
+    # employee: Mapped["User"] = relationship(
+    #     "User",
+    #     foreign_keys=[employee_id],
+    #     lazy="selectin"
+    # )
+    # changed_by_user: Mapped["User"] = relationship(
+    #     "User",
+    #     foreign_keys=[changed_by_user_id],
+    #     lazy="selectin"
+    # )
 
     def to_dict(self, camelCase: bool = True) -> dict:
         """
