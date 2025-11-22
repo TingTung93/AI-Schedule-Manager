@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -56,13 +57,15 @@ import {
   Search,
   AccountTree,
   ViewList,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  CalendarToday
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import api, { getErrorMessage } from '../services/api';
 
 const DepartmentManager = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState(0); // 0: Tree, 1: List
@@ -527,6 +530,13 @@ const DepartmentManager = () => {
         <MenuItem onClick={() => handleViewDetails(selectedDepartment)}>
           <Business fontSize="small" sx={{ mr: 1 }} />
           View Details
+        </MenuItem>
+        <MenuItem onClick={() => {
+          handleMenuClose();
+          navigate(`/departments/${selectedDepartment.id}/schedules`);
+        }}>
+          <CalendarToday fontSize="small" sx={{ mr: 1 }} />
+          Manage Schedules
         </MenuItem>
         <MenuItem onClick={() => handleAddDepartment(selectedDepartment)}>
           <Add fontSize="small" sx={{ mr: 1 }} />

@@ -64,6 +64,10 @@ class Schedule(Base):
         "ScheduleAssignment", back_populates="schedule", cascade="all, delete-orphan"
     )
 
+    department_schedules: Mapped[List["DepartmentSchedule"]] = relationship(
+        "DepartmentSchedule", back_populates="schedule", cascade="all, delete-orphan"
+    )
+
     # Constraints and indexes
     __table_args__ = (
         CheckConstraint("week_start <= week_end", name="valid_week_period"),

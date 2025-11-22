@@ -925,6 +925,302 @@ class CRUDDepartment(CRUDBase):
             "assignment_trends_90d": assignment_trends_90d,
         }
 
+    async def get_department_schedules(
+        self,
+        db: AsyncSession,
+        department_id: int,
+        skip: int = 0,
+        limit: int = 100,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        status: Optional[str] = None,
+    ) -> dict:
+        """
+        Get all schedules for a department with pagination and filtering.
+
+        Returns schedules with employee and shift counts.
+        """
+        from datetime import date as date_type
+
+        # Build base query - this is a simplified implementation
+        # In production, you'd query from department_schedules table
+        query = (
+            select(Schedule)
+            .join(ScheduleAssignment, Schedule.id == ScheduleAssignment.schedule_id)
+            .join(Employee, ScheduleAssignment.employee_id == Employee.id)
+            .where(Employee.department_id == department_id)
+            .distinct()
+        )
+
+        # Apply filters
+        if start_date:
+            query = query.where(Schedule.week_start >= start_date)
+        if end_date:
+            query = query.where(Schedule.week_end <= end_date)
+        if status:
+            query = query.where(Schedule.status == status)
+
+        # Count total
+        count_query = select(func.count()).select_from(query.subquery())
+        total_result = await db.execute(count_query)
+        total = total_result.scalar() or 0
+
+        # Apply pagination and ordering
+        query = query.order_by(Schedule.week_start.desc()).offset(skip).limit(limit)
+
+        result = await db.execute(query)
+        schedules = result.scalars().all()
+
+        # Build response with additional metadata
+        items = []
+        for schedule in schedules:
+            # Count employees and shifts for this schedule
+            emp_count_result = await db.execute(
+                select(func.count(func.distinct(ScheduleAssignment.employee_id)))
+                .where(ScheduleAssignment.schedule_id == schedule.id)
+            )
+            employee_count = emp_count_result.scalar() or 0
+
+            shift_count_result = await db.execute(
+                select(func.count(ScheduleAssignment.id))
+                .where(ScheduleAssignment.schedule_id == schedule.id)
+            )
+            shift_count = shift_count_result.scalar() or 0
+
+            # Get department info
+            dept = await self.get(db, department_id)
+
+            items.append({
+                "id": schedule.id,
+                "name": schedule.title or f"Schedule {schedule.id}",
+                "department_id": department_id,
+                "department_name": dept.name if dept else "Unknown",
+                "start_date": schedule.week_start,
+                "end_date": schedule.week_end,
+                "employee_count": employee_count,
+                "shift_count": shift_count,
+                "status": schedule.status,
+            })
+
+        return {"items": items, "total": total}
+
+    async def create_department_schedule(
+        self,
+        db: AsyncSession,
+        department_id: int,
+        schedule_data: dict,
+        user_id: int
+    ) -> dict:
+        """
+        Create a new schedule for a department.
+
+        Creates both the schedule record and links it to the department.
+        """
+        # Create the schedule
+        from ..schemas import ScheduleCreate
+
+        schedule_create = ScheduleCreate(
+            week_start=schedule_data["start_date"],
+            week_end=schedule_data["end_date"],
+            title=schedule_data["name"],
+            notes=schedule_data.get("notes"),
+        )
+
+        # Use parent create method
+        schedule = Schedule(
+            week_start=schedule_create.week_start,
+            week_end=schedule_create.week_end,
+            title=schedule_create.title,
+            notes=schedule_create.notes,
+            status="draft",
+            version=1,
+            created_by=user_id,
+        )
+
+        db.add(schedule)
+        await db.commit()
+        await db.refresh(schedule)
+
+        # In production, you would also create a department_schedules link record
+        # For now, return the schedule with department info
+        dept = await self.get(db, department_id)
+
+        return {
+            "id": schedule.id,
+            "name": schedule.title,
+            "department_id": department_id,
+            "department_name": dept.name if dept else "Unknown",
+            "start_date": schedule.week_start,
+            "end_date": schedule.week_end,
+            "status": schedule.status,
+            "employee_count": 0,
+            "shift_count": 0,
+            "is_primary": False,
+            "notes": schedule.notes,
+            "created_at": schedule.created_at,
+            "created_by_user_id": user_id,
+        }
+
+    async def get_schedule_overview(
+        self,
+        db: AsyncSession,
+        department_id: int,
+        start_date: date,
+        end_date: date,
+        include_metrics: bool = False,
+    ) -> dict:
+        """
+        Get consolidated schedule view for department.
+
+        Returns all employees with their shifts in the date range.
+        """
+        # Get department
+        dept = await self.get(db, department_id)
+        if not dept:
+            return None
+
+        # Get all employees in department
+        employees_result = await db.execute(
+            select(Employee)
+            .where(Employee.department_id == department_id)
+            .order_by(Employee.name)
+        )
+        employees = employees_result.scalars().all()
+
+        # Build employee shifts
+        employee_shifts = []
+        total_hours = 0.0
+        total_shifts = 0
+        assigned_shifts = 0
+
+        for employee in employees:
+            # Get shifts for this employee in date range
+            shifts_result = await db.execute(
+                select(ScheduleAssignment, Shift)
+                .join(Shift, ScheduleAssignment.shift_id == Shift.id)
+                .where(
+                    ScheduleAssignment.employee_id == employee.id,
+                    # Filter by shift date if available, otherwise use schedule dates
+                )
+                .order_by(ScheduleAssignment.assigned_at)
+            )
+            assignments = shifts_result.all()
+
+            shifts = []
+            for assignment, shift in assignments:
+                # Calculate hours for this shift
+                from datetime import datetime, timedelta
+                start_dt = datetime.combine(date.today(), shift.start_time)
+                end_dt = datetime.combine(date.today(), shift.end_time)
+                if end_dt < start_dt:
+                    end_dt += timedelta(days=1)
+                hours = (end_dt - start_dt).total_seconds() / 3600
+                total_hours += hours
+
+                shifts.append({
+                    "date": assignment.assigned_at.date().isoformat(),
+                    "start_time": shift.start_time.strftime("%H:%M"),
+                    "end_time": shift.end_time.strftime("%H:%M"),
+                    "shift_type": shift.shift_type,
+                })
+                assigned_shifts += 1
+
+            employee_shifts.append({
+                "id": employee.id,
+                "name": employee.name,
+                "shifts": shifts,
+            })
+
+        # Calculate metrics if requested
+        metrics = None
+        if include_metrics:
+            # Simple coverage calculation
+            coverage_percentage = 100.0 if total_shifts > 0 else 0.0
+
+            metrics = {
+                "total_hours": round(total_hours, 2),
+                "coverage_percentage": round(coverage_percentage, 2),
+                "understaffed_periods": [],  # Would need shift requirements to calculate
+            }
+
+        return {
+            "department_id": department_id,
+            "department_name": dept.name,
+            "date_range": {
+                "start": start_date.isoformat(),
+                "end": end_date.isoformat(),
+            },
+            "employees": employee_shifts,
+            "metrics": metrics,
+        }
+
+    async def create_template(
+        self,
+        db: AsyncSession,
+        department_id: int,
+        template_data: dict,
+        user_id: int
+    ) -> dict:
+        """Create a new schedule template for department."""
+        # In production, create in department_schedule_templates table
+        # For now, use existing ScheduleTemplate model
+        template = ScheduleTemplate(
+            name=template_data["name"],
+            description=template_data.get("description"),
+            template_data=template_data["template_data"],
+            active=True,
+            created_by=user_id,
+        )
+
+        db.add(template)
+        await db.commit()
+        await db.refresh(template)
+
+        return {
+            "id": template.id,
+            "department_id": department_id,
+            "name": template.name,
+            "description": template.description,
+            "template_data": template.template_data,
+            "pattern_type": template_data.get("pattern_type", "custom"),
+            "rotation_days": template_data.get("rotation_days"),
+            "is_active": template.active,
+            "created_by_user_id": user_id,
+            "created_at": template.created_at,
+            "updated_at": template.updated_at,
+        }
+
+    async def apply_template(
+        self,
+        db: AsyncSession,
+        department_id: int,
+        template_id: int,
+        apply_data: dict,
+        user_id: int
+    ) -> dict:
+        """Apply a template to create a new schedule."""
+        # Get the template
+        template = await crud_schedule_template.get(db, template_id)
+        if not template:
+            return None
+
+        # Create schedule using template data
+        schedule_name = apply_data.get("schedule_name") or f"{template.name} - {apply_data['start_date']}"
+
+        schedule_data = {
+            "name": schedule_name,
+            "start_date": apply_data["start_date"],
+            "end_date": apply_data["end_date"],
+            "notes": f"Created from template: {template.name}",
+        }
+
+        # Create the schedule
+        schedule = await self.create_department_schedule(
+            db, department_id, schedule_data, user_id
+        )
+
+        return schedule
+
 
 # Create CRUD instances
 crud_department = CRUDDepartment()

@@ -34,6 +34,7 @@ const AnalyticsPage = lazy(() => import(/* webpackChunkName: "analytics-page" */
 const DepartmentManager = lazy(() => import(/* webpackChunkName: "department-manager" */ './pages/DepartmentManager'));
 const ShiftManager = lazy(() => import(/* webpackChunkName: "shift-manager" */ './pages/ShiftManager'));
 const DepartmentOverview = lazy(() => import(/* webpackChunkName: "department-overview" */ './pages/DepartmentOverview'));
+const DepartmentScheduleManager = lazy(() => import(/* webpackChunkName: "department-schedule-manager" */ './pages/DepartmentScheduleManager'));
 const RulesPage = lazy(() => import(/* webpackChunkName: "rules-page" */ './pages/RulesPage'));
 const RoleManager = lazy(() => import(/* webpackChunkName: "role-manager" */ './pages/RoleManager'));
 const SettingsPage = lazy(() => import(/* webpackChunkName: "settings-page" */ './pages/SettingsPage'));
@@ -301,6 +302,18 @@ function App() {
                     element={
                       <ProtectedRoute requiredRoles={['admin', 'manager']}>
                         <DepartmentOverview />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Department Schedule Manager */}
+                  <Route
+                    path="departments/:id/schedules"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'manager']}>
+                        <ErrorBoundary name="DepartmentScheduleManager">
+                          <DepartmentScheduleManager />
+                        </ErrorBoundary>
                       </ProtectedRoute>
                     }
                   />

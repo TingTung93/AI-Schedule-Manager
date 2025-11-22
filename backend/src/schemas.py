@@ -1253,3 +1253,147 @@ class ShiftDefinitionList(BaseModel):
     page: int
     size: int
     pages: int
+
+
+# Department Schedule Management Schemas
+class DepartmentScheduleCreate(BaseModel):
+    """Schema for creating a department schedule."""
+
+    name: str = Field(..., min_length=1, max_length=200, description="Schedule name")
+    start_date: date = Field(..., description="Schedule start date")
+    end_date: date = Field(..., description="Schedule end date")
+    template_id: Optional[int] = Field(None, description="Template ID to apply")
+    notes: Optional[str] = Field(None, description="Schedule notes")
+
+    @field_validator('end_date')
+    @classmethod
+    def validate_date_range(cls, v, info):
+        """Validate end_date is after start_date."""
+        if 'start_date' in info.data and v <= info.data['start_date']:
+            raise ValueError("end_date must be after start_date")
+        return v
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DepartmentScheduleResponse(BaseModel):
+    """Schema for department schedule response."""
+
+    id: int
+    name: str
+    department_id: int
+    department_name: str
+    start_date: date
+    end_date: date
+    employee_count: int
+    shift_count: int
+    status: str
+    is_primary: bool
+    notes: Optional[str] = None
+    created_at: datetime
+    created_by_user_id: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ShiftDetail(BaseModel):
+    """Individual shift detail in schedule overview."""
+
+    date: str = Field(..., description="Shift date (ISO format)")
+    start_time: str = Field(..., description="Start time (HH:MM)")
+    end_time: str = Field(..., description="End time (HH:MM)")
+    shift_type: str = Field(..., description="Shift type")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EmployeeShifts(BaseModel):
+    """Employee with their scheduled shifts."""
+
+    id: int
+    name: str
+    shifts: List[ShiftDetail] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UnderstaffedPeriod(BaseModel):
+    """Period where department is understaffed."""
+
+    date: str
+    time: str
+    required: int
+    scheduled: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScheduleMetrics(BaseModel):
+    """Schedule coverage metrics."""
+
+    total_hours: float
+    coverage_percentage: float
+    understaffed_periods: List[UnderstaffedPeriod] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DepartmentScheduleOverview(BaseModel):
+    """Consolidated schedule overview for department."""
+
+    department_id: int
+    department_name: str
+    date_range: Dict[str, str]
+    employees: List[EmployeeShifts] = Field(default_factory=list)
+    metrics: Optional[ScheduleMetrics] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScheduleTemplateCreate(BaseModel):
+    """Schema for creating a schedule template."""
+
+    name: str = Field(..., min_length=1, max_length=200, description="Template name")
+    description: Optional[str] = Field(None, description="Template description")
+    template_data: Dict[str, Any] = Field(..., description="Template data as JSON")
+    pattern_type: str = Field("custom", description="Pattern type: weekly, rotating, custom")
+    rotation_days: Optional[int] = Field(None, ge=1, description="Days in rotation cycle")
+
+    @field_validator('pattern_type')
+    @classmethod
+    def validate_pattern_type(cls, v):
+        """Validate pattern type."""
+        valid_types = ["weekly", "rotating", "custom"]
+        if v not in valid_types:
+            raise ValueError(f"pattern_type must be one of: {', '.join(valid_types)}")
+        return v
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScheduleTemplateResponse(BaseModel):
+    """Schema for schedule template response."""
+
+    id: int
+    department_id: int
+    name: str
+    description: Optional[str] = None
+    template_data: Dict[str, Any]
+    pattern_type: str
+    rotation_days: Optional[int] = None
+    is_active: bool
+    created_by_user_id: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TemplateApplyRequest(BaseModel):
+    """Schema for applying a template to create schedule."""
+
+    start_date: date = Field(..., description="Schedule start date")
+    end_date: date = Field(..., description="Schedule end date")
+    schedule_name: Optional[str] = Field(None, description="Custom schedule name")
+
+    model_config = ConfigDict(from_attributes=True)

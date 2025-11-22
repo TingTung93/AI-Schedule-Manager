@@ -6,6 +6,7 @@ from ..auth.models import User
 from .base import Base
 from .department import Department
 from .department_history import DepartmentAssignmentHistory
+from .department_schedule import DepartmentSchedule, DepartmentScheduleTemplate
 from .employee import Employee
 from .notification import Notification
 from .rule import Rule
@@ -21,6 +22,8 @@ __all__ = [
     "User",
     "Department",
     "DepartmentAssignmentHistory",
+    "DepartmentSchedule",
+    "DepartmentScheduleTemplate",
     "Employee",
     "Shift",
     "ShiftDefinition",

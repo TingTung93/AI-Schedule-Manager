@@ -38,6 +38,8 @@ class Department(Base):
     employees: Mapped[List["Employee"]] = relationship("Employee", back_populates="department")
     shifts: Mapped[List["Shift"]] = relationship("Shift", back_populates="department")
     shift_definitions: Mapped[List["ShiftDefinition"]] = relationship("ShiftDefinition", back_populates="department")
+    department_schedules: Mapped[List["DepartmentSchedule"]] = relationship("DepartmentSchedule", back_populates="department")
+    schedule_templates: Mapped[List["DepartmentScheduleTemplate"]] = relationship("DepartmentScheduleTemplate", back_populates="department")
 
     def to_dict(self, camelCase: bool = True) -> dict:
         """Convert to dictionary with optional camelCase."""
