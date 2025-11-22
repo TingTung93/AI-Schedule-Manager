@@ -344,6 +344,251 @@ export const getEmployeeDepartmentHistory = async (employeeId, params = {}) => {
 };
 
 /**
+ * Department Schedule Operations
+ */
+
+/**
+ * Bulk assign employees to a department with reason tracking
+ *
+ * @param {number} departmentId - Target department ID
+ * @param {number[]} employeeIds - Array of employee IDs to assign
+ * @param {string} [reason] - Reason for bulk assignment
+ * @returns {Promise<Object>} Assignment result
+ * @returns {boolean} result.success - Whether operation succeeded
+ * @returns {number} result.assignedCount - Number of employees successfully assigned
+ * @returns {Array} result.assignments - Details of each assignment
+ *
+ * @example
+ * const result = await bulkAssignEmployees(10, [1, 2, 3, 4], 'Team reorganization');
+ * console.log(`Assigned ${result.assignedCount} employees to department`);
+ */
+export const bulkAssignEmployees = async (departmentId, employeeIds, reason = null) => {
+  try {
+    const response = await api.post(`/api/departments/${departmentId}/employees/bulk-assign`, {
+      employeeIds,
+      reason
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Bulk assign employees failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Transfer employee from one department to another
+ *
+ * @param {number} departmentId - Source department ID
+ * @param {number} employeeId - Employee ID to transfer
+ * @param {number} toDepartmentId - Target department ID
+ * @param {string} [reason] - Reason for transfer
+ * @returns {Promise<Object>} Transfer result
+ * @returns {boolean} result.success - Whether transfer succeeded
+ * @returns {Object} result.employee - Employee details
+ * @returns {number} result.previousDepartmentId - Previous department
+ * @returns {number} result.newDepartmentId - New department
+ *
+ * @example
+ * const result = await transferEmployee(5, 123, 10, 'Better skill match');
+ * console.log(`Employee transferred from ${result.previousDepartmentId} to ${result.newDepartmentId}`);
+ */
+export const transferEmployee = async (departmentId, employeeId, toDepartmentId, reason = null) => {
+  try {
+    const response = await api.post(`/api/departments/${departmentId}/employees/${employeeId}/transfer`, {
+      toDepartmentId,
+      reason
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Transfer employee failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all schedules for a department
+ *
+ * @param {number} departmentId - Department ID
+ * @param {Object} [params] - Query parameters
+ * @param {number} [params.page=1] - Page number
+ * @param {number} [params.size=10] - Items per page
+ * @param {string} [params.startDate] - Filter by start date (YYYY-MM-DD)
+ * @param {string} [params.endDate] - Filter by end date (YYYY-MM-DD)
+ * @param {string} [params.status] - Filter by schedule status
+ * @returns {Promise<Object>} Paginated schedules
+ * @returns {Array} result.items - Schedule list
+ * @returns {number} result.total - Total number of schedules
+ * @returns {number} result.page - Current page
+ * @returns {number} result.size - Items per page
+ *
+ * @example
+ * const { items, total } = await getDepartmentSchedules(10, {
+ *   startDate: '2025-11-01',
+ *   endDate: '2025-11-30',
+ *   status: 'published'
+ * });
+ */
+export const getDepartmentSchedules = async (departmentId, params = {}) => {
+  try {
+    const response = await api.get(`/api/departments/${departmentId}/schedules`, { params });
+    return response.data;
+  } catch (error) {
+    console.error('Get department schedules failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new schedule for a department
+ *
+ * @param {number} departmentId - Department ID
+ * @param {Object} scheduleData - Schedule data
+ * @param {string} scheduleData.name - Schedule name
+ * @param {string} scheduleData.startDate - Start date (YYYY-MM-DD)
+ * @param {string} scheduleData.endDate - End date (YYYY-MM-DD)
+ * @param {number} [scheduleData.templateId] - Template ID to apply
+ * @param {string} [scheduleData.notes] - Additional notes
+ * @returns {Promise<Object>} Created schedule
+ *
+ * @example
+ * const schedule = await createDepartmentSchedule(10, {
+ *   name: 'Sales Floor - Holiday Week',
+ *   startDate: '2025-12-23',
+ *   endDate: '2025-12-29',
+ *   templateId: 5,
+ *   notes: 'Extra coverage for holiday shopping'
+ * });
+ */
+export const createDepartmentSchedule = async (departmentId, scheduleData) => {
+  try {
+    const response = await api.post(`/api/departments/${departmentId}/schedules`, scheduleData);
+    return response.data;
+  } catch (error) {
+    console.error('Create department schedule failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get consolidated schedule overview for a department
+ *
+ * @param {number} departmentId - Department ID
+ * @param {string} startDate - Start of date range (YYYY-MM-DD)
+ * @param {string} endDate - End of date range (YYYY-MM-DD)
+ * @param {Object} [params] - Additional parameters
+ * @param {boolean} [params.includeMetrics=false] - Include coverage analytics
+ * @returns {Promise<Object>} Schedule overview
+ * @returns {number} result.departmentId - Department ID
+ * @returns {string} result.departmentName - Department name
+ * @returns {Object} result.dateRange - Date range
+ * @returns {Array} result.employees - Employee schedules
+ * @returns {Object} [result.metrics] - Coverage metrics (if includeMetrics=true)
+ *
+ * @example
+ * const overview = await getDepartmentScheduleOverview(10, '2025-11-25', '2025-12-01', {
+ *   includeMetrics: true
+ * });
+ * console.log(`Coverage: ${overview.metrics.coveragePercentage}%`);
+ */
+export const getDepartmentScheduleOverview = async (departmentId, startDate, endDate, params = {}) => {
+  try {
+    const response = await api.get(`/api/departments/${departmentId}/schedule-overview`, {
+      params: { startDate, endDate, ...params }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Get department schedule overview failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get schedule templates for a department
+ *
+ * @param {number} departmentId - Department ID
+ * @param {Object} [params] - Query parameters
+ * @param {boolean} [params.activeOnly=true] - Only return active templates
+ * @param {string} [params.patternType] - Filter by pattern type (weekly, rotating, custom)
+ * @returns {Promise<Array>} List of schedule templates
+ *
+ * @example
+ * const templates = await getDepartmentTemplates(10, { activeOnly: true });
+ * templates.forEach(template => {
+ *   console.log(`${template.name} - ${template.patternType}`);
+ * });
+ */
+export const getDepartmentTemplates = async (departmentId, params = {}) => {
+  try {
+    const response = await api.get(`/api/departments/${departmentId}/templates`, { params });
+    return response.data;
+  } catch (error) {
+    console.error('Get department templates failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new schedule template for a department
+ *
+ * @param {number} departmentId - Department ID
+ * @param {Object} templateData - Template data
+ * @param {string} templateData.name - Template name
+ * @param {string} [templateData.description] - Template description
+ * @param {Object} templateData.templateData - Template configuration (shift patterns, etc.)
+ * @param {string} [templateData.patternType='custom'] - Pattern type (weekly, rotating, custom)
+ * @param {number} [templateData.rotationDays] - Days in rotation cycle (for rotating patterns)
+ * @param {boolean} [templateData.isActive=true] - Whether template is active
+ * @returns {Promise<Object>} Created template
+ *
+ * @example
+ * const template = await createDepartmentTemplate(10, {
+ *   name: 'Standard Retail Week',
+ *   description: '5-day rotating shifts',
+ *   templateData: { shifts: [...] },
+ *   patternType: 'rotating',
+ *   rotationDays: 7
+ * });
+ */
+export const createDepartmentTemplate = async (departmentId, templateData) => {
+  try {
+    const response = await api.post(`/api/departments/${departmentId}/templates`, templateData);
+    return response.data;
+  } catch (error) {
+    console.error('Create department template failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Apply a template to create a new schedule
+ *
+ * @param {number} departmentId - Department ID
+ * @param {number} templateId - Template ID to apply
+ * @param {Object} params - Application parameters
+ * @param {string} params.startDate - Schedule start date (YYYY-MM-DD)
+ * @param {string} params.endDate - Schedule end date (YYYY-MM-DD)
+ * @param {string} [params.name] - Custom schedule name (defaults to template name)
+ * @param {Object} [params.overrides] - Template overrides
+ * @returns {Promise<Object>} Created schedule from template
+ *
+ * @example
+ * const schedule = await applyDepartmentTemplate(10, 5, {
+ *   startDate: '2025-12-01',
+ *   endDate: '2025-12-07',
+ *   name: 'Week 49 Schedule'
+ * });
+ */
+export const applyDepartmentTemplate = async (departmentId, templateId, params) => {
+  try {
+    const response = await api.post(`/api/departments/${departmentId}/templates/${templateId}/apply`, params);
+    return response.data;
+  } catch (error) {
+    console.error('Apply department template failed:', error);
+    throw error;
+  }
+};
+
+/**
  * Error Types
  *
  * Department-specific errors that can be thrown:
@@ -382,4 +627,16 @@ export default {
 
   // History
   getEmployeeDepartmentHistory,
+
+  // Department-specific assignment operations
+  bulkAssignEmployees,
+  transferEmployee,
+
+  // Department schedule operations
+  getDepartmentSchedules,
+  createDepartmentSchedule,
+  getDepartmentScheduleOverview,
+  getDepartmentTemplates,
+  createDepartmentTemplate,
+  applyDepartmentTemplate,
 };
