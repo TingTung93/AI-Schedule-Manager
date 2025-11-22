@@ -6,7 +6,7 @@ from datetime import date, datetime, time
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, root_validator, validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, root_validator, validator, ValidationInfo
 
 from .validators import (
     validate_availability_pattern,
