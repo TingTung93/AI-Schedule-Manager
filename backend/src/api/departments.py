@@ -12,6 +12,8 @@ from sqlalchemy import func
 from ..dependencies import get_current_manager, get_current_user, get_database_session
 from ..models import Department
 from ..schemas import (
+    CheckCoverageResponse,
+    ConflictReport,
     DepartmentAnalyticsOverview,
     DepartmentCreate,
     DepartmentDetailedAnalytics,
@@ -21,8 +23,11 @@ from ..schemas import (
     EmployeeResponse,
     PaginatedResponse,
     ShiftResponse,
+    ValidateAssignmentRequest,
+    ValidateAssignmentResponse,
 )
 from ..services.crud import crud_department
+from ..services import conflict_detection
 
 logger = logging.getLogger(__name__)
 
@@ -913,4 +918,181 @@ async def apply_department_template(
         raise
     except Exception as e:
         logger.error(f"Error applying department template: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+# Conflict Detection Endpoints
+@router.post("/{department_id}/validate-assignment", response_model=ValidateAssignmentResponse)
+async def validate_department_assignment(
+    department_id: int,
+    validation_request: ValidateAssignmentRequest,
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_manager),
+):
+    """
+    Validate an employee assignment to a shift for conflict detection.
+
+    Checks for:
+    - Overlapping shifts for the same employee
+    - Double-booking conflicts
+    - Shift duration limits (max hours per day/week)
+    - Minimum rest period between shifts
+    - Employee availability
+    - Required qualifications
+
+    Returns detailed conflict information with suggested resolutions.
+
+    Requires manager role.
+    """
+    # Check if department exists
+    department = await crud_department.get(db, department_id)
+    if not department:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+
+    try:
+        conflicts = await conflict_detection.validate_employee_assignment(
+            db,
+            validation_request.employee_id,
+            validation_request.shift_id,
+            validation_request.exclude_assignment_id
+        )
+
+        # Determine if assignment is valid and can proceed
+        critical_conflicts = [c for c in conflicts if c.get("severity") == "critical"]
+        high_conflicts = [c for c in conflicts if c.get("severity") == "high"]
+
+        valid = len(critical_conflicts) == 0
+        can_proceed = len(critical_conflicts) == 0  # Only allow if no critical conflicts
+
+        # Generate warnings for non-critical conflicts
+        warnings = []
+        if high_conflicts:
+            warnings.append(f"{len(high_conflicts)} high-severity conflict(s) detected - review recommended")
+        if len(conflicts) > len(critical_conflicts) + len(high_conflicts):
+            warnings.append("Minor conflicts detected - assignment may proceed with caution")
+
+        return ValidateAssignmentResponse(
+            valid=valid,
+            conflicts=conflicts,
+            can_proceed=can_proceed,
+            warnings=warnings
+        )
+    except Exception as e:
+        logger.error(f"Error validating assignment: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post("/{department_id}/check-coverage", response_model=CheckCoverageResponse)
+async def check_department_coverage(
+    department_id: int,
+    shift_date: str = Query(..., description="Date to check (YYYY-MM-DD)"),
+    start_time: str = Query(..., description="Start time (HH:MM)"),
+    end_time: str = Query(..., description="End time (HH:MM)"),
+    required_staff: int = Query(1, description="Required staff count", ge=1),
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Check department staffing coverage for a specific time period.
+
+    Analyzes whether the department has adequate staff coverage for
+    the specified date and time range.
+
+    Returns:
+    - Coverage adequacy status
+    - List of understaffed/overstaffed periods
+    - Suggested actions for resolving coverage issues
+
+    Query Parameters:
+    - shift_date: Date to check coverage (YYYY-MM-DD)
+    - start_time: Period start time (HH:MM format)
+    - end_time: Period end time (HH:MM format)
+    - required_staff: Number of staff required (default: 1)
+    """
+    from datetime import date as date_type, time as time_type
+
+    # Check if department exists
+    department = await crud_department.get(db, department_id)
+    if not department:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+
+    # Parse inputs
+    try:
+        date_obj = date_type.fromisoformat(shift_date)
+        start_time_obj = time_type.fromisoformat(start_time)
+        end_time_obj = time_type.fromisoformat(end_time)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid date/time format: {e}")
+
+    try:
+        issues = await conflict_detection.check_department_coverage(
+            db, department_id, date_obj, start_time_obj, end_time_obj, required_staff
+        )
+
+        adequate_coverage = len(issues) == 0
+
+        return CheckCoverageResponse(
+            adequate_coverage=adequate_coverage,
+            issues=issues
+        )
+    except Exception as e:
+        logger.error(f"Error checking coverage: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/{department_id}/conflict-report", response_model=ConflictReport)
+async def get_department_conflict_report(
+    department_id: int,
+    start_date: str = Query(..., description="Report start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="Report end date (YYYY-MM-DD)"),
+    db: AsyncSession = Depends(get_database_session),
+    current_user: dict = Depends(get_current_manager),
+):
+    """
+    Generate comprehensive conflict detection report for department schedule.
+
+    Analyzes all shifts and assignments in the specified date range and
+    produces a detailed report including:
+
+    - Total conflicts by severity (critical, high, medium, low)
+    - Overlapping shift assignments
+    - Duration limit violations
+    - Insufficient rest periods
+    - Coverage issues (understaffed/overstaffed)
+    - Actionable recommendations for resolving conflicts
+
+    The report helps managers identify and resolve scheduling issues
+    before publishing schedules to employees.
+
+    Query Parameters:
+    - start_date: Report period start date (YYYY-MM-DD)
+    - end_date: Report period end date (YYYY-MM-DD)
+
+    Requires manager role.
+    """
+    from datetime import date as date_type
+
+    # Check if department exists
+    department = await crud_department.get(db, department_id)
+    if not department:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+
+    # Parse dates
+    try:
+        start_date_obj = date_type.fromisoformat(start_date)
+        end_date_obj = date_type.fromisoformat(end_date)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid date format: {e}")
+
+    if end_date_obj <= start_date_obj:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="end_date must be after start_date")
+
+    try:
+        report = await conflict_detection.generate_conflict_report(
+            db, department_id, start_date_obj, end_date_obj
+        )
+
+        return ConflictReport(**report)
+    except Exception as e:
+        logger.error(f"Error generating conflict report: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
