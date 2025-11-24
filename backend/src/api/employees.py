@@ -289,10 +289,13 @@ async def create_employee(
         await db.commit()
         await db.refresh(new_user)
 
-        # Load department relationship for response
+        # Load department relationship for response with children eagerly loaded
         if new_user.department_id:
+            from sqlalchemy.orm import selectinload
             dept_result = await db.execute(
-                select(Department).where(Department.id == new_user.department_id)
+                select(Department)
+                .where(Department.id == new_user.department_id)
+                .options(selectinload(Department.children))
             )
             new_user.department = dept_result.scalar_one_or_none()
         else:
@@ -434,10 +437,13 @@ async def update_employee(
         await db.commit()
         await db.refresh(user)
 
-        # Load department relationship for response
+        # Load department relationship for response with children eagerly loaded
         if user.department_id:
+            from sqlalchemy.orm import selectinload
             dept_result = await db.execute(
-                select(Department).where(Department.id == user.department_id)
+                select(Department)
+                .where(Department.id == user.department_id)
+                .options(selectinload(Department.children))
             )
             user.department = dept_result.scalar_one_or_none()
         else:
