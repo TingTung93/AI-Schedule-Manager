@@ -1,6 +1,6 @@
 # AI Schedule Manager
 
-> Neural-powered scheduling application for small businesses - Simple to use, powerful to deploy
+> Intelligent scheduling application powered by constraint optimization - Simple to use, powerful to deploy
 
 ## 🚀 Quick Start
 
@@ -29,32 +29,33 @@ docker-compose up -d
 
 ## 🎯 Key Features
 
-### Plain Language Rule Creation
-- **Natural Input**: "Sarah can't work past 5pm on weekdays"
-- **AI Understanding**: Automatically interprets and applies rules
-- **No Training Required**: Write rules as you would say them
+### Business Rule Management
+- **Structured Input**: Define scheduling rules and constraints
+- **Rule Engine**: Automatically applies rules to schedule generation
+- **Constraint-Based**: Rules are enforced through optimization algorithms
 
 ### Intelligent Scheduling
-- **Constraint Solving**: Google OR-Tools optimization engine
-- **Multi-objective**: Balances cost, preferences, and fairness
-- **Conflict Resolution**: Automatically handles scheduling conflicts
+- **Constraint Optimization**: Advanced constraint-based scheduling algorithms
+- **Multi-objective**: Balances coverage, cost, preferences, and fairness
+- **Conflict Detection**: Identifies and prevents scheduling conflicts
 
 ### Business-Ready
 - **Scalable**: Handles up to 100 employees across 24/7 operations
 - **Cost Optimization**: Minimizes labor costs while meeting requirements
 - **Compliance**: Ensures labor law compliance (breaks, maximum hours)
 
-## 📋 Example Rules
+## 📋 Scheduling Capabilities
 
-The system understands natural language rules like:
+The system supports:
 
 ```text
-• "John needs Mondays off for college classes"
-• "We need at least 3 people during lunch hours"
-• "Mike prefers morning shifts"
-• "No one should work more than 40 hours per week"
-• "Sarah can't work weekends due to family commitments"
-• "Ensure 8 hours rest between shifts"
+• Employee availability management
+• Shift coverage requirements
+• Workload balancing and fairness
+• Maximum hours and labor law compliance
+• Department-based scheduling
+• Conflict detection and resolution
+• Schedule optimization for cost efficiency
 ```
 
 ## 🛠️ Technology Stack
@@ -62,11 +63,11 @@ The system understands natural language rules like:
 All components use commercial-friendly open source licenses:
 
 - **Backend**: FastAPI (Python) - High-performance async API
-- **NLP**: spaCy - Industrial-strength natural language processing
-- **Scheduling**: Google OR-Tools - Advanced constraint solver
-- **Database**: PostgreSQL - Reliable data storage
-- **Frontend**: React + Material-UI - Modern, responsive interface
+- **Database**: PostgreSQL - Reliable data storage with SQLAlchemy ORM
+- **Frontend**: React + Material-UI (MUI) - Modern, responsive interface
+- **Scheduling**: Constraint-based optimization algorithms
 - **Deployment**: Docker - Simple, consistent deployment
+- **Authentication**: JWT-based secure authentication
 
 ## 📦 Manual Installation
 
@@ -88,9 +89,6 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -e .
-
-# Download NLP model
-python -m spacy download en_core_web_sm
 
 # Set environment variables
 cp .env.example .env
@@ -252,29 +250,30 @@ MIT License - Free for commercial use. See [LICENSE](LICENSE) for details.
 
 ### vs. Deputy ($4.50/user/month)
 ✓ **Free and open source**
-✓ Plain language rules (Deputy requires forms)
+✓ Flexible rule-based scheduling
 ✓ Self-hosted (keep your data)
 
 ### vs. When I Work ($2.50/user/month)
 ✓ **No monthly fees**
-✓ Advanced AI optimization
+✓ Advanced constraint optimization
 ✓ Unlimited rules and constraints
 
 ### vs. Humanity ($3/user/month)
-✓ **Neural network learning**
-✓ Natural language interface
+✓ **Intelligent optimization**
+✓ Department-based management
 ✓ Customizable and extensible
 
 ## 🚀 Roadmap
 
+- [ ] Google OR-Tools constraint solver integration
+- [ ] Natural language processing for rule parsing
 - [ ] Mobile app (React Native)
-- [ ] Voice command integration
 - [ ] Advanced analytics dashboard
 - [ ] Multi-location support
 - [ ] Payroll system integration
-- [ ] Time clock with biometrics
+- [ ] Time clock integration
 - [ ] Automated shift trading
-- [ ] Predictive scheduling
+- [ ] Predictive scheduling with ML
 
 ---
 

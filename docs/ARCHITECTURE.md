@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-AI Schedule Manager is a neural network-powered scheduling application designed for small to medium businesses managing up to 100 staff across 24-hour operations. The system uses natural language processing to allow managers to create scheduling rules in plain English, making it accessible to non-technical users.
+AI Schedule Manager is an intelligent scheduling application designed for small to medium businesses managing up to 100 staff across 24-hour operations. The system uses constraint-based optimization to generate schedules that satisfy business rules, employee availability, and operational requirements.
 
 ## Market Analysis
 
@@ -12,9 +12,9 @@ AI Schedule Manager is a neural network-powered scheduling application designed 
 - **Sling**: Basic features, lacks constraint solving
 
 ### Our Differentiators
-1. **Plain Language Rules**: "John can't work past 5pm due to childcare"
-2. **Neural-Powered Optimization**: Self-learning scheduling patterns
-3. **Simple Deployment**: One-click Docker or Windows installer
+1. **Rule-Based Scheduling**: Flexible constraint and preference management
+2. **Constraint Optimization**: Advanced algorithms for optimal schedule generation
+3. **Simple Deployment**: Docker and Kubernetes deployment options
 4. **Small Business Focus**: Designed for 10-100 employees
 5. **Fully Open Source**: No licensing fees, fully customizable
 
@@ -24,22 +24,23 @@ AI Schedule Manager is a neural network-powered scheduling application designed 
 
 #### Backend
 - **FastAPI** (MIT License): High-performance Python web framework
-- **OR-Tools** (Apache 2.0): Google's constraint solver for scheduling
-- **spaCy** (MIT License): Industrial-strength NLP for rule parsing
+- **SQLAlchemy** (MIT License): SQL toolkit and ORM
 - **PostgreSQL** (PostgreSQL License): Robust relational database
-- **Redis** (BSD License): Caching and session management
-- **Celery** (BSD License): Async task processing
+- **Alembic** (MIT License): Database migration tool
+- **Pydantic** (MIT License): Data validation
+- **Redis** (BSD License): Caching and session management (planned)
 
 #### Frontend
-- **React** (MIT License): Modern UI framework
-- **Material-UI** (MIT License): Professional component library
+- **React 18** (MIT License): Modern UI framework
+- **Material-UI (MUI)** (MIT License): Professional component library
 - **FullCalendar** (MIT License): Interactive scheduling calendar
-- **Chart.js** (MIT License): Analytics and reporting
+- **Axios** (MIT License): HTTP client
+- **React Router** (MIT License): Navigation
 
-#### AI/ML
-- **Hugging Face Transformers** (Apache 2.0): For advanced NLP
-- **TensorFlow Lite** (Apache 2.0): Lightweight neural networks
-- **Sentence-Transformers** (Apache 2.0): Semantic similarity
+#### Future Enhancements
+- **Google OR-Tools** (Apache 2.0): Constraint solver for advanced optimization
+- **spaCy** (MIT License): NLP for natural language rule parsing
+- **Celery** (BSD License): Async task processing for long-running operations
 
 #### Deployment
 - **Docker** (Apache 2.0): Containerization
@@ -87,28 +88,32 @@ AI Schedule Manager is a neural network-powered scheduling application designed 
 
 ### Component Details
 
-#### 1. Natural Language Processing Engine
-- **Purpose**: Convert plain language rules to structured constraints
-- **Technology**: spaCy + custom entity recognition
-- **Examples**:
-  - Input: "Sarah needs Mondays off for classes"
-  - Output: `{employee: "Sarah", constraint: "unavailable", day: "Monday", recurring: true}`
-  
-#### 2. Constraint Solver Engine
+#### 1. Rule Management Engine
+- **Purpose**: Store and validate scheduling rules and constraints
+- **Technology**: PostgreSQL + Pydantic validation
+- **Features**:
+  - Employee availability rules
+  - Shift coverage requirements
+  - Labor law compliance rules
+  - Department-specific constraints
+
+#### 2. Schedule Generation Engine
 - **Purpose**: Generate optimal schedules respecting all rules
-- **Technology**: Google OR-Tools CP-SAT solver
+- **Technology**: Constraint-based algorithms with SQLAlchemy
 - **Features**:
   - Hard constraints (legal requirements, availability)
   - Soft constraints (preferences, fairness)
-  - Multi-objective optimization
+  - Conflict detection and resolution
+  - Department-based assignment
 
-#### 3. Neural Learning System
-- **Purpose**: Learn patterns and improve suggestions
-- **Technology**: TensorFlow Lite
+#### 3. Optimization Service
+- **Purpose**: Optimize schedules for cost and coverage
+- **Technology**: Custom optimization algorithms
 - **Capabilities**:
-  - Predict scheduling conflicts
-  - Suggest optimal shift patterns
-  - Learn manager preferences
+  - Minimize labor costs
+  - Balance workload across employees
+  - Maximize shift coverage
+  - Detect scheduling conflicts
 
 ## Database Schema
 
@@ -151,13 +156,22 @@ CREATE TABLE shifts (
     created_at TIMESTAMP
 );
 
--- Neural Patterns
-CREATE TABLE neural_patterns (
+-- Departments
+CREATE TABLE departments (
     id UUID PRIMARY KEY,
-    pattern_type VARCHAR(50),
-    pattern_data JSONB,
-    confidence FLOAT,
-    last_updated TIMESTAMP
+    name VARCHAR(255),
+    parent_id UUID REFERENCES departments(id),
+    created_at TIMESTAMP
+);
+
+-- Schedule Assignments (many-to-many linking table)
+CREATE TABLE schedule_assignments (
+    id UUID PRIMARY KEY,
+    schedule_id UUID REFERENCES schedules(id),
+    employee_id UUID REFERENCES employees(id),
+    shift_id UUID REFERENCES shifts(id),
+    status VARCHAR(20),
+    created_at TIMESTAMP
 );
 ```
 
