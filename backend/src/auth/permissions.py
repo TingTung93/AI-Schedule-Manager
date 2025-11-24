@@ -60,7 +60,8 @@ class DepartmentPermissions:
         Raises:
             AuthorizationError: If permission is denied
         """
-        from ..models import User, Department
+        from ..auth.models import User
+        from ..models import Department
 
         # Get user with role information
         result = await db.execute(

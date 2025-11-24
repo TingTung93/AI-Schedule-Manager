@@ -2,7 +2,6 @@
 SQLAlchemy models for AI Schedule Manager
 """
 
-from ..auth.models import User
 from .base import Base
 from .department import Department
 from .department_history import DepartmentAssignmentHistory
@@ -17,9 +16,11 @@ from .shift import Shift
 from .shift_definition import ShiftDefinition
 from .user_settings import UserSettings
 
+# User model is in auth.models, not in models package
+# Import it directly from auth.models where needed
+
 __all__ = [
     "Base",
-    "User",
     "Department",
     "DepartmentAssignmentHistory",
     "DepartmentSchedule",

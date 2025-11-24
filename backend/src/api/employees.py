@@ -13,7 +13,7 @@ from sqlalchemy.orm import selectinload
 from datetime import datetime
 
 from ..dependencies import get_current_user, get_database_session
-from ..models import User
+from ..auth.models import User
 from ..models.department_history import DepartmentAssignmentHistory
 from ..schemas import (
     EmployeeCreate,

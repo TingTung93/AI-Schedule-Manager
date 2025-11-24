@@ -24,7 +24,8 @@ from .auth import AuthenticationError, AuthorizationError, auth_service, init_au
 #     require_role,
 #     token_required,
 # )
-from .models import AuditLog, LoginAttempt, Permission, RefreshToken, Role, User
+# Models should be imported directly from auth.models, not re-exported to avoid circular imports
+# from .models import AuditLog, LoginAttempt, Permission, RefreshToken, Role, User
 # Flask routes - not used, using fastapi_routes instead
 # from .routes import auth_bp
 
@@ -34,13 +35,13 @@ __all__ = [
     "init_auth",
     "AuthenticationError",
     "AuthorizationError",
-    # Database models
-    "User",
-    "Role",
-    "Permission",
-    "LoginAttempt",
-    "RefreshToken",
-    "AuditLog",
+    # Database models - import from auth.models directly
+    # "User",
+    # "Role",
+    # "Permission",
+    # "LoginAttempt",
+    # "RefreshToken",
+    # "AuditLog",
 ]
 
 # Version info
