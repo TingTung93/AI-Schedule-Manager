@@ -3,6 +3,7 @@ CRUD operations for all models.
 """
 
 import logging
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import delete, func, or_, select, update
