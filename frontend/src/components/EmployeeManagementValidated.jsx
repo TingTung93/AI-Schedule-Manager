@@ -191,7 +191,7 @@ const EmployeeManagementValidated = () => {
   );
 
   // Data processing
-  const employees = employeesData?.employees || [];
+  const employees = employeesData?.items || [];
   const roles = [
     { value: 'manager', label: 'Manager' },
     { value: 'supervisor', label: 'Supervisor' },

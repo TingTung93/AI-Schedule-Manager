@@ -88,7 +88,7 @@ const ScheduleForm = ({
     []
   );
 
-  const employees = employeesData?.employees || [];
+  const employees = employeesData?.items || [];
   const shifts = shiftsData?.shifts || [];
 
   // Employee options with status indication

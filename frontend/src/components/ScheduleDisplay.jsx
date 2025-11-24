@@ -136,7 +136,7 @@ const ScheduleDisplay = () => {
 
   // Data processing
   const schedules = schedulesData?.schedules || [];
-  const employees = employeesData?.employees || [];
+  const employees = employeesData?.items || [];
   const employeeMap = useMemo(() => {
     return employees.reduce((acc, emp) => {
       acc[emp.id] = emp;

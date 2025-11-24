@@ -45,6 +45,7 @@ import { ROLES } from '../utils/routeConfig';
 import api, { getErrorMessage } from '../services/api';
 import SearchBar from '../components/search/SearchBar';
 import { filterEmployees } from '../utils/filterUtils';
+import DepartmentSelector from '../components/common/DepartmentSelector';
 
 const EmployeesPage = () => {
   const { user } = useAuth();
@@ -64,7 +65,7 @@ const EmployeesPage = () => {
     email: '',
     phone: '',
     role: ROLES.EMPLOYEE,
-    department: '',
+    department_id: null,
     hireDate: ''
   });
 
@@ -504,16 +505,15 @@ const EmployeesPage = () => {
                 </FormControl>
               </Grid>
               <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Department"
-                  value={employeeForm.department}
-                  onChange={(e) => setEmployeeForm(prev => ({
+                <DepartmentSelector
+                  value={employeeForm.department_id}
+                  onChange={(value) => setEmployeeForm(prev => ({
                     ...prev,
-                    department: e.target.value
+                    department_id: value
                   }))}
-                  disabled
-                  helperText="Department assignment will be enabled in a future update"
+                  label="Department"
+                  placeholder="Select department (optional)"
+                  required={false}
                 />
               </Grid>
               <Grid item xs={6}>

@@ -88,7 +88,7 @@ const RuleInputForm = ({
     []
   );
 
-  const employees = employeesData?.employees || [];
+  const employees = employeesData?.items || [];
 
   // Rule type options
   const ruleTypeOptions = [

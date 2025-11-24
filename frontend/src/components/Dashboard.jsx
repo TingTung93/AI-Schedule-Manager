@@ -126,7 +126,7 @@ const Dashboard = () => {
   // Process data
   const analytics = analyticsData || {};
   const schedules = schedulesData?.schedules || [];
-  const employees = employeesData?.employees || [];
+  const employees = employeesData?.items || [];
   const notifications = notificationsData?.notifications || [];
 
   // Recent schedules (last 5)

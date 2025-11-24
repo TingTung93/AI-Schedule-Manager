@@ -160,8 +160,8 @@ const EmployeeManagement = () => {
   );
 
   // Data processing
-  const employees = employeesData?.employees || [];
-  const departments = useMemo(() => departmentsData?.departments || [], [departmentsData]);
+  const employees = employeesData?.items || [];
+  const departments = useMemo(() => departmentsData?.items || [], [departmentsData]);
   const roles = ['manager', 'supervisor', 'cashier', 'cook', 'server', 'cleaner'];
   const qualifications = ['First Aid', 'Food Safety', 'Manager Training', 'Customer Service', 'Cash Handling'];
 
