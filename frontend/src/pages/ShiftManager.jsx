@@ -140,7 +140,7 @@ const ShiftManager = () => {
   const loadDepartments = async () => {
     try {
       const response = await api.get('/api/departments');
-      setDepartments(response.data.departments || []);
+      setDepartments(response.data.items || []);
     } catch (error) {
       console.error('Failed to load departments:', error);
     }

@@ -60,7 +60,7 @@ const ConfigurationStep = ({ data, onChange, setNotification }) => {
       setLoadError(null);
       setLoading(true);
       const response = await api.get('/api/departments');
-      setDepartments(response.data.departments || []);
+      setDepartments(response.data.items || []);
     } catch (error) {
       console.error('Failed to load departments:', error);
       setLoadError(error);
@@ -74,8 +74,8 @@ const ConfigurationStep = ({ data, onChange, setNotification }) => {
       setStaffLoadError(null);
       setLoading(true);
       const response = await api.get(`/api/departments/${departmentId}/staff`);
-      setAllStaff(response.data.staff || []);
-      setFilteredStaff(response.data.staff || []);
+      setAllStaff(response.data.items || []);
+      setFilteredStaff(response.data.items || []);
     } catch (error) {
       console.error('Failed to load staff:', error);
       setStaffLoadError(error);

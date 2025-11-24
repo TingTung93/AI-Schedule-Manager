@@ -80,7 +80,7 @@ const DepartmentOverview = () => {
     try {
       setLoading(true);
       const response = await api.get('/api/departments');
-      const depts = response.data.departments || [];
+      const depts = response.data.items || [];
       setDepartments(depts);
 
       // Auto-select first department if available
