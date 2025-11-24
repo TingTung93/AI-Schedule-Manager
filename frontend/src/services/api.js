@@ -312,9 +312,15 @@ apiClient.interceptors.response.use(
         accessToken = null;
         csrfToken = null;
 
+        // Clear all auth data from localStorage
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('refresh_token');
+
         if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-          console.log('[API] Token refresh failed, redirecting to login...');
-          window.location.href = '/login';
+          console.log('[API] Token refresh failed, clearing auth and redirecting to login...');
+          // Use window.location.replace to prevent back button issues
+          window.location.replace('/login');
         }
 
         return Promise.reject(refreshError);
