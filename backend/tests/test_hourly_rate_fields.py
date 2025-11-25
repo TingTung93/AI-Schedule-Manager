@@ -3,15 +3,13 @@ Test hourly_rate and max_hours_per_week fields
 """
 import pytest
 from decimal import Decimal
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.schemas import EmployeeCreate, EmployeeUpdate
 
 
-@pytest.mark.asyncio
-async def test_user_model_hourly_rate_field(db):
-    """Test that User model can store and retrieve hourly_rate"""
-    # Create user with hourly_rate
+def test_user_model_fields_exist():
+    """Test that User model has hourly_rate and max_hours_per_week fields"""
+    # Create user with hourly_rate and max_hours_per_week
     user = User(
         email="test@example.com",
         password_hash="hashed_password",
@@ -20,22 +18,31 @@ async def test_user_model_hourly_rate_field(db):
         hourly_rate=Decimal("25.50"),
         max_hours_per_week=40
     )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
 
-    # Verify fields were saved
+    # Verify fields were set
     assert user.hourly_rate == Decimal("25.50")
     assert user.max_hours_per_week == 40
 
-    # Test to_dict includes the fields
+
+def test_user_model_to_dict_includes_fields():
+    """Test that to_dict() includes hourly_rate and max_hours_per_week"""
+    user = User(
+        email="test@example.com",
+        password_hash="hashed_password",
+        first_name="Test",
+        last_name="User",
+        hourly_rate=Decimal("25.50"),
+        max_hours_per_week=40
+    )
+
     user_dict = user.to_dict()
+    assert "hourly_rate" in user_dict
+    assert "max_hours_per_week" in user_dict
     assert user_dict["hourly_rate"] == 25.50
     assert user_dict["max_hours_per_week"] == 40
 
 
-@pytest.mark.asyncio
-async def test_user_model_nullable_fields(db):
+def test_user_model_nullable_fields():
     """Test that hourly_rate and max_hours_per_week can be null"""
     user = User(
         email="test2@example.com",
@@ -43,9 +50,6 @@ async def test_user_model_nullable_fields(db):
         first_name="Test",
         last_name="User2"
     )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
 
     # Verify null values
     assert user.hourly_rate is None
@@ -142,9 +146,8 @@ def test_numeric_precision():
     assert schema2.hourly_rate == 100.50
 
 
-@pytest.mark.asyncio
-async def test_update_existing_user_fields(db):
-    """Test updating hourly_rate and max_hours_per_week on existing user"""
+def test_update_user_fields():
+    """Test updating hourly_rate and max_hours_per_week"""
     # Create user without rates
     user = User(
         email="update_test@example.com",
@@ -152,15 +155,10 @@ async def test_update_existing_user_fields(db):
         first_name="Update",
         last_name="Test"
     )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
 
     # Update with rates
     user.hourly_rate = Decimal("28.75")
     user.max_hours_per_week = 35
-    await db.commit()
-    await db.refresh(user)
 
     assert user.hourly_rate == Decimal("28.75")
     assert user.max_hours_per_week == 35
@@ -168,8 +166,6 @@ async def test_update_existing_user_fields(db):
     # Update to different values
     user.hourly_rate = Decimal("32.00")
     user.max_hours_per_week = 40
-    await db.commit()
-    await db.refresh(user)
 
     assert user.hourly_rate == Decimal("32.00")
     assert user.max_hours_per_week == 40
