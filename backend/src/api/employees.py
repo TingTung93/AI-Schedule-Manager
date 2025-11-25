@@ -14,15 +14,18 @@ from datetime import datetime
 from pydantic import ValidationError
 
 from ..dependencies import get_current_user, get_database_session
-from ..auth.models import User
+from ..auth.models import User, Role, user_roles
 from ..models.department_history import DepartmentAssignmentHistory
+from ..models.role_history import RoleChangeHistory
 from ..schemas import (
     EmployeeCreate,
     EmployeeResponse,
     EmployeeUpdate,
     DepartmentHistoryResponse,
     DepartmentHistoryListResponse,
-    DepartmentChangeSummary
+    DepartmentChangeSummary,
+    RoleHistoryResponse,
+    RoleHistoryListResponse
 )
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
@@ -125,6 +128,97 @@ async def log_department_change(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to log department change: {str(e)}"
+        )
+
+
+async def update_user_role(
+    db: AsyncSession,
+    user_id: int,
+    new_role: str,
+    changed_by_id: int,
+    reason: Optional[str] = None
+) -> bool:
+    """
+    Update user role in user_roles table and create audit trail.
+
+    This helper function manages the many-to-many relationship between users and roles,
+    updates the role assignment, and creates a comprehensive audit record.
+
+    Args:
+        db: Database session
+        user_id: ID of user whose role is changing
+        new_role: Name of the new role to assign
+        changed_by_id: ID of user making the change
+        reason: Optional explanation for the change
+
+    Returns:
+        True if successful, False otherwise
+
+    Raises:
+        HTTPException: If role doesn't exist or database operation fails
+    """
+    try:
+        # Load user with current roles
+        user_query = select(User).where(User.id == user_id).options(selectinload(User.roles))
+        user_result = await db.execute(user_query)
+        user = user_result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with ID {user_id} not found"
+            )
+
+        # Get current role (assuming users have one role for simplicity)
+        old_role = user.roles[0].name if user.roles else None
+
+        # Check if role is actually changing
+        if old_role == new_role:
+            return True  # No change needed
+
+        # Find the new role
+        role_query = select(Role).where(Role.name == new_role)
+        role_result = await db.execute(role_query)
+        new_role_obj = role_result.scalar_one_or_none()
+
+        if not new_role_obj:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Role '{new_role}' not found. Available roles: admin, manager, user, guest"
+            )
+
+        # Remove all existing roles (one role per user approach)
+        if user.roles:
+            user.roles.clear()
+
+        # Assign new role
+        user.roles.append(new_role_obj)
+
+        # Create audit trail record
+        history_record = RoleChangeHistory(
+            user_id=user_id,
+            old_role=old_role,
+            new_role=new_role,
+            changed_by_id=changed_by_id,
+            changed_at=datetime.utcnow(),
+            reason=reason or "Role updated via API",
+            metadata_json={"action": "role_change", "api_endpoint": "/api/employees"}
+        )
+
+        db.add(history_record)
+        await db.flush()
+
+        return True
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error updating user role: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update role: {str(e)}"
         )
 
 
@@ -480,6 +574,27 @@ async def update_employee(
                     }
                 )
 
+        # Handle role change if role was updated
+        if 'role' in update_data and update_data['role']:
+            role_name = update_data['role']
+            # Convert EmployeeRole enum to string if needed
+            if hasattr(role_name, 'value'):
+                role_name = role_name.value
+
+            success = await update_user_role(
+                db=db,
+                user_id=employee_id,
+                new_role=role_name,
+                changed_by_id=current_user.id,
+                reason="Role updated via employee update API"
+            )
+
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Failed to update user role"
+                )
+
         await db.commit()
         await db.refresh(user)
 
@@ -662,4 +777,107 @@ async def get_department_history(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch department history: {str(e)}"
+        )
+
+
+@router.get("/{employee_id}/role-history", response_model=RoleHistoryListResponse)
+async def get_role_history(
+    employee_id: int,
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(50, ge=1, le=500, description="Maximum records to return"),
+    db: AsyncSession = Depends(get_database_session),
+    current_user = Depends(get_current_user)
+):
+    """
+    Get role change history for an employee.
+
+    Returns comprehensive audit trail of all role changes with
+    enriched data including user names and role details.
+
+    Path Parameters:
+    - **employee_id**: Unique employee identifier
+
+    Query Parameters:
+    - **skip**: Number of records to skip (pagination)
+    - **limit**: Maximum records to return (max 500)
+
+    Returns:
+        Paginated list of role change records
+
+    Raises:
+        404: Employee not found
+        500: Server error
+    """
+    try:
+        # Verify employee exists
+        employee_check = await db.execute(select(User).where(User.id == employee_id))
+        employee = employee_check.scalar_one_or_none()
+
+        if not employee:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Employee with ID {employee_id} not found"
+            )
+
+        # Get total count
+        count_query = select(func.count()).select_from(RoleChangeHistory).where(
+            RoleChangeHistory.user_id == employee_id
+        )
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
+
+        # Get history records
+        history_query = (
+            select(RoleChangeHistory)
+            .where(RoleChangeHistory.user_id == employee_id)
+            .order_by(desc(RoleChangeHistory.changed_at))
+            .offset(skip)
+            .limit(limit)
+        )
+
+        result = await db.execute(history_query)
+        history_records = result.scalars().all()
+
+        # Build response with enriched data
+        response_items = []
+        for record in history_records:
+            # Load changed_by user manually
+            changed_by_query = select(User).where(User.id == record.changed_by_id)
+            changed_by_result = await db.execute(changed_by_query)
+            changed_by_user = changed_by_result.scalar_one_or_none()
+
+            changed_by_name = f"{changed_by_user.first_name} {changed_by_user.last_name}" if changed_by_user else None
+
+            # Create enriched response
+            response_items.append(
+                RoleHistoryResponse(
+                    id=record.id,
+                    user_id=record.user_id,
+                    old_role=record.old_role,
+                    new_role=record.new_role,
+                    changed_by_id=record.changed_by_id,
+                    changed_at=record.changed_at,
+                    reason=record.reason,
+                    metadata_json=record.metadata_json or {},
+                    user_name=f"{employee.first_name} {employee.last_name}",
+                    changed_by_name=changed_by_name
+                )
+            )
+
+        return RoleHistoryListResponse(
+            total=total,
+            items=response_items,
+            skip=skip,
+            limit=limit
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching role history: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch role history: {str(e)}"
         )
