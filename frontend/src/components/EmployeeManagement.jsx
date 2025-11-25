@@ -255,10 +255,78 @@ const EmployeeManagement = () => {
       }
     }
 
+    // Validate qualifications (max 20 items)
+    if (formData.qualifications && formData.qualifications.length > 20) {
+      setNotification({
+        type: 'error',
+        message: 'Maximum 20 qualifications allowed. Please remove some items.'
+      });
+      return;
+    }
+
+    // Validate hourly rate (0-1000 range)
+    const hourlyRate = parseFloat(formData.hourlyRate) || 0;
+    if (hourlyRate < 0 || hourlyRate > 1000) {
+      setNotification({
+        type: 'error',
+        message: 'Hourly rate must be between $0 and $1000.'
+      });
+      return;
+    }
+
+    // Validate max hours per week (1-168 range)
+    const maxHoursPerWeek = parseInt(formData.maxHoursPerWeek) || 40;
+    if (maxHoursPerWeek < 1 || maxHoursPerWeek > 168) {
+      setNotification({
+        type: 'error',
+        message: 'Max hours per week must be between 1 and 168.'
+      });
+      return;
+    }
+
+    // Validate availability time ranges (start < end)
+    for (const [day, dayData] of Object.entries(formData.availability)) {
+      if (dayData.available) {
+        if (!dayData.start || !dayData.end) {
+          setNotification({
+            type: 'error',
+            message: `Please provide both start and end times for ${day}.`
+          });
+          return;
+        }
+        if (dayData.start >= dayData.end) {
+          setNotification({
+            type: 'error',
+            message: `Start time must be before end time for ${day}.`
+          });
+          return;
+        }
+      }
+    }
+
+    // Calculate total available hours to validate max_hours_per_week
+    let totalAvailableHours = 0;
+    for (const dayData of Object.values(formData.availability)) {
+      if (dayData.available && dayData.start && dayData.end) {
+        const [startHour, startMin] = dayData.start.split(':').map(Number);
+        const [endHour, endMin] = dayData.end.split(':').map(Number);
+        const hours = (endHour * 60 + endMin - startHour * 60 - startMin) / 60;
+        totalAvailableHours += hours;
+      }
+    }
+
+    if (maxHoursPerWeek > totalAvailableHours) {
+      setNotification({
+        type: 'error',
+        message: `Max hours per week (${maxHoursPerWeek}) cannot exceed total available hours (${totalAvailableHours.toFixed(1)}).`
+      });
+      return;
+    }
+
     const employeeData = {
       ...formData,
-      hourlyRate: parseFloat(formData.hourlyRate) || 0,
-      maxHoursPerWeek: parseInt(formData.maxHoursPerWeek) || 40,
+      hourlyRate: hourlyRate,
+      maxHoursPerWeek: maxHoursPerWeek,
       // Only include email if it's not empty
       email: formData.email.trim() || undefined,
       // Send department as departmentId to backend
@@ -632,6 +700,8 @@ const EmployeeManagement = () => {
                 InputProps={{
                   startAdornment: <InputAdornment position="start">$</InputAdornment>,
                 }}
+                inputProps={{ min: 0, max: 1000, step: 0.01 }}
+                helperText="Must be between $0 and $1000"
                 aria-label="Hourly rate"
               />
             </Grid>
@@ -642,7 +712,11 @@ const EmployeeManagement = () => {
                 multiple
                 options={qualifications}
                 value={formData.qualifications}
-                onChange={(event, newValue) => setFormData({ ...formData, qualifications: newValue })}
+                onChange={(event, newValue) => {
+                  if (newValue.length <= 20) {
+                    setFormData({ ...formData, qualifications: newValue });
+                  }
+                }}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip
@@ -658,6 +732,8 @@ const EmployeeManagement = () => {
                     {...params}
                     label="Qualifications"
                     placeholder="Select qualifications"
+                    helperText={`${formData.qualifications.length}/20 qualifications selected`}
+                    error={formData.qualifications.length > 20}
                     aria-label="Employee qualifications"
                   />
                 )}
@@ -671,6 +747,8 @@ const EmployeeManagement = () => {
                 type="number"
                 value={formData.maxHoursPerWeek}
                 onChange={(e) => setFormData({ ...formData, maxHoursPerWeek: e.target.value })}
+                inputProps={{ min: 1, max: 168, step: 1 }}
+                helperText="Must be between 1 and 168 hours (cannot exceed available hours)"
                 aria-label="Maximum hours per week"
               />
             </Grid>
