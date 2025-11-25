@@ -53,8 +53,8 @@ import SearchBar from '../components/search/SearchBar';
 import { filterEmployees } from '../utils/filterUtils';
 import DepartmentSelector from '../components/common/DepartmentSelector';
 import AccountStatusDialog from '../components/AccountStatusDialog';
-import PasswordResetDialog from '../components/PasswordResetDialog\';
-import ChangePasswordDialog from '../components/ChangePasswordDialog\';
+import PasswordResetDialog from '../components/PasswordResetDialog';
+import ChangePasswordDialog from '../components/ChangePasswordDialog';
 
 const EmployeesPage = () => {
   const { user } = useAuth();
