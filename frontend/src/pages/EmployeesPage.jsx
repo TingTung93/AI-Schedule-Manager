@@ -44,7 +44,11 @@ import {
   Info,
   ManageAccounts,
   LockReset,
-  VpnKey
+  VpnKey,
+  School,
+  AccessTime,
+  AttachMoney,
+  Schedule
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/routeConfig';
@@ -72,6 +76,7 @@ const EmployeesPage = () => {
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedRoles, setSelectedRoles] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [newQualification, setNewQualification] = useState('');
   const [employeeForm, setEmployeeForm] = useState({
     firstName: '',
     lastName: '',
@@ -79,7 +84,19 @@ const EmployeesPage = () => {
     phone: '',
     role: ROLES.EMPLOYEE,
     department_id: null,
-    hireDate: ''
+    hireDate: '',
+    qualifications: [],
+    availability: {
+      monday: { available: false },
+      tuesday: { available: false },
+      wednesday: { available: false },
+      thursday: { available: false },
+      friday: { available: false },
+      saturday: { available: false },
+      sunday: { available: false }
+    },
+    hourly_rate: '',
+    max_hours_per_week: ''
   });
 
   // Load employees from API
@@ -135,7 +152,19 @@ const EmployeesPage = () => {
       phone: '',
       role: ROLES.EMPLOYEE,
       department: '',
-      hireDate: ''
+      hireDate: '',
+      qualifications: [],
+      availability: {
+        monday: { available: false },
+        tuesday: { available: false },
+        wednesday: { available: false },
+        thursday: { available: false },
+        friday: { available: false },
+        saturday: { available: false },
+        sunday: { available: false }
+      },
+      hourly_rate: '',
+      max_hours_per_week: ''
     });
     setDialogOpen(true);
   };
@@ -149,7 +178,19 @@ const EmployeesPage = () => {
       phone: employee.phone,
       role: employee.role,
       department: employee.department,
-      hireDate: employee.hireDate || employee.hire_date
+      hireDate: employee.hireDate || employee.hire_date,
+      qualifications: employee.qualifications || [],
+      availability: employee.availability || {
+        monday: { available: false },
+        tuesday: { available: false },
+        wednesday: { available: false },
+        thursday: { available: false },
+        friday: { available: false },
+        saturday: { available: false },
+        sunday: { available: false }
+      },
+      hourly_rate: employee.hourly_rate || '',
+      max_hours_per_week: employee.max_hours_per_week || ''
     });
     setDialogOpen(true);
     handleMenuClose();
@@ -166,17 +207,52 @@ const EmployeesPage = () => {
     handleMenuClose();
   };
 
+  const validateExtendedFields = () => {
+    const errors = [];
+
+    // Validate qualifications (max 20 items)
+    if (employeeForm.qualifications.length > 20) {
+      errors.push('Maximum 20 qualifications allowed');
+    }
+
+    // Validate hourly_rate (0-1000)
+    if (employeeForm.hourly_rate && (parseFloat(employeeForm.hourly_rate) < 0 || parseFloat(employeeForm.hourly_rate) > 1000)) {
+      errors.push('Hourly rate must be between 0 and 1000');
+    }
+
+    // Validate max_hours_per_week (1-168)
+    if (employeeForm.max_hours_per_week && (parseInt(employeeForm.max_hours_per_week) < 1 || parseInt(employeeForm.max_hours_per_week) > 168)) {
+      errors.push('Max hours per week must be between 1 and 168');
+    }
+
+    return errors;
+  };
+
   const handleFormSubmit = async () => {
     try {
       console.log('[EmployeesPage] Submitting employee:', employeeForm);
 
+      // Validate extended fields
+      const validationErrors = validateExtendedFields();
+      if (validationErrors.length > 0) {
+        setNotification({ type: 'error', message: validationErrors.join(', ') });
+        return;
+      }
+
+      // Prepare payload with extended fields
+      const payload = {
+        ...employeeForm,
+        hourly_rate: employeeForm.hourly_rate ? parseFloat(employeeForm.hourly_rate) : null,
+        max_hours_per_week: employeeForm.max_hours_per_week ? parseInt(employeeForm.max_hours_per_week) : null
+      };
+
       if (employeeForm.id) {
         // Update existing employee
-        await api.patch(`/api/employees/${employeeForm.id}`, employeeForm);
+        await api.patch(`/api/employees/${employeeForm.id}`, payload);
         setNotification({ type: 'success', message: 'Employee updated successfully' });
       } else {
         // Add new employee
-        await api.post('/api/employees', employeeForm);
+        await api.post('/api/employees', payload);
         setNotification({ type: 'success', message: 'Employee created successfully' });
       }
       setDialogOpen(false);
@@ -223,6 +299,56 @@ const EmployeesPage = () => {
       case 'verified': return <Info fontSize="small" />;
       default: return null;
     }
+  };
+
+  const formatAvailabilitySummary = (availability) => {
+    if (!availability) return 'Not set';
+
+    const availableDays = Object.entries(availability)
+      .filter(([_, dayData]) => dayData.available)
+      .map(([day, dayData]) => {
+        const dayName = day.charAt(0).toUpperCase() + day.slice(1, 3);
+        if (dayData.start && dayData.end) {
+          return `${dayName} ${dayData.start}-${dayData.end}`;
+        }
+        return dayName;
+      });
+
+    if (availableDays.length === 0) return 'Not available';
+    if (availableDays.length <= 2) return availableDays.join(', ');
+    return `${availableDays.length} days`;
+  };
+
+  const handleQualificationAdd = (qualification) => {
+    if (!qualification.trim()) return;
+    if (employeeForm.qualifications.length >= 20) {
+      setNotification({ type: 'warning', message: 'Maximum 20 qualifications allowed' });
+      return;
+    }
+    setEmployeeForm(prev => ({
+      ...prev,
+      qualifications: [...prev.qualifications, qualification.trim()]
+    }));
+  };
+
+  const handleQualificationRemove = (index) => {
+    setEmployeeForm(prev => ({
+      ...prev,
+      qualifications: prev.qualifications.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAvailabilityChange = (day, field, value) => {
+    setEmployeeForm(prev => ({
+      ...prev,
+      availability: {
+        ...prev.availability,
+        [day]: {
+          ...prev.availability[day],
+          [field]: value
+        }
+      }
+    }));
   };
 
   // Get unique departments and roles for filters
@@ -474,14 +600,69 @@ const EmployeesPage = () => {
                             </Box>
                           )}
                           {hireDate && (
-                            <Box display="flex" alignItems="center" gap={1}>
+                            <Box display="flex" alignItems="center" gap={1} mb={1}>
                               <Badge fontSize="small" color="action" />
                               <Typography variant="body2">
                                 Hired: {new Date(hireDate).toLocaleDateString()}
                               </Typography>
                             </Box>
                           )}
+                          {employee.hourly_rate && (
+                            <Box display="flex" alignItems="center" gap={1} mb={1}>
+                              <AttachMoney fontSize="small" color="action" />
+                              <Typography variant="body2">
+                                ${parseFloat(employee.hourly_rate).toFixed(2)}/hr
+                              </Typography>
+                            </Box>
+                          )}
+                          {employee.max_hours_per_week && (
+                            <Box display="flex" alignItems="center" gap={1} mb={1}>
+                              <Schedule fontSize="small" color="action" />
+                              <Typography variant="body2">
+                                Max {employee.max_hours_per_week} hrs/week
+                              </Typography>
+                            </Box>
+                          )}
+                          {employee.availability && (
+                            <Box display="flex" alignItems="center" gap={1} mb={1}>
+                              <AccessTime fontSize="small" color="action" />
+                              <Typography variant="body2">
+                                {formatAvailabilitySummary(employee.availability)}
+                              </Typography>
+                            </Box>
+                          )}
                         </Box>
+
+                        {/* Qualifications */}
+                        {employee.qualifications && employee.qualifications.length > 0 && (
+                          <Box mt={2}>
+                            <Box display="flex" alignItems="center" gap={1} mb={1}>
+                              <School fontSize="small" color="action" />
+                              <Typography variant="caption" color="textSecondary">
+                                Qualifications:
+                              </Typography>
+                            </Box>
+                            <Box display="flex" gap={0.5} flexWrap="wrap">
+                              {employee.qualifications.slice(0, 3).map((qual, idx) => (
+                                <Chip
+                                  key={idx}
+                                  label={qual}
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{ fontSize: '0.7rem' }}
+                                />
+                              ))}
+                              {employee.qualifications.length > 3 && (
+                                <Chip
+                                  label={`+${employee.qualifications.length - 3}`}
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{ fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Box>
+                          </Box>
+                        )}
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -611,6 +792,131 @@ const EmployeesPage = () => {
                   }))}
                   InputLabelProps={{ shrink: true }}
                 />
+              </Grid>
+
+              {/* Extended Fields Section */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+                  Extended Information
+                </Typography>
+              </Grid>
+
+              {/* Hourly Rate */}
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="Hourly Rate ($)"
+                  type="number"
+                  value={employeeForm.hourly_rate}
+                  onChange={(e) => setEmployeeForm(prev => ({
+                    ...prev,
+                    hourly_rate: e.target.value
+                  }))}
+                  inputProps={{ min: 0, max: 1000, step: 0.01 }}
+                  helperText="0-1000"
+                />
+              </Grid>
+
+              {/* Max Hours Per Week */}
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="Max Hours Per Week"
+                  type="number"
+                  value={employeeForm.max_hours_per_week}
+                  onChange={(e) => setEmployeeForm(prev => ({
+                    ...prev,
+                    max_hours_per_week: e.target.value
+                  }))}
+                  inputProps={{ min: 1, max: 168 }}
+                  helperText="1-168"
+                />
+              </Grid>
+
+              {/* Qualifications */}
+              <Grid item xs={12}>
+                <Box>
+                  <Box display="flex" gap={1} mb={1}>
+                    <TextField
+                      fullWidth
+                      label="Add Qualification"
+                      value={newQualification}
+                      onChange={(e) => setNewQualification(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleQualificationAdd(newQualification);
+                          setNewQualification('');
+                        }
+                      }}
+                      helperText={`${employeeForm.qualifications.length}/20 qualifications`}
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        handleQualificationAdd(newQualification);
+                        setNewQualification('');
+                      }}
+                      disabled={!newQualification.trim() || employeeForm.qualifications.length >= 20}
+                      sx={{ minWidth: 100 }}
+                    >
+                      Add
+                    </Button>
+                  </Box>
+                  <Box display="flex" gap={0.5} flexWrap="wrap">
+                    {employeeForm.qualifications.map((qual, idx) => (
+                      <Chip
+                        key={idx}
+                        label={qual}
+                        onDelete={() => handleQualificationRemove(idx)}
+                        size="small"
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Availability */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Weekly Availability
+                </Typography>
+                <Box sx={{ maxHeight: 200, overflowY: 'auto', border: '1px solid #e0e0e0', borderRadius: 1, p: 1 }}>
+                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
+                    <Box key={day} display="flex" alignItems="center" gap={1} mb={1}>
+                      <Checkbox
+                        checked={employeeForm.availability[day]?.available || false}
+                        onChange={(e) => handleAvailabilityChange(day, 'available', e.target.checked)}
+                        size="small"
+                      />
+                      <Typography variant="body2" sx={{ width: 80 }}>
+                        {day.charAt(0).toUpperCase() + day.slice(1)}
+                      </Typography>
+                      {employeeForm.availability[day]?.available && (
+                        <>
+                          <TextField
+                            type="time"
+                            label="Start"
+                            size="small"
+                            value={employeeForm.availability[day]?.start || ''}
+                            onChange={(e) => handleAvailabilityChange(day, 'start', e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            sx={{ width: 120 }}
+                          />
+                          <TextField
+                            type="time"
+                            label="End"
+                            size="small"
+                            value={employeeForm.availability[day]?.end || ''}
+                            onChange={(e) => handleAvailabilityChange(day, 'end', e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            sx={{ width: 120 }}
+                          />
+                        </>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
               </Grid>
             </Grid>
           </Box>
