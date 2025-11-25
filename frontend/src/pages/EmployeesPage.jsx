@@ -140,18 +140,15 @@ const EmployeesPage = () => {
 
   const handleFormSubmit = async () => {
     try {
-      // Remove department field temporarily until backend supports it
-      const { department, ...employeeData } = employeeForm;
-
-      console.log('[EmployeesPage] Submitting employee:', employeeData);
+      console.log('[EmployeesPage] Submitting employee:', employeeForm);
 
       if (employeeForm.id) {
         // Update existing employee
-        await api.patch(`/api/employees/${employeeForm.id}`, employeeData);
+        await api.patch(`/api/employees/${employeeForm.id}`, employeeForm);
         setNotification({ type: 'success', message: 'Employee updated successfully' });
       } else {
         // Add new employee
-        await api.post('/api/employees', employeeData);
+        await api.post('/api/employees', employeeForm);
         setNotification({ type: 'success', message: 'Employee created successfully' });
       }
       setDialogOpen(false);
