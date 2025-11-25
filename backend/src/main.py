@@ -13,7 +13,9 @@ import redis
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError as PydanticValidationError
+from fastapi_csrf_protect import CsrfProtect
+from fastapi_csrf_protect.exceptions import CsrfProtectError
+from pydantic import BaseModel, ValidationError as PydanticValidationError
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -66,6 +68,17 @@ logger = logging.getLogger(__name__)
 if not settings.SECRET_KEY or len(settings.SECRET_KEY) < 32:
     raise ValueError("SECRET_KEY must be set and at least 32 characters. Generate with: openssl rand -base64 32")
 
+# CSRF configuration
+class CsrfSettings(BaseModel):
+    secret_key: str = os.getenv("CSRF_SECRET_KEY", settings.SECRET_KEY)
+    cookie_samesite: str = "lax"
+    cookie_secure: bool = os.getenv("ENVIRONMENT", "development") == "production"
+    cookie_httponly: bool = True
+
+@CsrfProtect.load_config
+def get_csrf_config():
+    return CsrfSettings()
+
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
@@ -81,6 +94,23 @@ app = FastAPI(
 # Add rate limiter to app state
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+# CSRF exception handler
+@app.exception_handler(CsrfProtectError)
+async def csrf_protect_exception_handler(request: Request, exc: CsrfProtectError):
+    """
+    Custom exception handler for CSRF protection errors.
+    Returns 403 Forbidden when CSRF token is invalid or missing.
+    """
+    logger.warning(f"CSRF validation failed for {request.method} {request.url.path}")
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={
+            "detail": "CSRF token validation failed. Please refresh and try again.",
+            "error_code": "CSRF_VALIDATION_FAILED"
+        }
+    )
 
 
 # Add custom exception handler for Pydantic validation errors
@@ -153,13 +183,57 @@ except Exception as e:
     # Fallback to localhost Redis
     auth_service.redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=False)
 
+# CORS middleware - restrict origins properly
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:80").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:80"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
+    expose_headers=["X-CSRF-Token"],
 )
+
+
+
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """
+    Add security headers to all responses for defense in depth.
+    """
+    response = await call_next(request)
+
+    # Prevent MIME type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    # Prevent clickjacking
+    response.headers["X-Frame-Options"] = "DENY"
+
+    # Enable XSS protection
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+
+    # Force HTTPS in production
+    if os.getenv("ENVIRONMENT", "development") == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    # Content Security Policy
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' data:; "
+        "connect-src 'self' http://localhost:* ws://localhost:*"
+    )
+
+    # Referrer policy
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    # Permissions policy
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+
+    return response
 
 
 # Request size limit middleware (1MB max)
@@ -291,13 +365,26 @@ rule_parser = RuleParser()
 
 
 # Health and info endpoints
+
+# CSRF token endpoint
+@app.get("/api/csrf-token")
+async def get_csrf_token(csrf_protect: CsrfProtect = Depends()):
+    """
+    Get CSRF token for subsequent requests.
+    Frontend should call this on app initialization and store the token.
+    """
+    response = JSONResponse(content={"message": "CSRF token set in cookie"})
+    csrf_protect.set_csrf_cookie(response)
+    return response
+
+
 @app.get("/")
 async def root():
     return {
         "message": "AI Schedule Manager API",
         "version": "1.0.0",
         "status": "operational",
-        "features": ["CRUD operations", "Database integration", "Authentication", "Pagination"],
+        "features": ["CRUD operations", "Database integration", "Authentication", "Pagination", "CSRF Protection", "Security Headers"],
     }
 
 
@@ -373,8 +460,11 @@ async def parse_rule(
         return rule
 
     except Exception as e:
+        
         logger.error(f"Rule parsing error: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Failed to parse rule: {str(e)}")
+        # Sanitize error message for production
+        detail = "Failed to parse rule" if os.getenv("ENVIRONMENT") == "production" else f"Failed to parse rule: {str(e)}"
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
 
 @app.get("/api/rules", response_model=PaginatedResponse)
