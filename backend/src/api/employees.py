@@ -394,6 +394,9 @@ async def create_employee(
     """
     Create a new employee - only first_name and last_name required.
 
+    Authorization:
+    - Required roles: admin or manager
+
     Request Body:
     - **first_name**: Employee first name (required)
     - **last_name**: Employee last name (required)
@@ -518,8 +521,16 @@ async def create_employee(
         )
 
 
-@router.patch("/{employee_id}", response_model=EmployeeResponse)
-@router.put("/{employee_id}", response_model=EmployeeResponse)
+@router.patch(
+    "/{employee_id}",
+    response_model=EmployeeResponse,
+    dependencies=[Depends(require_roles("admin", "manager"))]
+)
+@router.put(
+    "/{employee_id}",
+    response_model=EmployeeResponse,
+    dependencies=[Depends(require_roles("admin", "manager"))]
+)
 @limiter.limit("10/minute")
 async def update_employee(
     request: Request,
@@ -530,6 +541,11 @@ async def update_employee(
 ):
     """
     Update an existing employee. Supports both PUT and PATCH methods.
+
+    Authorization:
+    - Required roles: admin or manager
+    - Non-admin/manager users can only update their own profile
+    - Only administrators can change user roles
 
     Automatically logs department assignment changes to audit trail.
 
@@ -716,7 +732,11 @@ async def update_employee(
         )
 
 
-@router.delete("/{employee_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{employee_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_roles("admin"))]
+)
 async def delete_employee(
     employee_id: int,
     db: AsyncSession = Depends(get_database_session),
@@ -724,6 +744,9 @@ async def delete_employee(
 ):
     """
     Delete an employee.
+
+    Authorization:
+    - Required role: admin only
 
     Path Parameters:
     - **employee_id**: Unique employee identifier
