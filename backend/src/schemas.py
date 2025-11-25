@@ -1221,6 +1221,52 @@ class DepartmentChangeSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# Role History Schemas
+class RoleHistoryBase(BaseModel):
+    """Base schema for role change history."""
+
+    user_id: int = Field(..., description="ID of the user")
+    old_role: Optional[str] = Field(None, description="Previous role name (NULL if no previous role)")
+    new_role: str = Field(..., description="New role name")
+    changed_by_id: int = Field(..., description="ID of user who made the change")
+    reason: Optional[str] = Field(None, description="Reason for the role change")
+    metadata_json: Optional[dict] = Field(default_factory=dict, description="Additional context as JSON")
+
+
+class RoleHistoryCreate(RoleHistoryBase):
+    """Schema for creating a new role history record."""
+    pass
+
+
+class RoleHistoryResponse(RoleHistoryBase):
+    """
+    Schema for role history response.
+
+    Includes all fields from the database plus computed fields
+    for user and role names.
+    """
+
+    id: int = Field(..., description="Unique identifier for the history record")
+    changed_at: datetime = Field(..., description="Timestamp when the change occurred")
+
+    # Optional enriched data (loaded from joins)
+    user_name: Optional[str] = Field(None, description="Full name of the user")
+    changed_by_name: Optional[str] = Field(None, description="Full name of user who made change")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RoleHistoryListResponse(BaseModel):
+    """Schema for paginated list of role history records."""
+
+    total: int = Field(..., description="Total number of history records")
+    items: list[RoleHistoryResponse] = Field(..., description="List of history records")
+    skip: int = Field(..., description="Number of records skipped")
+    limit: int = Field(..., description="Maximum records returned")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 """
 Pydantic schemas for Shift Definitions
 """

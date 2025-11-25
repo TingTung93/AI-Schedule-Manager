@@ -8,7 +8,7 @@ and security features like account lockouts and password resets.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Table, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, sessionmaker
 
@@ -40,6 +40,8 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
+    phone = Column(String(20), nullable=True, index=True)
+    hire_date = Column(Date, nullable=True)
     password_hash = Column(String(255), nullable=False)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
@@ -83,7 +85,7 @@ class User(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<User {self.email}>"
+        return f"<User {self.email} (phone={self.phone}, hire_date={self.hire_date})>"
 
     @property
     def full_name(self):
@@ -125,6 +127,8 @@ class User(Base):
         data = {
             "id": self.id,
             "email": self.email,
+            "phone": self.phone,
+            "hire_date": self.hire_date.isoformat() if self.hire_date else None,
             "first_name": self.first_name,
             "last_name": self.last_name,
             "full_name": self.full_name,

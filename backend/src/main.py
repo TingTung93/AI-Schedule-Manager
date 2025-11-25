@@ -12,6 +12,8 @@ from typing import List, Optional
 import redis
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError as PydanticValidationError
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -79,6 +81,55 @@ app = FastAPI(
 # Add rate limiter to app state
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+# Add custom exception handler for Pydantic validation errors
+@app.exception_handler(PydanticValidationError)
+async def validation_exception_handler(request: Request, exc: PydanticValidationError):
+    """
+    Custom exception handler for Pydantic validation errors.
+    Formats validation errors into field-specific error messages.
+    """
+    errors = []
+    for error in exc.errors():
+        # Extract field name from location tuple (skip 'body' if present)
+        field_path = '.'.join(str(x) for x in error['loc'] if x != 'body')
+
+        # Get user-friendly error message
+        error_msg = error.get('msg', 'Validation error')
+        error_type = error.get('type', '')
+
+        # Handle specific error types with custom messages
+        if error_type == 'extra_forbidden':
+            field_name = error['loc'][-1] if error['loc'] else 'unknown'
+            error_msg = f"Unknown field '{field_name}' is not allowed. Please remove this field from your request."
+        elif error_type == 'string_too_short':
+            ctx = error.get('ctx', {})
+            min_length = ctx.get('min_length', 'required')
+            error_msg = f"Field must be at least {min_length} characters long."
+        elif error_type == 'string_too_long':
+            ctx = error.get('ctx', {})
+            max_length = ctx.get('max_length', 'allowed')
+            error_msg = f"Field must be no more than {max_length} characters long."
+        elif error_type == 'value_error':
+            # Use the custom validation message from our validators
+            # Pydantic v2 stores the error message differently
+            if 'ctx' in error and 'error' in error['ctx']:
+                error_msg = str(error['ctx']['error'])
+            elif 'msg' in error:
+                error_msg = error['msg']
+
+        errors.append({
+            'field': field_path or 'unknown',
+            'message': error_msg,
+            'type': error_type
+        })
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={'errors': errors}
+    )
+
 
 # Setup enhanced API documentation
 setup_docs(app)

@@ -1,0 +1,1045 @@
+{
+  "analysis_metadata": {
+    "timestamp": "2025-11-24",
+    "analyzed_files": [
+      "/home/peter/AI-Schedule-Manager/backend/src/api/employees.py",
+      "/home/peter/AI-Schedule-Manager/backend/src/models/employee.py",
+      "/home/peter/AI-Schedule-Manager/backend/tests/integration/test_employee_crud.py",
+      "/home/peter/AI-Schedule-Manager/backend/tests/test_employee_departments.py"
+    ],
+    "total_lines_analyzed": 1073
+  },
+
+  "api_endpoints": {
+    "GET /api/employees": {
+      "description": "Get all employees with optional filtering",
+      "authentication": "Required (JWT)",
+      "query_parameters": {
+        "role": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by employee role",
+          "note": "Currently not implemented - would require user_roles table join"
+        },
+        "is_active": {
+          "type": "boolean",
+          "required": false,
+          "description": "Filter by active status"
+        },
+        "department_id": {
+          "type": "integer",
+          "required": false,
+          "description": "Filter by department"
+        },
+        "skip": {
+          "type": "integer",
+          "required": false,
+          "default": 0,
+          "minimum": 0,
+          "description": "Number of records to skip for pagination"
+        },
+        "limit": {
+          "type": "integer",
+          "required": false,
+          "default": 100,
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "Maximum number of records to return"
+        }
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "schema": "List[EmployeeResponse]",
+        "ordering": "last_name, first_name (ascending)"
+      },
+      "error_responses": {
+        "500": "Failed to fetch employees"
+      },
+      "relationships_loaded": [
+        "department (eager loaded via selectinload)"
+      ],
+      "business_logic": [
+        "Returns all users ordered by last_name, first_name",
+        "Department data eagerly loaded to prevent N+1 queries",
+        "Role filter not currently functional (requires join)"
+      ]
+    },
+
+    "GET /api/employees/{employee_id}": {
+      "description": "Get a specific employee by ID",
+      "authentication": "Required (JWT)",
+      "path_parameters": {
+        "employee_id": {
+          "type": "integer",
+          "required": true,
+          "description": "Unique employee identifier"
+        }
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "schema": "EmployeeResponse"
+      },
+      "error_responses": {
+        "404": "Employee with ID {employee_id} not found",
+        "500": "Failed to fetch employee"
+      },
+      "relationships_loaded": [
+        "department (not eagerly loaded in query - potential N+1 issue)"
+      ]
+    },
+
+    "POST /api/employees": {
+      "description": "Create a new employee - only first_name and last_name required",
+      "authentication": "Required (JWT)",
+      "request_body": {
+        "schema": "EmployeeCreate",
+        "required_fields": ["first_name", "last_name"],
+        "optional_fields": ["email", "department_id"],
+        "field_details": {
+          "first_name": {
+            "type": "string",
+            "required": true,
+            "description": "Employee first name"
+          },
+          "last_name": {
+            "type": "string",
+            "required": true,
+            "description": "Employee last name"
+          },
+          "email": {
+            "type": "string",
+            "required": false,
+            "description": "Email address (auto-generated if not provided)",
+            "auto_generation": "Format: {first_name}.{last_name}.{random8hex}@temp.example.com"
+          },
+          "department_id": {
+            "type": "integer",
+            "required": false,
+            "nullable": true,
+            "description": "Department assignment (optional)"
+          }
+        }
+      },
+      "response": {
+        "status_code": 201,
+        "content_type": "application/json",
+        "schema": "EmployeeResponse"
+      },
+      "error_responses": {
+        "404": "Department with ID {department_id} not found. Please select a valid department or leave unassigned.",
+        "409": "Employee with email {email} already exists. Suggestions: Use a different email or leave it empty to auto-generate.",
+        "400": "Cannot assign employee to inactive department '{department.name}'. Please select an active department.",
+        "500": "Failed to create employee: {error_message}"
+      },
+      "validations": [
+        "Department existence check (if department_id provided)",
+        "Department active status check (must be active)",
+        "Email uniqueness check",
+        "Email auto-generation if not provided"
+      ],
+      "business_logic": [
+        "Auto-generates email if not provided: {first_name}.{last_name}.{random8hex}@temp.example.com",
+        "Default password: 'Employee123!' (bcrypt hashed)",
+        "Sets is_active=True by default",
+        "Logs department assignment to audit trail if assigned on creation",
+        "Eagerly loads department with children after creation"
+      ],
+      "audit_logging": {
+        "enabled": true,
+        "logged_when": "department_id is not None",
+        "log_details": {
+          "from_department": null,
+          "to_department": "department_id",
+          "reason": "Initial department assignment on employee creation",
+          "metadata": {"action": "create", "initial_assignment": true}
+        }
+      },
+      "database_operations": [
+        "Insert User record",
+        "Flush to get user.id",
+        "Insert DepartmentAssignmentHistory (if department assigned)",
+        "Commit transaction",
+        "Refresh user",
+        "Load department relationship with children"
+      ]
+    },
+
+    "PATCH /api/employees/{employee_id}": {
+      "description": "Partially update an existing employee",
+      "authentication": "Required (JWT)",
+      "http_methods": ["PATCH", "PUT"],
+      "note": "Both PATCH and PUT use same logic - all fields optional",
+      "path_parameters": {
+        "employee_id": {
+          "type": "integer",
+          "required": true,
+          "description": "Unique employee identifier"
+        }
+      },
+      "request_body": {
+        "schema": "EmployeeUpdate",
+        "all_fields_optional": true,
+        "field_details": {
+          "first_name": {
+            "type": "string",
+            "required": false
+          },
+          "last_name": {
+            "type": "string",
+            "required": false
+          },
+          "email": {
+            "type": "string",
+            "required": false
+          },
+          "active": {
+            "type": "boolean",
+            "required": false,
+            "maps_to": "is_active"
+          },
+          "department_id": {
+            "type": "integer",
+            "required": false,
+            "nullable": true
+          }
+        }
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "schema": "EmployeeResponse"
+      },
+      "error_responses": {
+        "404": "Employee with ID {employee_id} not found",
+        "404": "Department with ID {department_id} not found. Please select a valid department or set to null for unassigned.",
+        "409": "Employee with email {email} already exists. Please use a different email address.",
+        "400": "Cannot assign employee to inactive department '{department.name}'. Please select an active department.",
+        "500": "Failed to update employee: {error_message}"
+      },
+      "validations": [
+        "Employee existence check",
+        "Department existence check (if department_id being updated and not null)",
+        "Department active status check (must be active)",
+        "Email uniqueness check (if email being updated)"
+      ],
+      "business_logic": [
+        "Only updates fields provided in request (exclude_unset=True)",
+        "Tracks old department_id for audit logging",
+        "Validates department if being changed",
+        "Logs department change only if actually changed",
+        "Eagerly loads department with children after update",
+        "Field mapping: 'active' -> 'is_active'"
+      ],
+      "audit_logging": {
+        "enabled": true,
+        "logged_when": "department_id changes (old != new)",
+        "log_details": {
+          "from_department": "old_department_id",
+          "to_department": "new_department_id",
+          "reason": "Department assignment updated via employee update API",
+          "metadata": {
+            "action": "update",
+            "updated_fields": "list of all updated field names"
+          }
+        }
+      },
+      "database_operations": [
+        "Select and verify employee exists",
+        "Validate new department if provided",
+        "Check email uniqueness if changed",
+        "Update user fields",
+        "Log department change if changed",
+        "Commit transaction",
+        "Refresh user",
+        "Load department relationship with children"
+      ]
+    },
+
+    "PUT /api/employees/{employee_id}": {
+      "description": "Full update of employee (same as PATCH - all fields optional)",
+      "note": "See PATCH endpoint - identical implementation"
+    },
+
+    "DELETE /api/employees/{employee_id}": {
+      "description": "Delete an employee",
+      "authentication": "Required (JWT)",
+      "path_parameters": {
+        "employee_id": {
+          "type": "integer",
+          "required": true,
+          "description": "Unique employee identifier"
+        }
+      },
+      "response": {
+        "status_code": 204,
+        "content_type": "No content"
+      },
+      "error_responses": {
+        "404": "Employee with ID {employee_id} not found",
+        "500": "Failed to delete employee: {error_message}"
+      },
+      "cascade_behavior": {
+        "audit_trail": "Preserved (CASCADE on employee_id in DepartmentAssignmentHistory)",
+        "schedule_assignments": "Deleted (cascade='all, delete-orphan')",
+        "rules": "Deleted (cascade='all, delete-orphan')",
+        "notifications": "Deleted (cascade='all, delete-orphan')",
+        "settings": "Deleted (cascade='all, delete-orphan')"
+      },
+      "business_logic": [
+        "Simple deletion with cascade",
+        "No soft delete implemented",
+        "Audit trail records preserved"
+      ]
+    },
+
+    "GET /api/employees/{employee_id}/department-history": {
+      "description": "Get department assignment history for an employee",
+      "authentication": "Required (JWT)",
+      "path_parameters": {
+        "employee_id": {
+          "type": "integer",
+          "required": true,
+          "description": "Unique employee identifier"
+        }
+      },
+      "query_parameters": {
+        "skip": {
+          "type": "integer",
+          "required": false,
+          "default": 0,
+          "minimum": 0,
+          "description": "Number of records to skip"
+        },
+        "limit": {
+          "type": "integer",
+          "required": false,
+          "default": 50,
+          "minimum": 1,
+          "maximum": 500,
+          "description": "Maximum records to return"
+        }
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "schema": "DepartmentHistoryListResponse",
+        "includes": {
+          "total": "Total count of history records",
+          "items": "List[DepartmentHistoryResponse]",
+          "skip": "Echo of skip parameter",
+          "limit": "Echo of limit parameter"
+        },
+        "ordering": "changed_at (descending - most recent first)"
+      },
+      "error_responses": {
+        "404": "Employee with ID {employee_id} not found",
+        "500": "Failed to fetch department history: {error_message}"
+      },
+      "enriched_data": [
+        "employee_name: '{first_name} {last_name}'",
+        "from_department_name: name of from_department or null",
+        "to_department_name: name of to_department or null",
+        "changed_by_name: '{first_name} {last_name}' of user who made change"
+      ],
+      "performance_optimizations": [
+        "Uses selectinload for from_department, to_department, changed_by_user",
+        "Eliminates N+1 query problem",
+        "All relationships loaded in single query"
+      ],
+      "business_logic": [
+        "Verifies employee exists before querying history",
+        "Returns paginated results",
+        "Includes comprehensive audit trail with enriched names",
+        "Shows full history from creation to present"
+      ]
+    }
+  },
+
+  "data_models": {
+    "User_model": {
+      "note": "User model used for employees (auth/models.py)",
+      "table_name": "users",
+      "primary_key": "id",
+      "authentication_fields": {
+        "email": {
+          "type": "String(255)",
+          "unique": true,
+          "nullable": false,
+          "indexed": true,
+          "constraint": "Valid email format regex"
+        },
+        "password_hash": {
+          "type": "String(255)",
+          "nullable": false,
+          "note": "bcrypt hashed password"
+        }
+      },
+      "personal_information": {
+        "first_name": {
+          "type": "String(50)",
+          "nullable": false,
+          "indexed": true,
+          "constraint": "char_length >= 1"
+        },
+        "last_name": {
+          "type": "String(50)",
+          "nullable": false,
+          "indexed": true,
+          "constraint": "char_length >= 1"
+        }
+      },
+      "department_relationship": {
+        "department_id": {
+          "type": "Integer",
+          "foreign_key": "departments.id",
+          "nullable": true,
+          "indexed": true,
+          "on_delete": "Not specified (likely NO ACTION or SET NULL)"
+        },
+        "department": {
+          "relationship": "Department",
+          "back_populates": "Not shown (different Base classes issue)",
+          "note": "Manually loaded in API due to different Base classes"
+        }
+      },
+      "status_tracking": {
+        "is_active": {
+          "type": "Boolean",
+          "default": true,
+          "nullable": false
+        }
+      },
+      "audit_fields": {
+        "created_at": {
+          "type": "datetime",
+          "nullable": false,
+          "default": "datetime.utcnow"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": false,
+          "default": "datetime.utcnow",
+          "onupdate": "datetime.utcnow"
+        }
+      }
+    },
+
+    "Employee_model": {
+      "note": "Original Employee model (models/employee.py) - appears to be legacy/unused",
+      "table_name": "employees",
+      "primary_key": "id",
+      "authentication_fields": {
+        "email": {
+          "type": "String(255)",
+          "unique": true,
+          "nullable": false,
+          "indexed": true,
+          "constraint": "Valid email format regex"
+        },
+        "password_hash": {
+          "type": "String(255)",
+          "nullable": false
+        }
+      },
+      "personal_information": {
+        "first_name": {
+          "type": "String(50)",
+          "nullable": false,
+          "indexed": true,
+          "constraint": "char_length >= 1"
+        },
+        "last_name": {
+          "type": "String(50)",
+          "nullable": false,
+          "indexed": true,
+          "constraint": "char_length >= 1"
+        },
+        "role": {
+          "type": "String(100)",
+          "nullable": false,
+          "default": "employee",
+          "constraint": "Must be one of: admin, manager, supervisor, employee"
+        }
+      },
+      "department_relationship": {
+        "department_id": {
+          "type": "Integer",
+          "foreign_key": "departments.id",
+          "nullable": true,
+          "indexed": true
+        },
+        "department": {
+          "relationship": "Department",
+          "back_populates": "employees"
+        }
+      },
+      "work_related_fields": {
+        "qualifications": {
+          "type": "ARRAY(String)",
+          "nullable": true,
+          "indexed": "GIN index",
+          "comment": "List of employee qualifications/certifications"
+        },
+        "availability": {
+          "type": "JSONB",
+          "nullable": true,
+          "indexed": "GIN index",
+          "comment": "JSON structure defining available time slots by day",
+          "structure": {
+            "day_name": {
+              "available": "boolean",
+              "time_slots": [
+                {"start": "HH:MM", "end": "HH:MM"}
+              ]
+            }
+          }
+        }
+      },
+      "status_tracking": {
+        "is_active": {
+          "type": "Boolean",
+          "default": true,
+          "nullable": false
+        },
+        "is_admin": {
+          "type": "Boolean",
+          "default": false,
+          "nullable": false
+        }
+      },
+      "audit_fields": {
+        "created_at": {
+          "type": "datetime",
+          "nullable": false,
+          "default": "datetime.utcnow"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": false,
+          "default": "datetime.utcnow",
+          "onupdate": "datetime.utcnow"
+        }
+      },
+      "relationships": [
+        "department: Optional[Department]",
+        "schedule_assignments: List[ScheduleAssignment] (cascade: all, delete-orphan)",
+        "created_schedules: List[Schedule]",
+        "rules: List[Rule] (cascade: all, delete-orphan)",
+        "notifications: List[Notification] (cascade: all, delete-orphan)",
+        "settings: Optional[UserSettings] (cascade: all, delete-orphan)"
+      ],
+      "constraints": [
+        "valid_role: role IN ('admin', 'manager', 'supervisor', 'employee')",
+        "valid_email_format: email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'",
+        "first_name_min_length: char_length(first_name) >= 1",
+        "last_name_min_length: char_length(last_name) >= 1"
+      ],
+      "indexes": [
+        "ix_employees_role_active (role, is_active)",
+        "ix_employees_qualifications (qualifications) GIN",
+        "ix_employees_availability (availability) GIN"
+      ],
+      "methods": {
+        "full_name": "Property returning '{first_name} {last_name}'",
+        "has_qualification(qualification)": "Check if employee has specific qualification",
+        "is_available_at(day, time)": "Check availability at specific day/time",
+        "can_work_shift_type(shift_type)": "Check if qualified for shift type",
+        "to_dict(camelCase=True)": "Convert to dictionary with optional camelCase conversion"
+      }
+    },
+
+    "DepartmentAssignmentHistory_model": {
+      "table_name": "department_assignment_history",
+      "purpose": "Audit trail for department assignment changes",
+      "fields": {
+        "id": {
+          "type": "Integer",
+          "primary_key": true
+        },
+        "employee_id": {
+          "type": "Integer",
+          "foreign_key": "users.id",
+          "nullable": false,
+          "indexed": true,
+          "on_delete": "CASCADE (preserves audit trail when employee deleted)"
+        },
+        "from_department_id": {
+          "type": "Integer",
+          "foreign_key": "departments.id",
+          "nullable": true,
+          "description": "Previous department (null if unassigned)"
+        },
+        "to_department_id": {
+          "type": "Integer",
+          "foreign_key": "departments.id",
+          "nullable": true,
+          "description": "New department (null if being unassigned)"
+        },
+        "changed_by_user_id": {
+          "type": "Integer",
+          "foreign_key": "users.id",
+          "nullable": false,
+          "description": "User who made the change"
+        },
+        "changed_at": {
+          "type": "datetime",
+          "nullable": false,
+          "default": "datetime.utcnow"
+        },
+        "change_reason": {
+          "type": "Text",
+          "nullable": true,
+          "description": "Optional explanation for change"
+        },
+        "metadata": {
+          "type": "JSONB",
+          "nullable": true,
+          "description": "Additional context (action, fields changed, etc.)"
+        }
+      },
+      "relationships": [
+        "from_department: Optional[Department]",
+        "to_department: Optional[Department]",
+        "changed_by_user: User"
+      ]
+    }
+  },
+
+  "request_schemas": {
+    "EmployeeCreate": {
+      "required_fields": ["first_name", "last_name"],
+      "optional_fields": ["email", "department_id"],
+      "field_validations": {
+        "first_name": "String, required, min_length 1",
+        "last_name": "String, required, min_length 1",
+        "email": "String, optional, valid email format, unique",
+        "department_id": "Integer, optional, nullable, must exist and be active"
+      }
+    },
+
+    "EmployeeUpdate": {
+      "all_fields_optional": true,
+      "fields": ["first_name", "last_name", "email", "active", "department_id"],
+      "field_validations": {
+        "first_name": "String, optional, min_length 1",
+        "last_name": "String, optional, min_length 1",
+        "email": "String, optional, valid email format, unique",
+        "active": "Boolean, optional, maps to is_active",
+        "department_id": "Integer, optional, nullable, must exist and be active"
+      }
+    }
+  },
+
+  "response_schemas": {
+    "EmployeeResponse": {
+      "fields": {
+        "id": "Integer",
+        "email": "String",
+        "first_name": "String",
+        "last_name": "String",
+        "department_id": "Optional[Integer]",
+        "department": "Optional[DepartmentResponse] (with children)",
+        "is_active": "Boolean",
+        "created_at": "datetime",
+        "updated_at": "datetime"
+      },
+      "note": "Department relationship manually loaded after create/update"
+    },
+
+    "DepartmentHistoryResponse": {
+      "fields": {
+        "id": "Integer",
+        "employee_id": "Integer",
+        "from_department_id": "Optional[Integer]",
+        "to_department_id": "Optional[Integer]",
+        "changed_by_user_id": "Integer",
+        "changed_at": "datetime",
+        "change_reason": "Optional[String]",
+        "metadata": "dict",
+        "employee_name": "String (enriched: '{first_name} {last_name}')",
+        "from_department_name": "Optional[String] (enriched)",
+        "to_department_name": "Optional[String] (enriched)",
+        "changed_by_name": "Optional[String] (enriched)"
+      }
+    },
+
+    "DepartmentHistoryListResponse": {
+      "fields": {
+        "total": "Integer (total count)",
+        "items": "List[DepartmentHistoryResponse]",
+        "skip": "Integer (pagination offset)",
+        "limit": "Integer (page size)"
+      }
+    }
+  },
+
+  "business_rules": {
+    "department_assignment": {
+      "create_rules": [
+        "Department is optional on creation",
+        "If provided, department must exist",
+        "If provided, department must be active",
+        "Initial assignment is logged to audit trail"
+      ],
+      "update_rules": [
+        "Department can be changed to another valid department",
+        "Department can be removed (set to null)",
+        "New department must exist and be active",
+        "Only logs change if department actually changed",
+        "Change includes reason and metadata in audit log"
+      ],
+      "validation_rules": [
+        "Cannot assign to non-existent department",
+        "Cannot assign to inactive department",
+        "Can assign to null (unassigned)"
+      ]
+    },
+
+    "email_management": {
+      "rules": [
+        "Email must be unique across all employees",
+        "If not provided on creation, auto-generates: {first_name}.{last_name}.{random8hex}@temp.example.com",
+        "Email format validated via regex constraint",
+        "Email can be updated if new email is unique"
+      ]
+    },
+
+    "password_management": {
+      "rules": [
+        "Default password on creation: 'Employee123!'",
+        "Password is bcrypt hashed",
+        "Password cannot be updated via employee API (likely separate auth endpoint)"
+      ]
+    },
+
+    "deletion_rules": {
+      "employee_deletion": [
+        "Hard delete (no soft delete)",
+        "Audit trail preserved (CASCADE keeps history records)",
+        "Related records deleted: schedule_assignments, rules, notifications, settings"
+      ]
+    }
+  },
+
+  "authorization_checks": {
+    "all_endpoints": {
+      "authentication": "Required via get_current_user dependency",
+      "authorization": "No role-based checks visible in code",
+      "note": "All authenticated users can access all employee operations"
+    },
+    "potential_issues": [
+      "No role-based access control (RBAC)",
+      "No check if user can modify other employees",
+      "No admin-only operations",
+      "No department-based access restrictions"
+    ]
+  },
+
+  "error_handling": {
+    "patterns": {
+      "http_exceptions": "Re-raised as-is",
+      "general_exceptions": "Caught, logged, rolled back, returned as 500",
+      "validation_errors": "Returned as 400/404/409 with descriptive messages"
+    },
+    "error_messages": {
+      "user_friendly": true,
+      "include_suggestions": true,
+      "examples": [
+        "Department with ID X not found. Please select a valid department or leave unassigned.",
+        "Employee with email X already exists. Suggestions: Use a different email or leave it empty to auto-generate.",
+        "Cannot assign employee to inactive department 'X'. Please select an active department."
+      ]
+    },
+    "rollback_strategy": {
+      "automatic": "Rollback on any exception in create/update/delete",
+      "explicit": "await db.rollback() in exception handlers"
+    }
+  },
+
+  "performance_considerations": {
+    "optimizations": [
+      "Eager loading of department with children using selectinload",
+      "Pagination support with skip/limit",
+      "Indexed fields: email, first_name, last_name, department_id",
+      "GIN indexes on JSONB/Array fields (availability, qualifications)"
+    ],
+    "potential_issues": [
+      "GET /{employee_id} does not eager load department (potential N+1)",
+      "Role filter not implemented in GET /api/employees",
+      "No caching strategy visible",
+      "Manual department loading after create/update (extra query)"
+    ],
+    "n_plus_1_prevention": [
+      "Department history endpoint uses selectinload for all relationships",
+      "List endpoint could benefit from selectinload for department"
+    ]
+  },
+
+  "audit_logging": {
+    "implementation": {
+      "function": "log_department_change()",
+      "automatic": "Called on create (if department assigned) and update (if changed)",
+      "storage": "DepartmentAssignmentHistory table"
+    },
+    "logged_data": {
+      "employee_id": "ID of employee",
+      "from_department_id": "Previous department (null if new or unassigned)",
+      "to_department_id": "New department (null if being unassigned)",
+      "changed_by_user_id": "User who made the change",
+      "changed_at": "Timestamp (UTC)",
+      "change_reason": "Descriptive reason for change",
+      "metadata": "Additional context (action type, updated fields, etc.)"
+    },
+    "query_capabilities": [
+      "Full history for employee",
+      "Paginated results",
+      "Enriched with names (employee, departments, user)",
+      "Ordered by most recent first"
+    ]
+  },
+
+  "database_relationships": {
+    "User_to_Department": {
+      "type": "Many-to-One",
+      "foreign_key": "User.department_id -> Department.id",
+      "nullable": true,
+      "on_delete": "Not specified (likely NO ACTION or SET NULL)",
+      "note": "Relationship manually loaded due to different Base classes"
+    },
+    "DepartmentAssignmentHistory_to_Employee": {
+      "type": "Many-to-One",
+      "foreign_key": "DepartmentAssignmentHistory.employee_id -> User.id",
+      "nullable": false,
+      "on_delete": "CASCADE (preserves history when employee deleted)"
+    },
+    "DepartmentAssignmentHistory_to_Departments": {
+      "relationships": [
+        "from_department_id -> Department.id (nullable)",
+        "to_department_id -> Department.id (nullable)"
+      ],
+      "on_delete": "Not specified (likely NO ACTION or SET NULL)"
+    },
+    "Employee_relationships": {
+      "note": "Legacy Employee model has extensive relationships",
+      "includes": [
+        "department",
+        "schedule_assignments (cascade delete)",
+        "created_schedules",
+        "rules (cascade delete)",
+        "notifications (cascade delete)",
+        "settings (cascade delete)"
+      ]
+    }
+  },
+
+  "test_coverage": {
+    "integration_tests": {
+      "file": "test_employee_crud.py",
+      "test_count": 18,
+      "coverage": [
+        "Create with all fields",
+        "Create with minimal fields",
+        "Create duplicate email (conflict)",
+        "Get by ID",
+        "Get non-existent (404)",
+        "Update partial fields (PATCH)",
+        "Update full replace (PUT)",
+        "Delete employee",
+        "Delete non-existent (404)",
+        "List with pagination",
+        "Filter by department",
+        "Filter by role",
+        "Search by name",
+        "Search by email",
+        "Filter active employees",
+        "Data transformation (camelCase)"
+      ]
+    },
+
+    "department_tests": {
+      "file": "test_employee_departments.py",
+      "test_count": 10,
+      "coverage": [
+        "Create with valid department",
+        "Create with invalid department (404)",
+        "Create without department",
+        "Update department",
+        "Update to invalid department (error)",
+        "Remove department (set null)",
+        "Response includes department details",
+        "Filter by department",
+        "Filter no department",
+        "Verify relationship integrity"
+      ]
+    },
+
+    "missing_test_coverage": [
+      "Inactive department assignment prevention",
+      "Department history endpoint",
+      "Audit logging verification",
+      "Concurrent update scenarios",
+      "Authorization checks",
+      "Password hashing verification",
+      "Email auto-generation uniqueness",
+      "Cascade deletion verification"
+    ]
+  },
+
+  "architecture_concerns": {
+    "dual_models": {
+      "issue": "Both User (auth/models.py) and Employee (models/employee.py) exist",
+      "current_usage": "API uses User model exclusively",
+      "employee_model_status": "Appears to be legacy/unused",
+      "recommendation": "Consolidate or clarify purpose of each model"
+    },
+
+    "different_base_classes": {
+      "issue": "User and Department use different Base classes",
+      "impact": "Department relationship cannot use back_populates",
+      "workaround": "Manual loading of department in API endpoints",
+      "recommendation": "Unify Base classes or use proper relationship configuration"
+    },
+
+    "role_filter_not_implemented": {
+      "issue": "Role query parameter accepted but not functional",
+      "reason": "Would require user_roles table join",
+      "current_state": "Parameter ignored",
+      "recommendation": "Implement or remove parameter"
+    },
+
+    "no_rbac": {
+      "issue": "No role-based access control",
+      "impact": "All authenticated users can perform all operations",
+      "risk": "Security concern - unauthorized modifications possible",
+      "recommendation": "Implement permission checks based on user role"
+    },
+
+    "department_loading_inconsistency": {
+      "issue": "Department eager loaded in some endpoints, not others",
+      "examples": [
+        "GET /employees - eager loaded (good)",
+        "GET /employees/{id} - not eager loaded (N+1 risk)",
+        "POST/PATCH - manually loaded after operation (extra query)"
+      ],
+      "recommendation": "Standardize department loading strategy"
+    }
+  },
+
+  "api_design_quality": {
+    "strengths": [
+      "Comprehensive error messages with suggestions",
+      "Automatic audit logging for department changes",
+      "Proper HTTP status codes",
+      "Pagination support",
+      "Email auto-generation for convenience",
+      "Eager loading to prevent N+1 in list endpoint",
+      "Department history tracking with enriched data"
+    ],
+
+    "weaknesses": [
+      "No RBAC/authorization checks",
+      "Inconsistent department loading strategy",
+      "Role filter parameter not functional",
+      "No search/filter in history endpoint",
+      "No soft delete capability",
+      "Password update not available",
+      "No batch operations"
+    ],
+
+    "missing_features": [
+      "Bulk create/update employees",
+      "Export employees (CSV/Excel)",
+      "Employee profile photo upload",
+      "Department transfer with effective date",
+      "Employee deactivation reason tracking",
+      "Advanced search with multiple criteria",
+      "Sort by multiple fields",
+      "Field-level permissions"
+    ]
+  },
+
+  "security_analysis": {
+    "authentication": {
+      "mechanism": "JWT via get_current_user dependency",
+      "status": "Implemented and required"
+    },
+
+    "authorization": {
+      "status": "NOT IMPLEMENTED",
+      "risks": [
+        "Any authenticated user can view all employees",
+        "Any authenticated user can create employees",
+        "Any authenticated user can modify any employee",
+        "Any authenticated user can delete any employee",
+        "No department-based access restrictions"
+      ],
+      "recommendations": [
+        "Implement role-based permissions (admin, manager, employee)",
+        "Restrict employee modifications to admins/managers",
+        "Allow employees to only view/edit their own record",
+        "Implement department-based access control"
+      ]
+    },
+
+    "data_protection": {
+      "password_hashing": "bcrypt (good)",
+      "sensitive_data": "Email, name visible to all authenticated users",
+      "audit_trail": "Comprehensive logging of department changes",
+      "concerns": [
+        "No field-level access control",
+        "No data masking for sensitive fields",
+        "No rate limiting visible"
+      ]
+    },
+
+    "input_validation": {
+      "strengths": [
+        "Email format validation via regex constraint",
+        "Email uniqueness check",
+        "Department existence validation",
+        "Department active status check",
+        "Name minimum length constraints"
+      ],
+      "weaknesses": [
+        "No XSS prevention visible",
+        "No SQL injection prevention visible (using ORM should handle)",
+        "No input sanitization for text fields",
+        "No maximum length validation in API layer"
+      ]
+    }
+  },
+
+  "recommendations": {
+    "critical": [
+      "Implement role-based access control (RBAC)",
+      "Consolidate User/Employee models or clarify purpose",
+      "Fix or remove non-functional role filter parameter",
+      "Standardize department relationship loading"
+    ],
+
+    "high_priority": [
+      "Add department-based access restrictions",
+      "Implement soft delete for audit compliance",
+      "Add field-level permissions",
+      "Implement rate limiting",
+      "Add batch operations support"
+    ],
+
+    "medium_priority": [
+      "Add advanced search capabilities",
+      "Implement export functionality",
+      "Add employee photo upload",
+      "Improve test coverage for edge cases",
+      "Add caching strategy"
+    ],
+
+    "low_priority": [
+      "Add sort by multiple fields",
+      "Implement data masking for sensitive fields",
+      "Add password update endpoint",
+      "Improve error logging"
+    ]
+  }
+}

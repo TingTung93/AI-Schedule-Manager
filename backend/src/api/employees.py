@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from sqlalchemy.orm import selectinload
 from datetime import datetime
+from pydantic import ValidationError
 
 from ..dependencies import get_current_user, get_database_session
 from ..auth.models import User
@@ -25,6 +26,51 @@ from ..schemas import (
 )
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
+
+
+def format_validation_errors(validation_error: ValidationError) -> dict:
+    """
+    Format Pydantic validation errors into field-specific error messages.
+
+    Args:
+        validation_error: Pydantic ValidationError instance
+
+    Returns:
+        Dictionary with formatted error details
+    """
+    errors = []
+    for error in validation_error.errors():
+        # Extract field name from location tuple
+        field_path = '.'.join(str(x) for x in error['loc'] if x != 'body')
+
+        # Get user-friendly error message
+        error_msg = error.get('msg', 'Validation error')
+
+        # Handle specific error types with custom messages
+        error_type = error.get('type', '')
+
+        if error_type == 'extra_forbidden':
+            field_name = error['loc'][-1] if error['loc'] else 'unknown'
+            error_msg = f"Unknown field '{field_name}' is not allowed. Please remove this field from your request."
+        elif error_type == 'string_too_short':
+            ctx = error.get('ctx', {})
+            min_length = ctx.get('min_length', 'required')
+            error_msg = f"Field must be at least {min_length} characters long."
+        elif error_type == 'string_too_long':
+            ctx = error.get('ctx', {})
+            max_length = ctx.get('max_length', 'allowed')
+            error_msg = f"Field must be no more than {max_length} characters long."
+        elif error_type == 'value_error':
+            # Use the custom validation message from our validators
+            error_msg = str(error.get('ctx', {}).get('error', error_msg))
+
+        errors.append({
+            'field': field_path,
+            'message': error_msg,
+            'type': error_type
+        })
+
+    return {'errors': errors}
 
 
 async def log_department_change(
