@@ -1,7 +1,7 @@
 """add_hourly_rate_and_max_hours_per_week
 
 Revision ID: 010
-Revises: 009_create_account_status_history
+Revises: 009_add_password_management
 Create Date: 2025-11-24 20:50:00.000000
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '010'
-down_revision: Union[str, Sequence[str], None] = '009_create_account_status_history'
+down_revision: Union[str, Sequence[str], None] = '009_add_password_management'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

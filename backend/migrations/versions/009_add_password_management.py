@@ -1,7 +1,7 @@
 """Add password management fields and history tracking
 
 Revision ID: 009_add_password_management
-Revises: 008_create_role_change_history
+Revises: 009
 Create Date: 2024-11-24
 
 This migration adds:
@@ -16,7 +16,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '009_add_password_management'
-down_revision = '008_create_role_change_history'
+down_revision = '009'
 branch_labels = None
 depends_on = None
 

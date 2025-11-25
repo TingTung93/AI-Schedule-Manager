@@ -1,7 +1,7 @@
 """Add department schedules and templates
 
 Revision ID: 006_add_department_schedules
-Revises: bdfb51b08055
+Revises: c7f8a9b1d2e3
 Create Date: 2025-11-21 06:05:00.000000
 
 """
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = '006_add_department_schedules'
-down_revision: Union[str, None] = 'bdfb51b08055'
+down_revision: Union[str, None] = 'c7f8a9b1d2e3'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

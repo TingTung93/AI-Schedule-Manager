@@ -1,7 +1,7 @@
 """Add performance indexes for employee queries
 
 Revision ID: 008_employee_indexes
-Revises: 007_add_phone_and_hire_date_to_users
+Revises: 008_create_role_change_history
 Create Date: 2025-01-24
 
 This migration adds database indexes to optimize employee query performance:
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '008_employee_indexes'
-down_revision = '007_add_phone_and_hire_date_to_users'
+down_revision = '008_create_role_change_history'
 branch_labels = None
 depends_on = None
 

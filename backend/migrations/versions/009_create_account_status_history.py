@@ -1,7 +1,7 @@
 """create_account_status_history_table
 
 Revision ID: 009
-Revises: 008
+Revises: 008_employee_indexes
 Create Date: 2024-11-25 04:30:00.000000
 
 """
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = '009'
-down_revision: Union[str, None] = '008'
+down_revision: Union[str, None] = '008_employee_indexes'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
