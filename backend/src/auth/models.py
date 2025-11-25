@@ -8,8 +8,8 @@ and security features like account lockouts and password resets.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Table, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Numeric, String, Table, Text
+from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import relationship, sessionmaker
 
 from ..models.base import Base
@@ -48,6 +48,12 @@ class User(Base):
 
     # Department reference (FK constraint exists in DB, not defined here due to different Base)
     department_id = Column(Integer, nullable=True, index=True)
+
+    # Employment fields
+    hourly_rate = Column(Numeric(10, 2), nullable=True)
+    max_hours_per_week = Column(Integer, nullable=True)
+    qualifications = Column(JSON, nullable=True)
+    availability = Column(JSON, nullable=True)
 
     # Account status
     is_active = Column(Boolean, default=True, nullable=False)
@@ -89,7 +95,8 @@ class User(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<User {self.email} (phone={self.phone}, hire_date={self.hire_date})>"
+        qual_count = len(self.qualifications) if self.qualifications else 0
+        return f"<User {self.email} (phone={self.phone}, hire_date={self.hire_date}, qualifications={qual_count})>"
 
     @property
     def full_name(self):
@@ -137,6 +144,10 @@ class User(Base):
             "last_name": self.last_name,
             "full_name": self.full_name,
             "department_id": self.department_id,
+            "hourly_rate": float(self.hourly_rate) if self.hourly_rate is not None else None,
+            "max_hours_per_week": self.max_hours_per_week,
+            "qualifications": self.qualifications,
+            "availability": self.availability,
             "is_active": self.is_active,
             "is_verified": self.is_verified,
             "created_at": self.created_at.isoformat() if self.created_at else None,

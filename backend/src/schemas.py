@@ -215,10 +215,14 @@ class EmployeeCreate(BaseModel):
     phone: Optional[str] = Field(None, max_length=50, description="Phone number in international format")
     hire_date: Optional[date] = Field(None, alias='hireDate', description="Employee hire date")
     department_id: Optional[int] = Field(None, alias='department', gt=0, description="Department ID for employee assignment")
+    hourly_rate: Optional[float] = Field(None, ge=0, le=1000, description="Employee hourly rate")
+    max_hours_per_week: Optional[int] = Field(None, ge=1, le=168, description="Maximum hours per week")
+    qualifications: Optional[List[str]] = Field(None, max_length=20, description="List of employee qualifications/skills")
+    availability: Optional[Dict[str, Any]] = Field(None, description="Weekly availability schedule")
 
     model_config = ConfigDict(populate_by_name=True, extra='forbid')
 
-    @field_validator('email', 'department_id', 'phone', 'hire_date', mode='before')
+    @field_validator('email', 'department_id', 'phone', 'hire_date', 'hourly_rate', 'max_hours_per_week', mode='before')
     @classmethod
     def empty_str_to_none(cls, v):
         """Convert empty strings to None for optional fields."""
@@ -282,6 +286,65 @@ class EmployeeCreate(BaseModel):
             raise ValueError("Last name must contain only letters, spaces, hyphens, and apostrophes. Numbers and special characters are not allowed.")
         return v.strip()
 
+    @field_validator('qualifications')
+    @classmethod
+    def validate_qualifications(cls, v):
+        """Validate qualifications list."""
+        if v is None:
+            return None
+        if not isinstance(v, list):
+            raise ValueError('Qualifications must be a list')
+        if len(v) > 20:
+            raise ValueError('Maximum 20 qualifications allowed')
+        # Remove duplicates and empty strings
+        cleaned = [q.strip() for q in v if q and isinstance(q, str) and q.strip()]
+        return cleaned if cleaned else None
+
+    @field_validator('availability')
+    @classmethod
+    def validate_availability(cls, v):
+        """Validate availability structure."""
+        if v is None:
+            return None
+
+        valid_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
+        if not isinstance(v, dict):
+            raise ValueError('Availability must be a dictionary')
+
+        for day, schedule in v.items():
+            if day.lower() not in valid_days:
+                raise ValueError(f'Invalid day: {day}. Must be one of: {", ".join(valid_days)}')
+
+            if not isinstance(schedule, dict):
+                raise ValueError(f'Schedule for {day} must be a dictionary')
+
+            if 'available' not in schedule or not isinstance(schedule['available'], bool):
+                raise ValueError(f'Day {day} must have boolean "available" field')
+
+            if schedule['available']:
+                if 'start' not in schedule or 'end' not in schedule:
+                    raise ValueError(f'Day {day} requires "start" and "end" times when available')
+
+                # Validate time format HH:MM
+                import re
+                time_pattern = r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+                if not re.match(time_pattern, schedule['start']):
+                    raise ValueError(f'Day {day}: start time must be in HH:MM format (00:00-23:59)')
+                if not re.match(time_pattern, schedule['end']):
+                    raise ValueError(f'Day {day}: end time must be in HH:MM format (00:00-23:59)')
+
+                # Validate start < end (for same-day shifts)
+                start_parts = schedule['start'].split(':')
+                end_parts = schedule['end'].split(':')
+                start_mins = int(start_parts[0]) * 60 + int(start_parts[1])
+                end_mins = int(end_parts[0]) * 60 + int(end_parts[1])
+
+                if start_mins >= end_mins:
+                    raise ValueError(f'Day {day}: start time must be before end time')
+
+        return v
+
 
 class EmployeeUpdate(BaseModel):
     """Employee update schema."""
@@ -292,8 +355,8 @@ class EmployeeUpdate(BaseModel):
     role: Optional[EmployeeRole] = None
     phone: Optional[str] = Field(None, max_length=50, description="Phone number in international format")
     hire_date: Optional[date] = Field(None, description="Employee hire date")
-    hourly_rate: Optional[float] = Field(None, ge=0)
-    max_hours_per_week: Optional[int] = Field(None, ge=1, le=168)
+    hourly_rate: Optional[float] = Field(None, ge=0, le=1000, description="Employee hourly rate")
+    max_hours_per_week: Optional[int] = Field(None, ge=1, le=168, description="Maximum hours per week")
     qualifications: Optional[List[str]] = None
     availability_pattern: Optional[Dict[str, Any]] = None
     department_id: Optional[int] = Field(None, gt=0, description="Department ID for employee assignment")
@@ -301,10 +364,10 @@ class EmployeeUpdate(BaseModel):
 
     model_config = ConfigDict(extra='forbid')
 
-    @field_validator('department_id', 'phone', 'hire_date', mode='before')
+    @field_validator('department_id', 'phone', 'hire_date', 'hourly_rate', 'max_hours_per_week', mode='before')
     @classmethod
     def empty_str_to_none(cls, v):
-        """Convert empty strings to None for department_id."""
+        """Convert empty strings to None for optional fields."""
         if v == '' or v is None:
             return None
         return v
@@ -389,6 +452,10 @@ class EmployeeResponse(BaseModel):
     role: Optional[str] = None
     phone: Optional[str] = None
     hire_date: Optional[date] = Field(None, description="Employee hire date")
+    hourly_rate: Optional[float] = Field(None, description="Employee hourly rate")
+    max_hours_per_week: Optional[int] = Field(None, description="Maximum hours per week")
+    qualifications: Optional[List[str]] = Field(None, description="Employee qualifications/skills")
+    availability: Optional[Dict[str, Any]] = Field(None, description="Weekly availability schedule")
 
     # Nested department object (will be populated when relationship is loaded via joinedload)
     department: Optional[DepartmentResponse] = Field(None, description="Department details if assigned and loaded")

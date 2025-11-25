@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, func
+from sqlalchemy import select, desc, asc, func, or_
 from sqlalchemy.orm import selectinload
 from datetime import datetime, timezone
 from pydantic import ValidationError
@@ -378,67 +378,138 @@ async def update_user_role(
         )
 
 
-@router.get("", response_model=List[EmployeeResponse])
+@router.get("", response_model=dict)
 async def get_employees(
-    role: Optional[str] = None,
-    is_active: Optional[bool] = None,
-    department_id: Optional[int] = None,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
+    search: Optional[str] = Query(None, description="Search by name or email"),
+    role: Optional[str] = Query(None, description="Filter by role"),
+    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    department_id: Optional[int] = Query(None, description="Filter by department"),
+    sort_by: str = Query('first_name', description="Field to sort by"),
+    sort_order: str = Query('asc', description="Sort order: asc or desc"),
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Maximum records to return"),
     db: AsyncSession = Depends(get_database_session),
     current_user = Depends(get_current_user)
 ):
     """
-    Get all employees with optional filtering.
+    Get all employees with server-side search, filtering, and sorting.
 
     Authorization:
     - Admins and Managers: Can view all employees
     - Regular users (employee role): Can only view their own profile
 
     Query Parameters:
-    - **role**: Filter by employee role
-    - **is_active**: Filter by active status
-    - **department_id**: Filter by department
+    - **search**: Search by first name, last name, or email (case-insensitive)
+    - **role**: Filter by employee role (admin, manager, user, guest)
+    - **is_active**: Filter by active status (true/false)
+    - **department_id**: Filter by department ID
+    - **sort_by**: Field to sort by (first_name, last_name, email, etc.)
+    - **sort_order**: Sort order - 'asc' or 'desc' (default: asc)
     - **skip**: Number of records to skip for pagination
     - **limit**: Maximum number of records to return (max 1000)
 
     Returns:
-        List of employee records with department information
+        Dictionary with:
+        - employees: List of employee records
+        - total: Total count of matching records
+        - skip: Number of records skipped
+        - limit: Maximum records returned
     """
     try:
         # Get current user's roles
         user_roles_list = [role.name for role in current_user.roles]
         is_admin_or_manager = any(role in ["admin", "manager"] for role in user_roles_list)
 
-        # Build query
-        # Note: User.department relationship not available due to different Base classes
-        # Department data can be joined manually if needed via department_id
-        query = select(User)
+        # Import Department model for manual loading
+        from ..models.department import Department
+
+        # Build base query with eager loading to prevent N+1 queries
+        query = select(User).options(
+            selectinload(User.roles)  # Eager load roles to prevent N+1 on role access
+        )
 
         # RBAC: Regular employees can only see their own profile
         if not is_admin_or_manager:
             query = query.where(User.id == current_user.id)
 
-        # Apply filters
+        # Apply search filter (name or email)
+        if search:
+            search_pattern = f'%{search}%'
+            search_filter = or_(
+                User.first_name.ilike(search_pattern),
+                User.last_name.ilike(search_pattern),
+                User.email.ilike(search_pattern)
+            )
+            query = query.where(search_filter)
+
+        # Apply status filter
         if is_active is not None:
             query = query.where(User.is_active == is_active)
 
-        # Filter by department
+        # Apply department filter
         if department_id is not None:
             query = query.where(User.department_id == department_id)
 
-        # Note: role filter would need to be added via user_roles table join
+        # Apply role filter (requires join with user_roles table)
+        if role:
+            query = query.join(User.roles).where(Role.name == role)
 
-        # Apply pagination - order by last_name, first_name
-        query = query.offset(skip).limit(limit).order_by(User.last_name, User.first_name)
+        # Get total count before pagination
+        count_query = select(func.count()).select_from(query.subquery())
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
 
-        # Execute query - department data is already loaded via selectinload
-        print(f"[DEBUG] Executing employees query with skip={skip}, limit={limit}")
+        # Apply sorting
+        # Validate sort_by field to prevent SQL injection
+        allowed_sort_fields = ['first_name', 'last_name', 'email', 'is_active', 'department_id']
+        if sort_by not in allowed_sort_fields:
+            sort_by = 'first_name'  # Default to safe field
+
+        # Get the column to sort by
+        sort_column = getattr(User, sort_by)
+
+        # Apply sort order
+        if sort_order.lower() == 'desc':
+            query = query.order_by(desc(sort_column))
+        else:
+            query = query.order_by(asc(sort_column))
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+
+        # Execute query
+        print(f"[DEBUG] Executing employees query with search='{search}', role='{role}', department={department_id}, sort={sort_by} {sort_order}, skip={skip}, limit={limit}")
         result = await db.execute(query)
         users = result.scalars().all()
-        print(f"[DEBUG] Found {len(users)} users with eager-loaded departments")
+        print(f"[DEBUG] Found {len(users)} users out of {total} total matching records")
 
-        return users
+        # Bulk load departments in a single query to prevent N+1
+        # Collect unique department IDs
+        dept_ids = [user.department_id for user in users if user.department_id]
+        if dept_ids:
+            dept_query = select(Department).where(Department.id.in_(dept_ids)).options(
+                selectinload(Department.children)
+            )
+            dept_result = await db.execute(dept_query)
+            departments = {dept.id: dept for dept in dept_result.scalars().all()}
+
+            # Attach department objects to users
+            for user in users:
+                if user.department_id:
+                    user.department = departments.get(user.department_id)
+                else:
+                    user.department = None
+        else:
+            # No departments to load
+            for user in users:
+                user.department = None
+
+        return {
+            "employees": users,
+            "total": total,
+            "skip": skip,
+            "limit": limit
+        }
 
     except Exception as e:
         print(f"[ERROR] Error fetching employees: {e}")
@@ -486,9 +557,13 @@ async def get_employee(
                 detail="Access denied. You can only view your own profile."
             )
 
-        # Load employee
-        # Note: User.department relationship not available due to different Base classes
-        query = select(User).where(User.id == employee_id)
+        # Import Department model for manual loading
+        from ..models.department import Department
+
+        # Load employee with eager loading to prevent N+1 queries
+        query = select(User).where(User.id == employee_id).options(
+            selectinload(User.roles)  # Eager load roles
+        )
 
         result = await db.execute(query)
         user = result.scalar_one_or_none()
@@ -498,6 +573,16 @@ async def get_employee(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Employee with ID {employee_id} not found"
             )
+
+        # Load department if user has one (single query)
+        if user.department_id:
+            dept_query = select(Department).where(Department.id == user.department_id).options(
+                selectinload(Department.children)
+            )
+            dept_result = await db.execute(dept_query)
+            user.department = dept_result.scalar_one_or_none()
+        else:
+            user.department = None
 
         return user
 
