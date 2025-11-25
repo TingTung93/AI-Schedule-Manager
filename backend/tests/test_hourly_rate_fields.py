@@ -9,7 +9,7 @@ from src.schemas import EmployeeCreate, EmployeeUpdate
 
 
 @pytest.mark.asyncio
-async def test_user_model_hourly_rate_field(db_session: AsyncSession):
+async def test_user_model_hourly_rate_field(db):
     """Test that User model can store and retrieve hourly_rate"""
     # Create user with hourly_rate
     user = User(
@@ -20,9 +20,9 @@ async def test_user_model_hourly_rate_field(db_session: AsyncSession):
         hourly_rate=Decimal("25.50"),
         max_hours_per_week=40
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
 
     # Verify fields were saved
     assert user.hourly_rate == Decimal("25.50")
@@ -35,7 +35,7 @@ async def test_user_model_hourly_rate_field(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_user_model_nullable_fields(db_session: AsyncSession):
+async def test_user_model_nullable_fields(db):
     """Test that hourly_rate and max_hours_per_week can be null"""
     user = User(
         email="test2@example.com",
@@ -43,9 +43,9 @@ async def test_user_model_nullable_fields(db_session: AsyncSession):
         first_name="Test",
         last_name="User2"
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
 
     # Verify null values
     assert user.hourly_rate is None
@@ -143,7 +143,7 @@ def test_numeric_precision():
 
 
 @pytest.mark.asyncio
-async def test_update_existing_user_fields(db_session: AsyncSession):
+async def test_update_existing_user_fields(db):
     """Test updating hourly_rate and max_hours_per_week on existing user"""
     # Create user without rates
     user = User(
@@ -152,15 +152,15 @@ async def test_update_existing_user_fields(db_session: AsyncSession):
         first_name="Update",
         last_name="Test"
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
 
     # Update with rates
     user.hourly_rate = Decimal("28.75")
     user.max_hours_per_week = 35
-    await db_session.commit()
-    await db_session.refresh(user)
+    await db.commit()
+    await db.refresh(user)
 
     assert user.hourly_rate == Decimal("28.75")
     assert user.max_hours_per_week == 35
@@ -168,8 +168,8 @@ async def test_update_existing_user_fields(db_session: AsyncSession):
     # Update to different values
     user.hourly_rate = Decimal("32.00")
     user.max_hours_per_week = 40
-    await db_session.commit()
-    await db_session.refresh(user)
+    await db.commit()
+    await db.refresh(user)
 
     assert user.hourly_rate == Decimal("32.00")
     assert user.max_hours_per_week == 40
