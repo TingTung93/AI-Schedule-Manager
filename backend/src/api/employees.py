@@ -24,6 +24,7 @@ from ..auth.models import User, Role, user_roles
 from ..models.department_history import DepartmentAssignmentHistory
 from ..models.role_history import RoleChangeHistory
 from ..models.password_history import PasswordHistory
+from ..models.account_status_history import AccountStatusHistory
 from ..schemas import (
     EmployeeCreate,
     EmployeeResponse,
@@ -36,7 +37,10 @@ from ..schemas import (
     ResetPasswordRequest,
     PasswordResponse,
     ChangePasswordRequest,
-    ChangePasswordResponse
+    ChangePasswordResponse,
+    AccountStatusUpdate,
+    AccountStatusHistoryResponse,
+    AccountStatusHistoryListResponse
 )
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])

@@ -15,16 +15,13 @@ import {
   Alert,
   AlertTitle,
   CircularProgress,
-  Chip,
   Card,
   CardContent,
   Divider,
 } from '@mui/material';
 import {
   Lock as LockIcon,
-  LockOpen as LockOpenIcon,
   CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
   Info as InfoIcon,
 } from '@mui/icons-material';
 import api, { getErrorMessage } from '../services/api';
