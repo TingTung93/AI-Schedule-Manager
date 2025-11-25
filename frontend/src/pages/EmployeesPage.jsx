@@ -38,7 +38,11 @@ import {
   Person,
   Email,
   Phone,
-  Badge
+  Badge,
+  Lock,
+  Warning,
+  Info,
+  ManageAccounts
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/routeConfig';
@@ -46,6 +50,7 @@ import api, { getErrorMessage } from '../services/api';
 import SearchBar from '../components/search/SearchBar';
 import { filterEmployees } from '../utils/filterUtils';
 import DepartmentSelector from '../components/common/DepartmentSelector';
+import AccountStatusDialog from '../components/AccountStatusDialog';
 
 const EmployeesPage = () => {
   const { user } = useAuth();
@@ -55,10 +60,12 @@ const EmployeesPage = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [notification, setNotification] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedRoles, setSelectedRoles] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('all');
   const [employeeForm, setEmployeeForm] = useState({
     firstName: '',
     lastName: '',
@@ -159,6 +166,17 @@ const EmployeesPage = () => {
     }
   };
 
+  const handleManageStatus = (employee) => {
+    setSelectedEmployee(employee);
+    setStatusDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleStatusUpdateSuccess = () => {
+    setNotification({ type: 'success', message: 'Account status updated successfully' });
+    loadEmployees();
+  };
+
   const getRoleColor = (role) => {
     switch (role) {
       case 'admin': return 'error';
@@ -168,7 +186,22 @@ const EmployeesPage = () => {
   };
 
   const getStatusColor = (status) => {
-    return status === 'active' ? 'success' : 'default';
+    switch (status) {
+      case 'active': return 'success';
+      case 'locked': return 'error';
+      case 'inactive': return 'default';
+      case 'verified': return 'primary';
+      default: return 'default';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'locked': return <Lock fontSize="small" />;
+      case 'inactive': return <Warning fontSize="small" />;
+      case 'verified': return <Info fontSize="small" />;
+      default: return null;
+    }
   };
 
   // Get unique departments and roles for filters
@@ -176,7 +209,15 @@ const EmployeesPage = () => {
   const roles = [...new Set(employees.map(emp => emp.role).filter(Boolean))];
 
   // Apply filters to employees
-  const filteredEmployees = filterEmployees(employees, searchTerm, selectedDepartments, selectedRoles);
+  let filteredEmployees = filterEmployees(employees, searchTerm, selectedDepartments, selectedRoles);
+
+  // Apply status filter
+  if (statusFilter !== 'all') {
+    filteredEmployees = filteredEmployees.filter(emp => {
+      const empStatus = emp.status || (emp.isActive !== false && emp.is_active !== false ? 'active' : 'inactive');
+      return empStatus === statusFilter;
+    });
+  }
 
   const activeEmployees = filteredEmployees.filter(emp => emp.status === 'active' || emp.isActive !== false || emp.is_active !== false);
   const inactiveEmployees = filteredEmployees.filter(emp => emp.status === 'inactive' || emp.isActive === false || emp.is_active === false);
@@ -240,13 +281,30 @@ const EmployeesPage = () => {
       {/* Search and Filters */}
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={5}>
             <SearchBar
               onSearch={handleSearch}
               placeholder="Search by name or email..."
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth size="small">
+              <InputLabel id="status-filter-label">Status</InputLabel>
+              <Select
+                labelId="status-filter-label"
+                value={statusFilter}
+                label="Status"
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <MenuItem value="all">All Statuses</MenuItem>
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="locked">Locked</MenuItem>
+                <MenuItem value="inactive">Inactive</MenuItem>
+                <MenuItem value="verified">Verified</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
             <FormControl fullWidth size="small">
               <InputLabel id="department-filter-label">Departments</InputLabel>
               <Select
@@ -368,7 +426,7 @@ const EmployeesPage = () => {
                         </Box>
 
                         <Box mb={2}>
-                          <Box display="flex" gap={1} mb={1}>
+                          <Box display="flex" gap={1} mb={1} flexWrap="wrap">
                             <Chip
                               label={employee.role}
                               color={getRoleColor(employee.role)}
@@ -378,6 +436,7 @@ const EmployeesPage = () => {
                               label={employee.status || (employee.isActive !== false && employee.is_active !== false ? 'active' : 'inactive')}
                               color={getStatusColor(employee.status || (employee.isActive !== false && employee.is_active !== false ? 'active' : 'inactive'))}
                               size="small"
+                              icon={getStatusIcon(employee.status)}
                             />
                           </Box>
                         </Box>

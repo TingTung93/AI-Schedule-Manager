@@ -15,6 +15,8 @@ from .schedule_template import ScheduleTemplate
 from .shift import Shift
 from .shift_definition import ShiftDefinition
 from .user_settings import UserSettings
+from .role_history import RoleChangeHistory
+from .account_status_history import AccountStatusHistory
 
 # User model is in auth.models, not in models package
 # Import it directly from auth.models where needed
@@ -33,5 +35,7 @@ __all__ = [
     "ScheduleTemplate",
     "Rule",
     "Notification",
-    "UserSettings"
+    "UserSettings",
+    "RoleChangeHistory",
+    "AccountStatusHistory"
 ]

@@ -1267,6 +1267,81 @@ class RoleHistoryListResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# Password Management Schemas
+class ResetPasswordRequest(BaseModel):
+    """Request schema for admin password reset."""
+
+    send_email: bool = Field(default=False, description="Send password via email to user")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PasswordResponse(BaseModel):
+    """Response schema for password reset containing temporary password."""
+
+    message: str = Field(..., description="Success message")
+    temporary_password: str = Field(..., description="Temporary password (one-time display)")
+    password_must_change: bool = Field(True, description="User must change on next login")
+    employee_id: int = Field(..., description="Employee ID")
+    employee_email: str = Field(..., description="Employee email")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ChangePasswordRequest(BaseModel):
+    """Request schema for password change."""
+
+    old_password: Optional[str] = Field(None, description="Current password (required for self-service)")
+    new_password: str = Field(..., min_length=8, max_length=128, description="New password")
+    confirm_password: str = Field(..., min_length=8, max_length=128, description="Password confirmation")
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_password_strength(cls, v):
+        """Validate password meets complexity requirements."""
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+
+        # Check for uppercase
+        if not any(c.isupper() for c in v):
+            raise ValueError("Password must contain at least one uppercase letter")
+
+        # Check for lowercase
+        if not any(c.islower() for c in v):
+            raise ValueError("Password must contain at least one lowercase letter")
+
+        # Check for digit
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one digit")
+
+        # Check for special character
+        special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+        if not any(c in special_chars for c in v):
+            raise ValueError("Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)")
+
+        return v
+
+    @field_validator('confirm_password')
+    @classmethod
+    def passwords_match(cls, v, info):
+        """Validate password and confirmation match."""
+        if 'new_password' in info.data and v != info.data['new_password']:
+            raise ValueError("Password and confirmation do not match")
+        return v
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ChangePasswordResponse(BaseModel):
+    """Response schema for successful password change."""
+
+    message: str = Field(..., description="Success message")
+    password_changed_at: datetime = Field(..., description="Timestamp of password change")
+    employee_id: int = Field(..., description="Employee ID")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 """
 Pydantic schemas for Shift Definitions
 """

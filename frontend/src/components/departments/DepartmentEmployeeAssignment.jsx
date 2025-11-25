@@ -54,6 +54,7 @@ import {
   Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import {
   getUnassignedEmployees,
@@ -62,6 +63,7 @@ import {
   getDepartment,
 } from '../../services/departmentService';
 import { getEmployees } from '../../services/employeeService';
+import DepartmentHistoryDialog from './DepartmentHistoryDialog';
 
 /**
  * Main component for department employee assignment
@@ -85,6 +87,10 @@ const DepartmentEmployeeAssignment = ({ departmentId, onAssignmentChange }) => {
 
   // Current department info
   const [departmentInfo, setDepartmentInfo] = useState(null);
+
+  // Department history dialog state
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [selectedEmployeeForHistory, setSelectedEmployeeForHistory] = useState(null);
 
   /**
    * Load data on component mount and when departmentId changes
@@ -384,6 +390,14 @@ const DepartmentEmployeeAssignment = ({ departmentId, onAssignmentChange }) => {
   };
 
   /**
+   * Handle view history for employee
+   */
+  const handleViewHistory = (employee) => {
+    setSelectedEmployeeForHistory(employee);
+    setHistoryDialogOpen(true);
+  };
+
+  /**
    * Render employee card
    */
   const renderEmployeeCard = (employee, isAssigned) => {
@@ -433,6 +447,17 @@ const DepartmentEmployeeAssignment = ({ departmentId, onAssignmentChange }) => {
             {employee.role && (
               <Chip label={employee.role} size="small" variant="outlined" />
             )}
+            <Tooltip title="View department history">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewHistory(employee);
+                }}
+              >
+                <HistoryIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Box>
         </CardContent>
       </Card>
@@ -680,6 +705,16 @@ const DepartmentEmployeeAssignment = ({ departmentId, onAssignmentChange }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Department History Dialog */}
+      <DepartmentHistoryDialog
+        open={historyDialogOpen}
+        onClose={() => setHistoryDialogOpen(false)}
+        employeeId={selectedEmployeeForHistory?.id}
+        employeeName={selectedEmployeeForHistory
+          ? `${selectedEmployeeForHistory.firstName} ${selectedEmployeeForHistory.lastName}`
+          : ''}
+      />
     </Box>
   );
 };

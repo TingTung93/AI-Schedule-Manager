@@ -77,6 +77,10 @@ class User(Base):
     password_reset_token = Column(String(255))
     password_reset_sent_at = Column(DateTime(timezone=True))
 
+    # Password management
+    password_must_change = Column(Boolean, default=False, nullable=False)
+    password_changed_at = Column(DateTime(timezone=True))
+
     # Relationships
     # Note: Department relationship removed due to different Base classes (auth vs models)
     # Department data is loaded manually in the employees API using joins
