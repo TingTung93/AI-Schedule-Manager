@@ -27,6 +27,7 @@ from .api.data_io import router as data_io_router
 from .api.departments import router as departments_router
 from .api.departments_assignment import router as departments_assignment_router
 from .api.employees import router as employees_router
+from .api.password_management import router as password_management_router
 from .api.notifications import router as notifications_router
 from .api.rules import router as rules_router
 from .api.schedules import router as schedules_router
@@ -352,6 +353,7 @@ app.include_router(data_io_router)
 app.include_router(departments_router)
 app.include_router(departments_assignment_router)  # Department assignment endpoints
 app.include_router(employees_router)
+app.include_router(password_management_router)  # Password reset and change endpoints
 app.include_router(notifications_router)
 app.include_router(rules_router)
 app.include_router(schedules_router)

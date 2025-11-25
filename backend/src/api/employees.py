@@ -1130,3 +1130,273 @@ async def get_role_history(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch role history: {str(e)}"
         )
+
+
+@router.patch(
+    "/{employee_id}/status",
+    response_model=EmployeeResponse,
+    dependencies=[Depends(require_roles("admin"))]
+)
+async def update_employee_status(
+    employee_id: int,
+    status_update: AccountStatusUpdate,
+    db: AsyncSession = Depends(get_database_session),
+    current_user = Depends(get_current_user)
+):
+    """
+    Update employee account status (active, locked, verified).
+
+    Authorization:
+    - Required role: admin only
+    - Cannot modify own account status
+
+    This endpoint allows administrators to change account status flags:
+    - active/inactive: Enable or disable account login
+    - locked/unlocked: Lock or unlock account (security)
+    - verified/unverified: Mark account as verified
+
+    Path Parameters:
+    - **employee_id**: Unique employee identifier
+
+    Request Body:
+    - **status**: Status action (active|inactive|locked|unlocked|verified|unverified)
+    - **reason**: Optional explanation (required for lock/inactive)
+
+    Returns:
+        Updated employee record
+
+    Raises:
+        403: Cannot modify own account status
+        404: Employee not found
+        400: Invalid status or missing reason
+        500: Server error
+    """
+    try:
+        # Prevent admin from modifying own account status
+        if employee_id == current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot modify your own account status. Another administrator must perform this action for security reasons."
+            )
+
+        # Find employee
+        result = await db.execute(select(User).where(User.id == employee_id))
+        employee = result.scalar_one_or_none()
+
+        if not employee:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Employee with ID {employee_id} not found"
+            )
+
+        # Apply status change based on action
+        status_action = status_update.status.lower()
+
+        if status_action == "active":
+            old_status_value = "inactive" if not employee.is_active else "active"
+            employee.is_active = True
+            new_status_value = "active"
+        elif status_action == "inactive":
+            old_status_value = "active" if employee.is_active else "inactive"
+            employee.is_active = False
+            new_status_value = "inactive"
+        elif status_action == "locked":
+            old_status_value = "unlocked" if not employee.is_locked else "locked"
+            employee.is_locked = True
+            employee.account_locked_until = None  # Indefinite lock
+            new_status_value = "locked"
+        elif status_action == "unlocked":
+            old_status_value = "locked" if employee.is_locked else "unlocked"
+            employee.is_locked = False
+            employee.account_locked_until = None
+            employee.failed_login_attempts = 0
+            new_status_value = "unlocked"
+        elif status_action == "verified":
+            old_status_value = "unverified" if not employee.is_verified else "verified"
+            employee.is_verified = True
+            new_status_value = "verified"
+        elif status_action == "unverified":
+            old_status_value = "verified" if employee.is_verified else "unverified"
+            employee.is_verified = False
+            new_status_value = "unverified"
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status action: {status_action}"
+            )
+
+        # Create audit history record
+        history_record = AccountStatusHistory(
+            user_id=employee_id,
+            old_status=old_status_value,
+            new_status=new_status_value,
+            changed_by_id=current_user.id,
+            changed_at=datetime.utcnow(),
+            reason=status_update.reason or f"Status changed to {new_status_value} by admin",
+            metadata_json={
+                "action": "status_change",
+                "status_type": status_action,
+                "api_endpoint": f"/api/employees/{employee_id}/status",
+                "changed_by_email": current_user.email
+            }
+        )
+
+        db.add(history_record)
+        await db.commit()
+        await db.refresh(employee)
+
+        # Load department relationship for response
+        if employee.department_id:
+            from ..models.department import Department
+            from sqlalchemy.orm import selectinload
+            dept_result = await db.execute(
+                select(Department)
+                .where(Department.id == employee.department_id)
+                .options(selectinload(Department.children))
+            )
+            employee.department = dept_result.scalar_one_or_none()
+        else:
+            employee.department = None
+
+        return employee
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error updating employee status: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update employee status: {str(e)}"
+        )
+
+
+@router.get("/{employee_id}/status-history", response_model=AccountStatusHistoryListResponse)
+async def get_account_status_history(
+    employee_id: int,
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(50, ge=1, le=500, description="Maximum records to return"),
+    db: AsyncSession = Depends(get_database_session),
+    current_user = Depends(get_current_user)
+):
+    """
+    Get account status change history for an employee.
+
+    Returns comprehensive audit trail of all account status changes including
+    active, locked, and verified flag modifications.
+
+    Authorization:
+    - Admins: Can view any employee's status history
+    - Managers: Can view their department's employees
+    - Regular users: Can only view their own status history
+
+    Path Parameters:
+    - **employee_id**: Unique employee identifier
+
+    Query Parameters:
+    - **skip**: Number of records to skip (pagination)
+    - **limit**: Maximum records to return (max 500)
+
+    Returns:
+        Paginated list of account status change records
+
+    Raises:
+        403: Access denied
+        404: Employee not found
+        500: Server error
+    """
+    try:
+        # Get current user's roles
+        user_roles_list = [role.name for role in current_user.roles]
+        is_admin = "admin" in user_roles_list
+        is_manager = "manager" in user_roles_list
+
+        # RBAC: Regular employees can only view their own status history
+        if not is_admin and not is_manager and employee_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied. You can only view your own account status history."
+            )
+
+        # Verify employee exists
+        employee_check = await db.execute(select(User).where(User.id == employee_id))
+        employee = employee_check.scalar_one_or_none()
+
+        if not employee:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Employee with ID {employee_id} not found"
+            )
+
+        # Managers can only view their department's employees
+        if is_manager and not is_admin:
+            if employee.department_id != current_user.department_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied. Managers can only view status history for employees in their department."
+                )
+
+        # Get total count
+        count_query = select(func.count()).select_from(AccountStatusHistory).where(
+            AccountStatusHistory.user_id == employee_id
+        )
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
+
+        # Get history records
+        history_query = (
+            select(AccountStatusHistory)
+            .where(AccountStatusHistory.user_id == employee_id)
+            .order_by(desc(AccountStatusHistory.changed_at))
+            .offset(skip)
+            .limit(limit)
+        )
+
+        result = await db.execute(history_query)
+        history_records = result.scalars().all()
+
+        # Build response with enriched data
+        response_items = []
+        for record in history_records:
+            # Load changed_by user manually
+            changed_by_query = select(User).where(User.id == record.changed_by_id)
+            changed_by_result = await db.execute(changed_by_query)
+            changed_by_user = changed_by_result.scalar_one_or_none()
+
+            changed_by_name = f"{changed_by_user.first_name} {changed_by_user.last_name}" if changed_by_user else None
+
+            # Create enriched response
+            response_items.append(
+                AccountStatusHistoryResponse(
+                    id=record.id,
+                    user_id=record.user_id,
+                    old_status=record.old_status,
+                    new_status=record.new_status,
+                    changed_by_id=record.changed_by_id,
+                    changed_at=record.changed_at,
+                    reason=record.reason,
+                    metadata_json=record.metadata_json or {},
+                    user_name=f"{employee.first_name} {employee.last_name}",
+                    changed_by_name=changed_by_name
+                )
+            )
+
+        return AccountStatusHistoryListResponse(
+            total=total,
+            items=response_items,
+            skip=skip,
+            limit=limit
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching account status history: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch account status history: {str(e)}"
+        )
