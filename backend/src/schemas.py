@@ -208,16 +208,17 @@ class EmployeeBase(BaseModel):
 class EmployeeCreate(BaseModel):
     """Employee creation schema - only first_name and last_name required."""
 
-    first_name: str = Field(..., min_length=1, max_length=50, alias='firstName')
-    last_name: str = Field(..., min_length=1, max_length=50, alias='lastName')
+    first_name: str = Field(..., min_length=2, max_length=100, alias='firstName')
+    last_name: str = Field(..., min_length=2, max_length=100, alias='lastName')
     email: Optional[EmailStr] = None
     role: Optional[EmployeeRole] = None
-    phone: Optional[str] = Field(None, max_length=50)
+    phone: Optional[str] = Field(None, max_length=50, description="Phone number in international format")
+    hire_date: Optional[date] = Field(None, alias='hireDate', description="Employee hire date")
     department_id: Optional[int] = Field(None, alias='department', gt=0, description="Department ID for employee assignment")
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra='forbid')
 
-    @field_validator('email', 'department_id', mode='before')
+    @field_validator('email', 'department_id', 'phone', 'hire_date', mode='before')
     @classmethod
     def empty_str_to_none(cls, v):
         """Convert empty strings to None for optional fields."""
@@ -225,15 +226,72 @@ class EmployeeCreate(BaseModel):
             return None
         return v
 
+    @field_validator('email')
+    @classmethod
+    def validate_email_format(cls, v):
+        """Validate email format with clear error message."""
+        if v:
+            import re
+            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(pattern, v):
+                raise ValueError('Invalid email format. Please enter a valid email address (e.g., user@example.com).')
+        return v
+
+    @field_validator('phone')
+    @classmethod
+    def validate_phone_format(cls, v):
+        """Validate phone number format using phonenumbers library."""
+        if v is None:
+            return None
+        return validate_phone_number(v)
+
+    @field_validator('hire_date')
+    @classmethod
+    def validate_hire_date_range(cls, v):
+        """Validate hire date is not in future and not before 1900."""
+        if v is None:
+            return None
+
+        if v > date.today():
+            raise ValueError('Hire date cannot be in the future')
+
+        if v.year < 1900:
+            raise ValueError('Hire date cannot be before 1900')
+
+        return v
+
+    @field_validator('first_name')
+    @classmethod
+    def validate_first_name(cls, v):
+        """Validate first name contains only valid characters."""
+        if not v:
+            raise ValueError('First name is required and cannot be empty.')
+        import re
+        if not re.match(r"^[A-Za-z '-]+$", v):
+            raise ValueError("First name must contain only letters, spaces, hyphens, and apostrophes. Numbers and special characters are not allowed.")
+        return v.strip()
+
+    @field_validator('last_name')
+    @classmethod
+    def validate_last_name(cls, v):
+        """Validate last name contains only valid characters."""
+        if not v:
+            raise ValueError('Last name is required and cannot be empty.')
+        import re
+        if not re.match(r"^[A-Za-z '-]+$", v):
+            raise ValueError("Last name must contain only letters, spaces, hyphens, and apostrophes. Numbers and special characters are not allowed.")
+        return v.strip()
+
 
 class EmployeeUpdate(BaseModel):
     """Employee update schema."""
 
-    first_name: Optional[str] = Field(None, min_length=1, max_length=50)
-    last_name: Optional[str] = Field(None, min_length=1, max_length=50)
+    first_name: Optional[str] = Field(None, min_length=2, max_length=100)
+    last_name: Optional[str] = Field(None, min_length=2, max_length=100)
     email: Optional[EmailStr] = None
     role: Optional[EmployeeRole] = None
-    phone: Optional[str] = Field(None, max_length=50)
+    phone: Optional[str] = Field(None, max_length=50, description="Phone number in international format")
+    hire_date: Optional[date] = Field(None, description="Employee hire date")
     hourly_rate: Optional[float] = Field(None, ge=0)
     max_hours_per_week: Optional[int] = Field(None, ge=1, le=168)
     qualifications: Optional[List[str]] = None
@@ -241,12 +299,70 @@ class EmployeeUpdate(BaseModel):
     department_id: Optional[int] = Field(None, gt=0, description="Department ID for employee assignment")
     active: Optional[bool] = None
 
-    @field_validator('department_id', mode='before')
+    model_config = ConfigDict(extra='forbid')
+
+    @field_validator('department_id', 'phone', 'hire_date', mode='before')
     @classmethod
     def empty_str_to_none(cls, v):
         """Convert empty strings to None for department_id."""
         if v == '' or v is None:
             return None
+        return v
+
+    @field_validator('phone')
+    @classmethod
+    def validate_phone_format(cls, v):
+        """Validate phone number format using phonenumbers library."""
+        if v is None:
+            return None
+        return validate_phone_number(v)
+
+    @field_validator('hire_date')
+    @classmethod
+    def validate_hire_date_range(cls, v):
+        """Validate hire date is not in future and not before 1900."""
+        if v is None:
+            return None
+
+        if v > date.today():
+            raise ValueError('Hire date cannot be in the future')
+
+        if v.year < 1900:
+            raise ValueError('Hire date cannot be before 1900')
+
+        return v
+
+    @field_validator('email')
+    @classmethod
+    def validate_email_format(cls, v):
+        """Validate email format with clear error message."""
+        if v:
+            import re
+            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(pattern, v):
+                raise ValueError('Invalid email format. Please enter a valid email address (e.g., user@example.com).')
+        return v
+
+    @field_validator('first_name')
+    @classmethod
+    def validate_first_name(cls, v):
+        """Validate first name contains only valid characters."""
+        if v is not None:
+            import re
+            if not re.match(r"^[A-Za-z '-]+$", v):
+                raise ValueError("First name must contain only letters, spaces, hyphens, and apostrophes. Numbers and special characters are not allowed.")
+            return v.strip()
+        return v
+
+    @field_validator('last_name')
+    @classmethod
+    def validate_last_name(cls, v):
+        """Validate last name contains only valid characters."""
+        if v is not None:
+            import re
+            if not re.match(r"^[A-Za-z '-]+$", v):
+                raise ValueError("Last name must contain only letters, spaces, hyphens, and apostrophes. Numbers and special characters are not allowed.")
+            return v.strip()
         return v
 
 
@@ -272,6 +388,7 @@ class EmployeeResponse(BaseModel):
     # Optional fields that may not exist in User model
     role: Optional[str] = None
     phone: Optional[str] = None
+    hire_date: Optional[date] = Field(None, description="Employee hire date")
 
     # Nested department object (will be populated when relationship is loaded via joinedload)
     department: Optional[DepartmentResponse] = Field(None, description="Department details if assigned and loaded")
