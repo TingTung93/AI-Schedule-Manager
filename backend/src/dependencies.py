@@ -236,3 +236,79 @@ async def validate_sort_params(sort_by: str = "id", sort_order: str = "asc") -> 
             detail="Sort order must be 'asc' or 'desc'"
         )
     return {"sort_by": sort_by, "sort_order": sort_order}
+
+
+def require_roles(*allowed_roles: str):
+    """
+    FastAPI dependency factory to require specific roles.
+
+    Usage:
+        @router.get("/admin-only", dependencies=[Depends(require_roles("admin"))])
+        async def admin_endpoint():
+            return {"message": "Admin access granted"}
+
+    Args:
+        *allowed_roles: One or more role names that are allowed access
+
+    Returns:
+        FastAPI dependency function
+
+    Raises:
+        HTTPException: 403 if user doesn't have required role
+    """
+    async def role_checker(current_user: User = Depends(get_current_user)) -> User:
+        """Check if current user has one of the allowed roles."""
+        user_roles = [role.name for role in current_user.roles]
+
+        if not any(role in allowed_roles for role in user_roles):
+            logger.warning(
+                f"User {current_user.email} denied access. Required roles: {allowed_roles}, "
+                f"User roles: {user_roles}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Required role: {' or '.join(allowed_roles)}"
+            )
+
+        return current_user
+
+    return role_checker
+
+
+def require_permissions(*required_permissions: str):
+    """
+    FastAPI dependency factory to require specific permissions.
+
+    Usage:
+        @router.delete("/user/{id}", dependencies=[Depends(require_permissions("user.delete"))])
+        async def delete_user(id: int):
+            return {"message": "User deleted"}
+
+    Args:
+        *required_permissions: One or more permission names required for access
+
+    Returns:
+        FastAPI dependency function
+
+    Raises:
+        HTTPException: 403 if user doesn't have required permission
+    """
+    async def permission_checker(current_user: User = Depends(get_current_user)) -> User:
+        """Check if current user has one of the required permissions."""
+        user_permissions = set(current_user.permissions)
+        required_perms = set(required_permissions)
+
+        # Check if user has any of the required permissions
+        if not required_perms.intersection(user_permissions):
+            logger.warning(
+                f"User {current_user.email} denied access. Required permissions: {required_permissions}, "
+                f"User permissions: {list(user_permissions)}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Required permission: {' or '.join(required_permissions)}"
+            )
+
+        return current_user
+
+    return permission_checker

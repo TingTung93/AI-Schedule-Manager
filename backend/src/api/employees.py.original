@@ -378,12 +378,7 @@ async def get_employee(
         )
 
 
-@router.post(
-    "",
-    response_model=EmployeeResponse,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_roles("admin", "manager"))]
-)
+@router.post("", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("10/minute")
 async def create_employee(
     request: Request,
@@ -520,9 +515,7 @@ async def create_employee(
 
 @router.patch("/{employee_id}", response_model=EmployeeResponse)
 @router.put("/{employee_id}", response_model=EmployeeResponse)
-@limiter.limit("10/minute")
 async def update_employee(
-    request: Request,
     employee_id: int,
     employee_data: EmployeeUpdate,
     db: AsyncSession = Depends(get_database_session),
@@ -564,37 +557,8 @@ async def update_employee(
                 detail=f"Employee with ID {employee_id} not found"
             )
 
-
-        # RBAC: Resource-based authorization checks
-        user_roles_list = [role.name for role in current_user.roles]
-        is_admin = "admin" in user_roles_list
-        is_manager = "manager" in user_roles_list
-        
-        # Non-admins/managers can only update their own profile
-        if not (is_admin or is_manager) and employee_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied. You can only update your own profile."
-            )
-
-        # Check for role change - only admins can change roles
-        if 'role' in employee_data.model_dump(exclude_unset=True):
-            if not is_admin:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Access denied. Only administrators can change user roles."
-                )
-
         # Update fields that exist in User model
         update_data = employee_data.model_dump(exclude_unset=True)
-
-        # Sanitize text fields to prevent XSS
-        if 'first_name' in update_data:
-            update_data['first_name'] = sanitize_text(update_data['first_name'])
-        if 'last_name' in update_data:
-            update_data['last_name'] = sanitize_text(update_data['last_name'])
-        if 'email' in update_data:
-            update_data['email'] = sanitize_text(update_data['email'])
 
         # Track old department for audit logging
         old_department_id = user.department_id

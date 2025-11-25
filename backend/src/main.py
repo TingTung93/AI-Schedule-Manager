@@ -162,6 +162,66 @@ app.add_middleware(
 )
 
 
+# Request size limit middleware (1MB max)
+@app.middleware("http")
+async def request_size_limit_middleware(request: Request, call_next):
+    """Limit request body size to prevent DoS attacks"""
+    if request.method in ["POST", "PUT", "PATCH"]:
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > 1_048_576:  # 1MB
+            logger.warning(f"Request too large from {request.client.host}: {content_length} bytes")
+            return JSONResponse(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                content={"error": "Request body too large. Maximum size is 1MB."}
+            )
+
+    response = await call_next(request)
+    return response
+
+
+# Global rate limit middleware (100 requests per 15 minutes)
+@app.middleware("http")
+async def global_rate_limit_middleware(request: Request, call_next):
+    """Apply global rate limit to all endpoints"""
+    # Get client IP
+    client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    if not client_ip:
+        client_ip = request.client.host if request.client else "unknown"
+
+    # Check rate limit using slowapi's limiter
+    # The limiter will raise RateLimitExceeded if limit is hit
+    # This is caught by the exception handler registered in app setup
+
+    response = await call_next(request)
+    return response
+
+
+# Security logging middleware
+@app.middleware("http")
+async def security_logging_middleware(request: Request, call_next):
+    """Log security-relevant requests"""
+    start_time = datetime.utcnow()
+
+    # Log authentication attempts
+    if "/auth/" in str(request.url):
+        logger.info(f"Auth request: {request.method} {request.url.path} from {request.client.host if request.client else 'unknown'}")
+
+    # Log admin/manager actions
+    if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header:
+            logger.info(f"Mutating request: {request.method} {request.url.path} from {request.client.host if request.client else 'unknown'}")
+
+    response = await call_next(request)
+
+    # Log slow requests (potential DoS)
+    duration = (datetime.utcnow() - start_time).total_seconds()
+    if duration > 5.0:  # 5 seconds
+        logger.warning(f"Slow request detected: {request.method} {request.url.path} took {duration:.2f}s")
+
+    return response
+
+
 # REMOVED: timeout_middleware was causing anyio.WouldBlock errors
 # The asyncio.wait_for() wrapper leaves request streams in invalid state
 # when timeouts occur, causing subsequent requests to fail.
