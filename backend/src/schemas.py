@@ -1267,6 +1267,66 @@ class RoleHistoryListResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# Account Status History Schemas
+class AccountStatusUpdate(BaseModel):
+    """Schema for updating account status."""
+
+    status: str = Field(
+        ...,
+        pattern=r'^(active|inactive|locked|unlocked|verified|unverified)$',
+        description="Status to set: active, inactive, locked, unlocked, verified, unverified"
+    )
+    reason: Optional[str] = Field(None, description="Reason for status change (required for lock/inactive)")
+
+    @field_validator('reason')
+    @classmethod
+    def validate_reason_for_restrictive_actions(cls, v, info: ValidationInfo):
+        """Require reason for locking or deactivating accounts."""
+        if info.data.get('status') in ['locked', 'inactive'] and not v:
+            raise ValueError('Reason is required when locking or deactivating an account')
+        return v
+
+
+class AccountStatusHistoryBase(BaseModel):
+    """Base schema for account status change history."""
+
+    user_id: int = Field(..., description="ID of the user")
+    old_status: Optional[str] = Field(None, description="Previous status value")
+    new_status: str = Field(..., description="New status value")
+    changed_by_id: int = Field(..., description="ID of user who made the change")
+    reason: Optional[str] = Field(None, description="Reason for the status change")
+    metadata_json: Optional[dict] = Field(default_factory=dict, description="Additional context as JSON")
+
+
+class AccountStatusHistoryResponse(AccountStatusHistoryBase):
+    """
+    Schema for account status history response.
+
+    Includes all fields from the database plus computed fields
+    for user names.
+    """
+
+    id: int = Field(..., description="Unique identifier for the history record")
+    changed_at: datetime = Field(..., description="Timestamp when the change occurred")
+
+    # Optional enriched data (loaded from joins)
+    user_name: Optional[str] = Field(None, description="Full name of the user")
+    changed_by_name: Optional[str] = Field(None, description="Full name of user who made change")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AccountStatusHistoryListResponse(BaseModel):
+    """Schema for paginated list of account status history records."""
+
+    total: int = Field(..., description="Total number of history records")
+    items: list[AccountStatusHistoryResponse] = Field(..., description="List of history records")
+    skip: int = Field(..., description="Number of records skipped")
+    limit: int = Field(..., description="Maximum records returned")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 # Password Management Schemas
 class ResetPasswordRequest(BaseModel):
     """Request schema for admin password reset."""

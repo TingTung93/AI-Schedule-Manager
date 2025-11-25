@@ -43,12 +43,16 @@ import {
   Warning,
   Info,
   ManageAccounts
+  LockReset,
+  VpnKey
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/routeConfig';
 import api, { getErrorMessage } from '../services/api';
 import SearchBar from '../components/search/SearchBar';
 import { filterEmployees } from '../utils/filterUtils';
+import PasswordResetDialog from '../components/PasswordResetDialog';
+import ChangePasswordDialog from '../components/ChangePasswordDialog';
 import DepartmentSelector from '../components/common/DepartmentSelector';
 import AccountStatusDialog from '../components/AccountStatusDialog';
 
@@ -61,6 +65,8 @@ const EmployeesPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false);
+  const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
   const [notification, setNotification] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState([]);
@@ -102,8 +108,23 @@ const EmployeesPage = () => {
   };
 
   const handleMenuClose = () => {
-    setAnchorEl(null);
+
+  const handleResetPassword = () => {
+    setPasswordResetDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleChangePassword = () => {
+    setChangePasswordDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handlePasswordSuccess = (message) => {
+    setNotification({ type: 'success', message });
     setSelectedEmployee(null);
+  };
+    setAnchorEl(null);
+    // Don't clear selectedEmployee here - dialogs need it
   };
 
   const handleAddEmployee = () => {
@@ -481,6 +502,12 @@ const EmployeesPage = () => {
           <Edit fontSize="small" sx={{ mr: 1 }} />
           Edit
         </MenuItem>
+        {user?.role === 'admin' && (
+          <MenuItem onClick={() => handleManageStatus(selectedEmployee)}>
+            <ManageAccounts fontSize="small" sx={{ mr: 1 }} />
+            Manage Status
+          </MenuItem>
+        )}
         <MenuItem onClick={() => handleDeleteEmployee(selectedEmployee?.id)}>
           <Delete fontSize="small" sx={{ mr: 1 }} />
           Delete
@@ -595,6 +622,14 @@ const EmployeesPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Account Status Dialog */}
+      <AccountStatusDialog
+        open={statusDialogOpen}
+        onClose={() => setStatusDialogOpen(false)}
+        employee={selectedEmployee}
+        onSuccess={handleStatusUpdateSuccess}
+      />
 
       {/* Notification Snackbar */}
       <Snackbar

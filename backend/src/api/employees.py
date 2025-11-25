@@ -6,6 +6,8 @@ with automatic audit trail logging for department assignment changes.
 """
 
 import html
+import secrets
+import string
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
 from slowapi import Limiter
@@ -13,13 +15,15 @@ from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from sqlalchemy.orm import selectinload
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import ValidationError
+import bcrypt
 
 from ..dependencies import get_current_user, get_database_session, require_roles, require_permissions
 from ..auth.models import User, Role, user_roles
 from ..models.department_history import DepartmentAssignmentHistory
 from ..models.role_history import RoleChangeHistory
+from ..models.password_history import PasswordHistory
 from ..schemas import (
     EmployeeCreate,
     EmployeeResponse,
@@ -28,13 +32,138 @@ from ..schemas import (
     DepartmentHistoryListResponse,
     DepartmentChangeSummary,
     RoleHistoryResponse,
-    RoleHistoryListResponse
+    RoleHistoryListResponse,
+    ResetPasswordRequest,
+    PasswordResponse,
+    ChangePasswordRequest,
+    ChangePasswordResponse
 )
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
 
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
+
+
+def generate_secure_password(length: int = 12) -> str:
+    """
+    Generate a cryptographically secure random password.
+
+    Creates a password that meets complexity requirements:
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one digit
+    - At least one special character
+
+    Args:
+        length: Password length (minimum 12)
+
+    Returns:
+        Secure random password string
+    """
+    if length < 12:
+        length = 12
+
+    # Define character sets
+    uppercase = string.ascii_uppercase
+    lowercase = string.ascii_lowercase
+    digits = string.digits
+    special = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+
+    # Ensure at least one character from each set
+    password_chars = [
+        secrets.choice(uppercase),
+        secrets.choice(lowercase),
+        secrets.choice(digits),
+        secrets.choice(special)
+    ]
+
+    # Fill remaining length with random characters from all sets
+    all_chars = uppercase + lowercase + digits + special
+    password_chars.extend(secrets.choice(all_chars) for _ in range(length - 4))
+
+    # Shuffle to avoid predictable patterns
+    shuffled = password_chars.copy()
+    for i in range(len(shuffled) - 1, 0, -1):
+        j = secrets.randbelow(i + 1)
+        shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+
+    return ''.join(shuffled)
+
+
+async def check_password_history(
+    db: AsyncSession,
+    user_id: int,
+    new_password: str,
+    history_limit: int = 5
+) -> bool:
+    """
+    Check if password was used in recent history.
+
+    Args:
+        db: Database session
+        user_id: User ID to check
+        new_password: New password to validate
+        history_limit: Number of previous passwords to check
+
+    Returns:
+        True if password is reused, False if password is unique
+    """
+    # Get recent password history
+    history_query = (
+        select(PasswordHistory)
+        .where(PasswordHistory.user_id == user_id)
+        .order_by(desc(PasswordHistory.changed_at))
+        .limit(history_limit)
+    )
+
+    result = await db.execute(history_query)
+    history_records = result.scalars().all()
+
+    # Check if new password matches any in history
+    new_password_bytes = new_password.encode('utf-8')
+    for record in history_records:
+        if bcrypt.checkpw(new_password_bytes, record.password_hash.encode('utf-8')):
+            return True  # Password is reused
+
+    return False  # Password is unique
+
+
+async def save_password_to_history(
+    db: AsyncSession,
+    user_id: int,
+    password_hash: str,
+    change_method: str = 'self_change',
+    changed_by_user_id: Optional[int] = None,
+    ip_address: Optional[str] = None
+) -> PasswordHistory:
+    """
+    Save password to history for tracking.
+
+    Args:
+        db: Database session
+        user_id: User ID
+        password_hash: Hashed password
+        change_method: How password was changed ('reset', 'self_change', 'admin_change')
+        changed_by_user_id: ID of user who initiated change
+        ip_address: IP address of change request
+
+    Returns:
+        Created password history record
+    """
+    history_record = PasswordHistory(
+        user_id=user_id,
+        password_hash=password_hash,
+        changed_at=datetime.now(timezone.utc),
+        change_method=change_method,
+        changed_by_user_id=changed_by_user_id,
+        ip_address=ip_address
+    )
+
+    db.add(history_record)
+    await db.flush()
+
+    return history_record
 
 
 def sanitize_text(text: Optional[str]) -> Optional[str]:
