@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogTitle,
@@ -197,6 +198,20 @@ const PasswordResetDialog = ({ open, onClose, employee, onSuccess }) => {
       </DialogActions>
     </Dialog>
   );
+};
+
+PasswordResetDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  employee: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    firstName: PropTypes.string,
+    first_name: PropTypes.string,
+    lastName: PropTypes.string,
+    last_name: PropTypes.string,
+    email: PropTypes.string.isRequired,
+  }),
+  onSuccess: PropTypes.func,
 };
 
 export default PasswordResetDialog;

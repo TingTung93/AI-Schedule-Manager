@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogTitle,
@@ -281,6 +282,20 @@ const ChangePasswordDialog = ({ open, onClose, employee, isSelf, onSuccess }) =>
       </DialogActions>
     </Dialog>
   );
+};
+
+ChangePasswordDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  employee: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    firstName: PropTypes.string,
+    first_name: PropTypes.string,
+    lastName: PropTypes.string,
+    last_name: PropTypes.string,
+  }),
+  isSelf: PropTypes.bool,
+  onSuccess: PropTypes.func,
 };
 
 export default ChangePasswordDialog;
