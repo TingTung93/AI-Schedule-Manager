@@ -8,39 +8,40 @@ with automatic audit trail logging for department assignment changes.
 import html
 import secrets
 import string
+from datetime import datetime, timezone
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
+
+import bcrypt
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from pydantic import ValidationError
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlalchemy import asc, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, asc, func, or_
 from sqlalchemy.orm import selectinload
-from datetime import datetime, timezone
-from pydantic import ValidationError
-import bcrypt
 
-from ..dependencies import get_current_user, get_database_session, require_roles, require_permissions
-from ..auth.models import User, Role, user_roles
-from ..models.department_history import DepartmentAssignmentHistory
-from ..models.role_history import RoleChangeHistory
-from ..models.password_history import PasswordHistory
+from ..auth.models import Role, User, user_roles
+from ..dependencies import get_current_user, get_database_session, require_permissions, require_roles
 from ..models.account_status_history import AccountStatusHistory
+from ..models.department_history import DepartmentAssignmentHistory
+from ..models.password_history import PasswordHistory
+from ..models.role_history import RoleChangeHistory
 from ..schemas import (
+    AccountStatusHistoryListResponse,
+    AccountStatusHistoryResponse,
+    AccountStatusUpdate,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
+    DepartmentChangeSummary,
+    DepartmentHistoryListResponse,
+    DepartmentHistoryResponse,
     EmployeeCreate,
     EmployeeResponse,
     EmployeeUpdate,
-    DepartmentHistoryResponse,
-    DepartmentHistoryListResponse,
-    DepartmentChangeSummary,
-    RoleHistoryResponse,
-    RoleHistoryListResponse,
-    ResetPasswordRequest,
     PasswordResponse,
-    ChangePasswordRequest,
-    ChangePasswordResponse,
-    AccountStatusUpdate,
-    AccountStatusHistoryResponse,
-    AccountStatusHistoryListResponse
+    ResetPasswordRequest,
+    RoleHistoryListResponse,
+    RoleHistoryResponse,
 )
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
@@ -75,12 +76,7 @@ def generate_secure_password(length: int = 12) -> str:
     special = "!@#$%^&*()_+-=[]{}|;:,.<>?"
 
     # Ensure at least one character from each set
-    password_chars = [
-        secrets.choice(uppercase),
-        secrets.choice(lowercase),
-        secrets.choice(digits),
-        secrets.choice(special)
-    ]
+    password_chars = [secrets.choice(uppercase), secrets.choice(lowercase), secrets.choice(digits), secrets.choice(special)]
 
     # Fill remaining length with random characters from all sets
     all_chars = uppercase + lowercase + digits + special
@@ -92,15 +88,10 @@ def generate_secure_password(length: int = 12) -> str:
         j = secrets.randbelow(i + 1)
         shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
 
-    return ''.join(shuffled)
+    return "".join(shuffled)
 
 
-async def check_password_history(
-    db: AsyncSession,
-    user_id: int,
-    new_password: str,
-    history_limit: int = 5
-) -> bool:
+async def check_password_history(db: AsyncSession, user_id: int, new_password: str, history_limit: int = 5) -> bool:
     """
     Check if password was used in recent history.
 
@@ -125,9 +116,9 @@ async def check_password_history(
     history_records = result.scalars().all()
 
     # Check if new password matches any in history
-    new_password_bytes = new_password.encode('utf-8')
+    new_password_bytes = new_password.encode("utf-8")
     for record in history_records:
-        if bcrypt.checkpw(new_password_bytes, record.password_hash.encode('utf-8')):
+        if bcrypt.checkpw(new_password_bytes, record.password_hash.encode("utf-8")):
             return True  # Password is reused
 
     return False  # Password is unique
@@ -137,9 +128,9 @@ async def save_password_to_history(
     db: AsyncSession,
     user_id: int,
     password_hash: str,
-    change_method: str = 'self_change',
+    change_method: str = "self_change",
     changed_by_user_id: Optional[int] = None,
-    ip_address: Optional[str] = None
+    ip_address: Optional[str] = None,
 ) -> PasswordHistory:
     """
     Save password to history for tracking.
@@ -161,7 +152,7 @@ async def save_password_to_history(
         changed_at=datetime.now(timezone.utc),
         change_method=change_method,
         changed_by_user_id=changed_by_user_id,
-        ip_address=ip_address
+        ip_address=ip_address,
     )
 
     db.add(history_record)
@@ -200,36 +191,32 @@ def format_validation_errors(validation_error: ValidationError) -> dict:
     errors = []
     for error in validation_error.errors():
         # Extract field name from location tuple
-        field_path = '.'.join(str(x) for x in error['loc'] if x != 'body')
+        field_path = ".".join(str(x) for x in error["loc"] if x != "body")
 
         # Get user-friendly error message
-        error_msg = error.get('msg', 'Validation error')
+        error_msg = error.get("msg", "Validation error")
 
         # Handle specific error types with custom messages
-        error_type = error.get('type', '')
+        error_type = error.get("type", "")
 
-        if error_type == 'extra_forbidden':
-            field_name = error['loc'][-1] if error['loc'] else 'unknown'
+        if error_type == "extra_forbidden":
+            field_name = error["loc"][-1] if error["loc"] else "unknown"
             error_msg = f"Unknown field '{field_name}' is not allowed. Please remove this field from your request."
-        elif error_type == 'string_too_short':
-            ctx = error.get('ctx', {})
-            min_length = ctx.get('min_length', 'required')
+        elif error_type == "string_too_short":
+            ctx = error.get("ctx", {})
+            min_length = ctx.get("min_length", "required")
             error_msg = f"Field must be at least {min_length} characters long."
-        elif error_type == 'string_too_long':
-            ctx = error.get('ctx', {})
-            max_length = ctx.get('max_length', 'allowed')
+        elif error_type == "string_too_long":
+            ctx = error.get("ctx", {})
+            max_length = ctx.get("max_length", "allowed")
             error_msg = f"Field must be no more than {max_length} characters long."
-        elif error_type == 'value_error':
+        elif error_type == "value_error":
             # Use the custom validation message from our validators
-            error_msg = str(error.get('ctx', {}).get('error', error_msg))
+            error_msg = str(error.get("ctx", {}).get("error", error_msg))
 
-        errors.append({
-            'field': field_path,
-            'message': error_msg,
-            'type': error_type
-        })
+        errors.append({"field": field_path, "message": error_msg, "type": error_type})
 
-    return {'errors': errors}
+    return {"errors": errors}
 
 
 async def log_department_change(
@@ -239,7 +226,7 @@ async def log_department_change(
     to_dept: Optional[int],
     changed_by: int,
     reason: Optional[str] = None,
-    metadata: Optional[dict] = None
+    metadata: Optional[dict] = None,
 ) -> DepartmentAssignmentHistory:
     """
     Log department assignment change to audit trail.
@@ -270,7 +257,7 @@ async def log_department_change(
             changed_by_user_id=changed_by,
             changed_at=datetime.utcnow(),
             change_reason=reason,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         db.add(history_record)
@@ -279,20 +266,16 @@ async def log_department_change(
         return history_record
     except Exception as e:
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error logging department change: {e}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to log department change: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to log department change: {str(e)}"
         )
 
 
 async def update_user_role(
-    db: AsyncSession,
-    user_id: int,
-    new_role: str,
-    changed_by_id: int,
-    reason: Optional[str] = None
+    db: AsyncSession, user_id: int, new_role: str, changed_by_id: int, reason: Optional[str] = None
 ) -> bool:
     """
     Update user role in user_roles table and create audit trail.
@@ -320,10 +303,7 @@ async def update_user_role(
         user = user_result.scalar_one_or_none()
 
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with ID {user_id} not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with ID {user_id} not found")
 
         # Get current role (assuming users have one role for simplicity)
         old_role = user.roles[0].name if user.roles else None
@@ -340,7 +320,7 @@ async def update_user_role(
         if not new_role_obj:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Role '{new_role}' not found. Available roles: admin, manager, user, guest"
+                detail=f"Role '{new_role}' not found. Available roles: admin, manager, user, guest",
             )
 
         # Remove all existing roles (one role per user approach)
@@ -358,7 +338,7 @@ async def update_user_role(
             changed_by_id=changed_by_id,
             changed_at=datetime.utcnow(),
             reason=reason or "Role updated via API",
-            metadata_json={"action": "role_change", "api_endpoint": "/api/employees"}
+            metadata_json={"action": "role_change", "api_endpoint": "/api/employees"},
         )
 
         db.add(history_record)
@@ -370,12 +350,10 @@ async def update_user_role(
         raise
     except Exception as e:
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error updating user role: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update role: {str(e)}"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update role: {str(e)}")
 
 
 @router.get("", response_model=dict)
@@ -384,12 +362,12 @@ async def get_employees(
     role: Optional[str] = Query(None, description="Filter by role"),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
     department_id: Optional[int] = Query(None, description="Filter by department"),
-    sort_by: str = Query('first_name', description="Field to sort by"),
-    sort_order: str = Query('asc', description="Sort order: asc or desc"),
+    sort_by: str = Query("first_name", description="Field to sort by"),
+    sort_order: str = Query("asc", description="Sort order: asc or desc"),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum records to return"),
     db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
     Get all employees with server-side search, filtering, and sorting.
@@ -424,9 +402,7 @@ async def get_employees(
         from ..models.department import Department
 
         # Build base query with eager loading to prevent N+1 queries
-        query = select(User).options(
-            selectinload(User.roles)  # Eager load roles to prevent N+1 on role access
-        )
+        query = select(User).options(selectinload(User.roles))  # Eager load roles to prevent N+1 on role access
 
         # RBAC: Regular employees can only see their own profile
         if not is_admin_or_manager:
@@ -434,11 +410,9 @@ async def get_employees(
 
         # Apply search filter (name or email)
         if search:
-            search_pattern = f'%{search}%'
+            search_pattern = f"%{search}%"
             search_filter = or_(
-                User.first_name.ilike(search_pattern),
-                User.last_name.ilike(search_pattern),
-                User.email.ilike(search_pattern)
+                User.first_name.ilike(search_pattern), User.last_name.ilike(search_pattern), User.email.ilike(search_pattern)
             )
             query = query.where(search_filter)
 
@@ -461,15 +435,15 @@ async def get_employees(
 
         # Apply sorting
         # Validate sort_by field to prevent SQL injection
-        allowed_sort_fields = ['first_name', 'last_name', 'email', 'is_active', 'department_id']
+        allowed_sort_fields = ["first_name", "last_name", "email", "is_active", "department_id"]
         if sort_by not in allowed_sort_fields:
-            sort_by = 'first_name'  # Default to safe field
+            sort_by = "first_name"  # Default to safe field
 
         # Get the column to sort by
         sort_column = getattr(User, sort_by)
 
         # Apply sort order
-        if sort_order.lower() == 'desc':
+        if sort_order.lower() == "desc":
             query = query.order_by(desc(sort_column))
         else:
             query = query.order_by(asc(sort_column))
@@ -478,18 +452,14 @@ async def get_employees(
         query = query.offset(skip).limit(limit)
 
         # Execute query
-        print(f"[DEBUG] Executing employees query with search='{search}', role='{role}', department={department_id}, sort={sort_by} {sort_order}, skip={skip}, limit={limit}")
         result = await db.execute(query)
         users = result.scalars().all()
-        print(f"[DEBUG] Found {len(users)} users out of {total} total matching records")
 
         # Bulk load departments in a single query to prevent N+1
         # Collect unique department IDs
         dept_ids = [user.department_id for user in users if user.department_id]
         if dept_ids:
-            dept_query = select(Department).where(Department.id.in_(dept_ids)).options(
-                selectinload(Department.children)
-            )
+            dept_query = select(Department).where(Department.id.in_(dept_ids)).options(selectinload(Department.children))
             dept_result = await db.execute(dept_query)
             departments = {dept.id: dept for dept in dept_result.scalars().all()}
 
@@ -504,28 +474,19 @@ async def get_employees(
             for user in users:
                 user.department = None
 
-        return {
-            "employees": users,
-            "total": total,
-            "skip": skip,
-            "limit": limit
-        }
+        return {"employees": users, "total": total, "skip": skip, "limit": limit}
 
     except Exception as e:
-        print(f"[ERROR] Error fetching employees: {e}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch employees: {str(e)}"
-        )
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching employees: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to fetch employees: {str(e)}")
 
 
 @router.get("/{employee_id}", response_model=EmployeeResponse)
 async def get_employee(
-    employee_id: int,
-    db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
+    employee_id: int, db: AsyncSession = Depends(get_database_session), current_user=Depends(get_current_user)
 ):
     """
     Get a specific employee by ID.
@@ -553,31 +514,25 @@ async def get_employee(
         # RBAC: Regular employees can only view their own profile
         if not is_admin_or_manager and employee_id != current_user.id:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied. You can only view your own profile."
+                status_code=status.HTTP_403_FORBIDDEN, detail="Access denied. You can only view your own profile."
             )
 
         # Import Department model for manual loading
         from ..models.department import Department
 
         # Load employee with eager loading to prevent N+1 queries
-        query = select(User).where(User.id == employee_id).options(
-            selectinload(User.roles)  # Eager load roles
-        )
+        query = select(User).where(User.id == employee_id).options(selectinload(User.roles))  # Eager load roles
 
         result = await db.execute(query)
         user = result.scalar_one_or_none()
 
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Employee with ID {employee_id} not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with ID {employee_id} not found")
 
         # Load department if user has one (single query)
         if user.department_id:
-            dept_query = select(Department).where(Department.id == user.department_id).options(
-                selectinload(Department.children)
+            dept_query = (
+                select(Department).where(Department.id == user.department_id).options(selectinload(Department.children))
             )
             dept_result = await db.execute(dept_query)
             user.department = dept_result.scalar_one_or_none()
@@ -589,25 +544,25 @@ async def get_employee(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error fetching employee {employee_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch employee: {str(e)}"
-        )
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching employee {employee_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to fetch employee: {str(e)}")
 
 
 @router.post(
     "",
     response_model=EmployeeResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_roles("admin", "manager"))]
+    dependencies=[Depends(require_roles("admin", "manager"))],
 )
 @limiter.limit("10/minute")
 async def create_employee(
     request: Request,
     employee_data: EmployeeCreate,
     db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
     Create a new employee - only first_name and last_name required.
@@ -636,22 +591,20 @@ async def create_employee(
 
         # Validate department_id if provided
         if employee_data.department_id is not None:
-            dept_result = await db.execute(
-                select(Department).where(Department.id == employee_data.department_id)
-            )
+            dept_result = await db.execute(select(Department).where(Department.id == employee_data.department_id))
             department = dept_result.scalar_one_or_none()
 
             if not department:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Department with ID {employee_data.department_id} not found. Please select a valid department or leave unassigned."
+                    detail=f"Department with ID {employee_data.department_id} not found. Please select a valid department or leave unassigned.",
                 )
 
             # Check if department is active
             if not department.active:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Cannot assign employee to inactive department '{department.name}'. Please select an active department."
+                    detail=f"Cannot assign employee to inactive department '{department.name}'. Please select an active department.",
                 )
 
         # Sanitize input fields to prevent XSS
@@ -660,6 +613,7 @@ async def create_employee(
 
         # Generate email if not provided
         import uuid
+
         if not employee_data.email:
             # Generate email from first_name and last_name
             email_base = f"{first_name.lower()}.{last_name.lower()}"
@@ -675,14 +629,15 @@ async def create_employee(
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Employee with email {email} already exists. Suggestions: Use a different email or leave it empty to auto-generate."
+                detail=f"Employee with email {email} already exists. Suggestions: Use a different email or leave it empty to auto-generate.",
             )
 
         # Hash password - use default password
         import bcrypt
+
         default_password = "Employee123!"
-        password_bytes = default_password.encode('utf-8')
-        password_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode('utf-8')
+        password_bytes = default_password.encode("utf-8")
+        password_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("utf-8")
 
         # Create new user (using sanitized fields)
         new_user = User(
@@ -691,7 +646,7 @@ async def create_employee(
             first_name=first_name,
             last_name=last_name,
             department_id=employee_data.department_id,
-            is_active=True
+            is_active=True,
         )
 
         db.add(new_user)
@@ -706,7 +661,7 @@ async def create_employee(
                 to_dept=employee_data.department_id,
                 changed_by=current_user.id,
                 reason="Initial department assignment on employee creation",
-                metadata={"action": "create", "initial_assignment": True}
+                metadata={"action": "create", "initial_assignment": True},
             )
 
         await db.commit()
@@ -715,10 +670,9 @@ async def create_employee(
         # Load department relationship for response with children eagerly loaded
         if new_user.department_id:
             from sqlalchemy.orm import selectinload
+
             dept_result = await db.execute(
-                select(Department)
-                .where(Department.id == new_user.department_id)
-                .options(selectinload(Department.children))
+                select(Department).where(Department.id == new_user.department_id).options(selectinload(Department.children))
             )
             new_user.department = dept_result.scalar_one_or_none()
         else:
@@ -731,31 +685,21 @@ async def create_employee(
     except Exception as e:
         await db.rollback()
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error creating employee: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create employee: {str(e)}"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to create employee: {str(e)}")
 
 
-@router.patch(
-    "/{employee_id}",
-    response_model=EmployeeResponse,
-    dependencies=[Depends(require_roles("admin", "manager"))]
-)
-@router.put(
-    "/{employee_id}",
-    response_model=EmployeeResponse,
-    dependencies=[Depends(require_roles("admin", "manager"))]
-)
+@router.patch("/{employee_id}", response_model=EmployeeResponse, dependencies=[Depends(require_roles("admin", "manager"))])
+@router.put("/{employee_id}", response_model=EmployeeResponse, dependencies=[Depends(require_roles("admin", "manager"))])
 @limiter.limit("10/minute")
 async def update_employee(
     request: Request,
     employee_id: int,
     employee_data: EmployeeUpdate,
     db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
     Update an existing employee. Supports both PUT and PATCH methods.
@@ -793,89 +737,79 @@ async def update_employee(
         user = result.scalar_one_or_none()
 
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Employee with ID {employee_id} not found"
-            )
-
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with ID {employee_id} not found")
 
         # RBAC: Resource-based authorization checks
         user_roles_list = [role.name for role in current_user.roles]
         is_admin = "admin" in user_roles_list
         is_manager = "manager" in user_roles_list
-        
+
         # Non-admins/managers can only update their own profile
         if not (is_admin or is_manager) and employee_id != current_user.id:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied. You can only update your own profile."
+                status_code=status.HTTP_403_FORBIDDEN, detail="Access denied. You can only update your own profile."
             )
 
         # Check for role change - only admins can change roles
-        if 'role' in employee_data.model_dump(exclude_unset=True):
+        if "role" in employee_data.model_dump(exclude_unset=True):
             if not is_admin:
                 raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Access denied. Only administrators can change user roles."
+                    status_code=status.HTTP_403_FORBIDDEN, detail="Access denied. Only administrators can change user roles."
                 )
 
         # Update fields that exist in User model
         update_data = employee_data.model_dump(exclude_unset=True)
 
         # Sanitize text fields to prevent XSS
-        if 'first_name' in update_data:
-            update_data['first_name'] = sanitize_text(update_data['first_name'])
-        if 'last_name' in update_data:
-            update_data['last_name'] = sanitize_text(update_data['last_name'])
-        if 'email' in update_data:
-            update_data['email'] = sanitize_text(update_data['email'])
+        if "first_name" in update_data:
+            update_data["first_name"] = sanitize_text(update_data["first_name"])
+        if "last_name" in update_data:
+            update_data["last_name"] = sanitize_text(update_data["last_name"])
+        if "email" in update_data:
+            update_data["email"] = sanitize_text(update_data["email"])
 
         # Track old department for audit logging
         old_department_id = user.department_id
 
         # Validate department_id if being updated
-        if 'department_id' in update_data:
-            new_department_id = update_data['department_id']
+        if "department_id" in update_data:
+            new_department_id = update_data["department_id"]
 
             if new_department_id is not None:
-                dept_result = await db.execute(
-                    select(Department).where(Department.id == new_department_id)
-                )
+                dept_result = await db.execute(select(Department).where(Department.id == new_department_id))
                 department = dept_result.scalar_one_or_none()
 
                 if not department:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"Department with ID {new_department_id} not found. Please select a valid department or set to null for unassigned."
+                        detail=f"Department with ID {new_department_id} not found. Please select a valid department or set to null for unassigned.",
                     )
 
                 # Check if department is active
                 if not department.active:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Cannot assign employee to inactive department '{department.name}'. Please select an active department."
+                        detail=f"Cannot assign employee to inactive department '{department.name}'. Please select an active department.",
                     )
 
         # Check if email is being updated and ensure it's unique
-        if 'email' in update_data and update_data['email'] != user.email:
-            email_check = await db.execute(
-                select(User).where(User.email == update_data['email'])
-            )
+        if "email" in update_data and update_data["email"] != user.email:
+            email_check = await db.execute(select(User).where(User.email == update_data["email"]))
             existing_user = email_check.scalar_one_or_none()
 
             if existing_user:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Employee with email {update_data['email']} already exists. Please use a different email address."
+                    detail=f"Employee with email {update_data['email']} already exists. Please use a different email address.",
                 )
 
         # Map fields to User model
         field_mapping = {
-            'first_name': 'first_name',
-            'last_name': 'last_name',
-            'email': 'email',
-            'active': 'is_active',
-            'department_id': 'department_id'
+            "first_name": "first_name",
+            "last_name": "last_name",
+            "email": "email",
+            "active": "is_active",
+            "department_id": "department_id",
         }
 
         for schema_field, model_field in field_mapping.items():
@@ -883,8 +817,8 @@ async def update_employee(
                 setattr(user, model_field, update_data[schema_field])
 
         # Log department change if department was updated
-        if 'department_id' in update_data:
-            new_department_id = update_data['department_id']
+        if "department_id" in update_data:
+            new_department_id = update_data["department_id"]
 
             # Only log if department actually changed
             if old_department_id != new_department_id:
@@ -895,17 +829,14 @@ async def update_employee(
                     to_dept=new_department_id,
                     changed_by=current_user.id,
                     reason=f"Department assignment updated via employee update API",
-                    metadata={
-                        "action": "update",
-                        "updated_fields": list(update_data.keys())
-                    }
+                    metadata={"action": "update", "updated_fields": list(update_data.keys())},
                 )
 
         # Handle role change if role was updated
-        if 'role' in update_data and update_data['role']:
-            role_name = update_data['role']
+        if "role" in update_data and update_data["role"]:
+            role_name = update_data["role"]
             # Convert EmployeeRole enum to string if needed
-            if hasattr(role_name, 'value'):
+            if hasattr(role_name, "value"):
                 role_name = role_name.value
 
             success = await update_user_role(
@@ -913,14 +844,11 @@ async def update_employee(
                 user_id=employee_id,
                 new_role=role_name,
                 changed_by_id=current_user.id,
-                reason="Role updated via employee update API"
+                reason="Role updated via employee update API",
             )
 
             if not success:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Failed to update user role"
-                )
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to update user role")
 
         await db.commit()
         await db.refresh(user)
@@ -928,10 +856,9 @@ async def update_employee(
         # Load department relationship for response with children eagerly loaded
         if user.department_id:
             from sqlalchemy.orm import selectinload
+
             dept_result = await db.execute(
-                select(Department)
-                .where(Department.id == user.department_id)
-                .options(selectinload(Department.children))
+                select(Department).where(Department.id == user.department_id).options(selectinload(Department.children))
             )
             user.department = dept_result.scalar_one_or_none()
         else:
@@ -943,22 +870,16 @@ async def update_employee(
         raise
     except Exception as e:
         await db.rollback()
-        print(f"Error updating employee {employee_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update employee: {str(e)}"
-        )
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error updating employee {employee_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update employee: {str(e)}")
 
 
-@router.delete(
-    "/{employee_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(require_roles("admin"))]
-)
+@router.delete("/{employee_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_roles("admin"))])
 async def delete_employee(
-    employee_id: int,
-    db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
+    employee_id: int, db: AsyncSession = Depends(get_database_session), current_user=Depends(get_current_user)
 ):
     """
     Delete an employee.
@@ -984,10 +905,7 @@ async def delete_employee(
         user = result.scalar_one_or_none()
 
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Employee with ID {employee_id} not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with ID {employee_id} not found")
 
         await db.delete(user)
         await db.commit()
@@ -996,11 +914,11 @@ async def delete_employee(
         raise
     except Exception as e:
         await db.rollback()
-        print(f"Error deleting employee {employee_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete employee: {str(e)}"
-        )
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error deleting employee {employee_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete employee: {str(e)}")
 
 
 @router.get("/{employee_id}/department-history", response_model=DepartmentHistoryListResponse)
@@ -1009,7 +927,7 @@ async def get_department_history(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(50, ge=1, le=500, description="Maximum records to return"),
     db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
     Get department assignment history for an employee.
@@ -1040,14 +958,13 @@ async def get_department_history(
         employee = employee_check.scalar_one_or_none()
 
         if not employee:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Employee with ID {employee_id} not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with ID {employee_id} not found")
 
         # Get total count
-        count_query = select(func.count()).select_from(DepartmentAssignmentHistory).where(
-            DepartmentAssignmentHistory.employee_id == employee_id
+        count_query = (
+            select(func.count())
+            .select_from(DepartmentAssignmentHistory)
+            .where(DepartmentAssignmentHistory.employee_id == employee_id)
         )
         total_result = await db.execute(count_query)
         total = total_result.scalar()
@@ -1059,7 +976,7 @@ async def get_department_history(
             .options(
                 selectinload(DepartmentAssignmentHistory.from_department),
                 selectinload(DepartmentAssignmentHistory.to_department),
-                selectinload(DepartmentAssignmentHistory.changed_by_user)
+                selectinload(DepartmentAssignmentHistory.changed_by_user),
             )
             .order_by(desc(DepartmentAssignmentHistory.changed_at))
             .offset(skip)
@@ -1075,7 +992,9 @@ async def get_department_history(
             # All relationships already loaded via selectinload
             from_dept_name = record.from_department.name if record.from_department else None
             to_dept_name = record.to_department.name if record.to_department else None
-            changed_by_name = f"{record.changed_by_user.first_name} {record.changed_by_user.last_name}" if record.changed_by_user else None
+            changed_by_name = (
+                f"{record.changed_by_user.first_name} {record.changed_by_user.last_name}" if record.changed_by_user else None
+            )
 
             # Create enriched response
             response_items.append(
@@ -1091,26 +1010,21 @@ async def get_department_history(
                     employee_name=f"{employee.first_name} {employee.last_name}",
                     from_department_name=from_dept_name,
                     to_department_name=to_dept_name,
-                    changed_by_name=changed_by_name
+                    changed_by_name=changed_by_name,
                 )
             )
 
-        return DepartmentHistoryListResponse(
-            total=total,
-            items=response_items,
-            skip=skip,
-            limit=limit
-        )
+        return DepartmentHistoryListResponse(total=total, items=response_items, skip=skip, limit=limit)
 
     except HTTPException:
         raise
     except Exception as e:
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error fetching department history: {e}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch department history: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to fetch department history: {str(e)}"
         )
 
 
@@ -1120,7 +1034,7 @@ async def get_role_history(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(50, ge=1, le=500, description="Maximum records to return"),
     db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
     Get role change history for an employee.
@@ -1148,15 +1062,10 @@ async def get_role_history(
         employee = employee_check.scalar_one_or_none()
 
         if not employee:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Employee with ID {employee_id} not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with ID {employee_id} not found")
 
         # Get total count
-        count_query = select(func.count()).select_from(RoleChangeHistory).where(
-            RoleChangeHistory.user_id == employee_id
-        )
+        count_query = select(func.count()).select_from(RoleChangeHistory).where(RoleChangeHistory.user_id == employee_id)
         total_result = await db.execute(count_query)
         total = total_result.scalar()
 
@@ -1194,39 +1103,30 @@ async def get_role_history(
                     reason=record.reason,
                     metadata_json=record.metadata_json or {},
                     user_name=f"{employee.first_name} {employee.last_name}",
-                    changed_by_name=changed_by_name
+                    changed_by_name=changed_by_name,
                 )
             )
 
-        return RoleHistoryListResponse(
-            total=total,
-            items=response_items,
-            skip=skip,
-            limit=limit
-        )
+        return RoleHistoryListResponse(total=total, items=response_items, skip=skip, limit=limit)
 
     except HTTPException:
         raise
     except Exception as e:
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error fetching role history: {e}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch role history: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to fetch role history: {str(e)}"
         )
 
 
-@router.patch(
-    "/{employee_id}/status",
-    response_model=EmployeeResponse,
-    dependencies=[Depends(require_roles("admin"))]
-)
+@router.patch("/{employee_id}/status", response_model=EmployeeResponse, dependencies=[Depends(require_roles("admin"))])
 async def update_employee_status(
     employee_id: int,
     status_update: AccountStatusUpdate,
     db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
     Update employee account status (active, locked, verified).
@@ -1261,7 +1161,7 @@ async def update_employee_status(
         if employee_id == current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot modify your own account status. Another administrator must perform this action for security reasons."
+                detail="Cannot modify your own account status. Another administrator must perform this action for security reasons.",
             )
 
         # Find employee
@@ -1269,10 +1169,7 @@ async def update_employee_status(
         employee = result.scalar_one_or_none()
 
         if not employee:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Employee with ID {employee_id} not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with ID {employee_id} not found")
 
         # Apply status change based on action
         status_action = status_update.status.lower()
@@ -1305,10 +1202,7 @@ async def update_employee_status(
             employee.is_verified = False
             new_status_value = "unverified"
         else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid status action: {status_action}"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid status action: {status_action}")
 
         # Create audit history record
         history_record = AccountStatusHistory(
@@ -1322,8 +1216,8 @@ async def update_employee_status(
                 "action": "status_change",
                 "status_type": status_action,
                 "api_endpoint": f"/api/employees/{employee_id}/status",
-                "changed_by_email": current_user.email
-            }
+                "changed_by_email": current_user.email,
+            },
         )
 
         db.add(history_record)
@@ -1332,12 +1226,12 @@ async def update_employee_status(
 
         # Load department relationship for response
         if employee.department_id:
-            from ..models.department import Department
             from sqlalchemy.orm import selectinload
+
+            from ..models.department import Department
+
             dept_result = await db.execute(
-                select(Department)
-                .where(Department.id == employee.department_id)
-                .options(selectinload(Department.children))
+                select(Department).where(Department.id == employee.department_id).options(selectinload(Department.children))
             )
             employee.department = dept_result.scalar_one_or_none()
         else:
@@ -1350,11 +1244,11 @@ async def update_employee_status(
     except Exception as e:
         await db.rollback()
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error updating employee status: {e}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update employee status: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update employee status: {str(e)}"
         )
 
 
@@ -1364,7 +1258,7 @@ async def get_account_status_history(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(50, ge=1, le=500, description="Maximum records to return"),
     db: AsyncSession = Depends(get_database_session),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
     Get account status change history for an employee.
@@ -1402,7 +1296,7 @@ async def get_account_status_history(
         if not is_admin and not is_manager and employee_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied. You can only view your own account status history."
+                detail="Access denied. You can only view your own account status history.",
             )
 
         # Verify employee exists
@@ -1410,23 +1304,18 @@ async def get_account_status_history(
         employee = employee_check.scalar_one_or_none()
 
         if not employee:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Employee with ID {employee_id} not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee with ID {employee_id} not found")
 
         # Managers can only view their department's employees
         if is_manager and not is_admin:
             if employee.department_id != current_user.department_id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Access denied. Managers can only view status history for employees in their department."
+                    detail="Access denied. Managers can only view status history for employees in their department.",
                 )
 
         # Get total count
-        count_query = select(func.count()).select_from(AccountStatusHistory).where(
-            AccountStatusHistory.user_id == employee_id
-        )
+        count_query = select(func.count()).select_from(AccountStatusHistory).where(AccountStatusHistory.user_id == employee_id)
         total_result = await db.execute(count_query)
         total = total_result.scalar()
 
@@ -1464,24 +1353,19 @@ async def get_account_status_history(
                     reason=record.reason,
                     metadata_json=record.metadata_json or {},
                     user_name=f"{employee.first_name} {employee.last_name}",
-                    changed_by_name=changed_by_name
+                    changed_by_name=changed_by_name,
                 )
             )
 
-        return AccountStatusHistoryListResponse(
-            total=total,
-            items=response_items,
-            skip=skip,
-            limit=limit
-        )
+        return AccountStatusHistoryListResponse(total=total, items=response_items, skip=skip, limit=limit)
 
     except HTTPException:
         raise
     except Exception as e:
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error fetching account status history: {e}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch account status history: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to fetch account status history: {str(e)}"
         )
