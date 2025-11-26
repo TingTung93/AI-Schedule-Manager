@@ -304,7 +304,9 @@ export class EmployeeTestHelpers {
    */
 
   async waitForTableLoad(): Promise<void> {
-    await this.page.waitForSelector('table tbody tr', { timeout: 10000 });
+    // Note: EmployeesPage uses Card-based Grid layout, not tables
+    // Wait for employee cards to load
+    await this.page.waitForSelector('[class*="MuiCard-root"]', { timeout: 10000 });
   }
 
   async waitForDialogToClose(): Promise<void> {

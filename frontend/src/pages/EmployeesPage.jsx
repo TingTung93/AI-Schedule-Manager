@@ -28,7 +28,8 @@ import {
   Tab,
   OutlinedInput,
   Checkbox,
-  ListItemText
+  ListItemText,
+  Divider
 } from '@mui/material';
 import {
   Add,
@@ -51,8 +52,7 @@ import {
   Schedule,
   History,
   Timeline,
-  Assessment,
-  Divider
+  Assessment
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/routeConfig';
@@ -381,7 +381,7 @@ const EmployeesPage = () => {
   };
 
   // Get unique departments and roles for filters
-  const departments = [...new Set(employees.map(emp => emp.department).filter(Boolean))];
+  const departments = [...new Set(employees.map(emp => emp.department?.name || emp.department).filter(Boolean))];
   const roles = [...new Set(employees.map(emp => emp.role).filter(Boolean))];
 
   // Apply filters to employees
@@ -587,7 +587,7 @@ const EmployeesPage = () => {
                                 {firstName} {lastName}
                               </Typography>
                               <Typography variant="body2" color="textSecondary">
-                                {employee.department}
+                                {employee.department?.name || employee.department || 'No Department'}
                               </Typography>
                             </Box>
                           </Box>

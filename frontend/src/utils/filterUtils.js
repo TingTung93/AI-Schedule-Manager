@@ -88,7 +88,7 @@ export const filterEmployees = (employees, searchTerm = '', departments = [], ro
 
     // Department filter
     if (departments.length > 0) {
-      const empDept = employee.department || employee.departmentName || '';
+      const empDept = employee.department?.name || employee.department || employee.departmentName || '';
       if (!departments.includes(empDept)) return false;
     }
 
