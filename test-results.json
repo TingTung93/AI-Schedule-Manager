@@ -166,7 +166,7 @@
             {
               "title": "01. Employee Creation (Create)",
               "file": "employee-management/01-employee-crud.spec.ts",
-              "line": 35,
+              "line": 33,
               "column": 8,
               "specs": [
                 {
@@ -185,10 +185,10 @@
                           "workerIndex": 0,
                           "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 12926,
+                          "duration": 13548,
                           "error": {
                             "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    - locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">Add Employee</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    - locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">Add Employee</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:131:26)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:52:7",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    - locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">Add Employee</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:131:26)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:50:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 26,
@@ -203,13 +203,13 @@
                                 "column": 26,
                                 "line": 131
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    - locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">Add Employee</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:131\n\n  129 |     // Only wait for dialog to close if expected (not for validation errors)\n  130 |     if (waitForClose) {\n> 131 |       await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                          ^\n  132 |     } else {\n  133 |       // Small delay to allow form submission to process\n  134 |       await this.page.waitForTimeout(500);\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:131:26)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:52:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    - locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">Add Employee</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:131\n\n  129 |     // Only wait for dialog to close if expected (not for validation errors)\n  130 |     if (waitForClose) {\n> 131 |       await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                          ^\n  132 |     } else {\n  133 |       // Small delay to allow form submission to process\n  134 |       await this.page.waitForTimeout(500);\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:131:26)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:50:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T22:36:40.209Z",
+                          "startTime": "2025-11-26T23:13:15.699Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -240,7 +240,7 @@
                   ],
                   "id": "09b1f89aab42121cbbe4-c2f8974017d116b33724",
                   "file": "employee-management/01-employee-crud.spec.ts",
-                  "line": 42,
+                  "line": 40,
                   "column": 9
                 }
               ]
@@ -252,8 +252,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-26T22:36:39.843Z",
-    "duration": 13429.029,
+    "startTime": "2025-11-26T23:13:15.021Z",
+    "duration": 14410.152999999998,
     "expected": 0,
     "skipped": 0,
     "unexpected": 1,

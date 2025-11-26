@@ -19,7 +19,12 @@ router = APIRouter(prefix="/api/test", tags=["test"])
 logger = logging.getLogger(__name__)
 
 # Only enable test routes in test/development environments
-TEST_MODE = os.getenv("FLASK_ENV") in ["development", "testing"] or os.getenv("ENABLE_TEST_ROUTES") == "true"
+# Check ENVIRONMENT (used by FastAPI) in addition to FLASK_ENV
+TEST_MODE = (
+    os.getenv("FLASK_ENV") in ["development", "testing"] or
+    os.getenv("ENVIRONMENT") in ["development", "testing"] or
+    os.getenv("ENABLE_TEST_ROUTES") == "true"
+)
 
 
 @router.delete("/cleanup")

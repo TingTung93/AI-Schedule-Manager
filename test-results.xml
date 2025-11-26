@@ -1,8 +1,8 @@
-<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="13.429029">
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T22:36:39.859Z" hostname="chromium" tests="1" failures="1" skipped="0" time="12.926" errors="0">
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields" classname="employee-management/01-employee-crud.spec.ts" time="12.926">
-<failure message="01-employee-crud.spec.ts:42:9 01.01 Should create employee with all required fields" type="FAILURE">
-<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:42:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields 
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="14.410152999999998">
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T23:13:15.178Z" hostname="chromium" tests="1" failures="1" skipped="0" time="13.548" errors="0">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields" classname="employee-management/01-employee-crud.spec.ts" time="13.548">
+<failure message="01-employee-crud.spec.ts:40:9 01.01 Should create employee with all required fields" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:40:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
@@ -22,7 +22,7 @@
       133 |       // Small delay to allow form submission to process
       134 |       await this.page.waitForTimeout(500);
         at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:131:26)
-        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:52:7
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:50:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/test-failed-1.png
