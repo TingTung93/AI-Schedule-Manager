@@ -36,7 +36,7 @@ test.describe('Employee CRUD Operations', () => {
         email: employee.email,
         phone: employee.phone
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       await helpers.expectSuccessMessage('employee created successfully');
       const exists = await helpers.findEmployeeInList(employee.email);
@@ -60,7 +60,7 @@ test.describe('Employee CRUD Operations', () => {
         hourlyRate: employee.hourlyRate?.toString(),
         maxHours: employee.maxHoursPerWeek?.toString()
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       await helpers.expectSuccessMessage('employee created successfully');
       const exists = await helpers.findEmployeeInList(employee.email);
@@ -74,7 +74,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Doe',
         email: `test.${Date.now()}@example.com`
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(); // Dialog stays open for validation error
 
       await helpers.expectValidationError('first name is required');
     });
@@ -86,7 +86,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: '',
         email: `test.${Date.now()}@example.com`
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(); // Dialog stays open for validation error
 
       await helpers.expectValidationError('last name is required');
     });
@@ -98,7 +98,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Doe',
         email: 'invalid-email'
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(); // Dialog stays open for validation error
 
       await helpers.expectValidationError('valid email');
     });
@@ -117,7 +117,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: employee.lastName,
         email: employee.email
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
       await helpers.expectSuccessMessage('employee created successfully');
 
       // Try to create duplicate
@@ -127,7 +127,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Person',
         email: employee.email // Same email
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(); // Dialog stays open for API error
 
       await helpers.expectErrorMessage('email already exists');
     });
@@ -140,7 +140,7 @@ test.describe('Employee CRUD Operations', () => {
         email: `rate.test.${Date.now()}@example.com`,
         hourlyRate: '1500' // Above max
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(); // Dialog stays open for validation error
 
       await helpers.expectValidationError('hourly rate must be between 0 and 1000');
     });
@@ -153,7 +153,7 @@ test.describe('Employee CRUD Operations', () => {
         email: `hours.test.${Date.now()}@example.com`,
         maxHours: '200' // Above max
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(); // Dialog stays open for validation error
 
       await helpers.expectValidationError('max hours must be between 1 and 168');
     });
@@ -199,7 +199,7 @@ test.describe('Employee CRUD Operations', () => {
         email: employee.email,
         phone: employee.phone
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Verify details in table
       const row = page.locator(`tr:has-text("${employee.email}")`);
@@ -268,12 +268,12 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Name',
         email: testEmail
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Edit employee
       await helpers.editEmployee(testEmail);
       await helpers.fillEmployeeForm({ firstName: 'Updated' });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Verify update
       await helpers.expectSuccessMessage('employee updated successfully');
@@ -291,12 +291,12 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Original',
         email: testEmail
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Edit employee
       await helpers.editEmployee(testEmail);
       await helpers.fillEmployeeForm({ lastName: 'Updated' });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Verify update
       await helpers.expectSuccessMessage('employee updated successfully');
@@ -315,12 +315,12 @@ test.describe('Employee CRUD Operations', () => {
         email: testEmail,
         phone: '+1234567890'
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Edit employee
       await helpers.editEmployee(testEmail);
       await helpers.fillEmployeeForm({ phone: '+0987654321' });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       await helpers.expectSuccessMessage('employee updated successfully');
     });
@@ -336,12 +336,12 @@ test.describe('Employee CRUD Operations', () => {
         email: testEmail,
         hourlyRate: '25.00'
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Edit employee
       await helpers.editEmployee(testEmail);
       await helpers.fillEmployeeForm({ hourlyRate: '30.50' });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       await helpers.expectSuccessMessage('employee updated successfully');
     });
@@ -357,12 +357,12 @@ test.describe('Employee CRUD Operations', () => {
         email: testEmail,
         maxHours: '40'
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Edit employee
       await helpers.editEmployee(testEmail);
       await helpers.fillEmployeeForm({ maxHours: '35' });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       await helpers.expectSuccessMessage('employee updated successfully');
     });
@@ -378,7 +378,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'User',
         email: email1
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Create second employee
       await helpers.openAddEmployeeDialog();
@@ -387,12 +387,12 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'User',
         email: email2
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Try to change second email to first
       await helpers.editEmployee(email2);
       await helpers.fillEmployeeForm({ email: email1 });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(); // Dialog stays open for API error
 
       await helpers.expectErrorMessage('email already exists');
     });
@@ -407,7 +407,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Name',
         email: testEmail
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Start edit but cancel
       await helpers.editEmployee(testEmail);
@@ -437,7 +437,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Me',
         email: testEmail
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Delete employee
       await helpers.deleteEmployee(testEmail);
@@ -458,7 +458,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Delete',
         email: testEmail
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Open delete menu
       await helpers.openEmployeeActionsMenu(testEmail);
@@ -479,7 +479,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Delete',
         email: testEmail
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       // Start delete but cancel
       await helpers.openEmployeeActionsMenu(testEmail);
@@ -504,7 +504,7 @@ test.describe('Employee CRUD Operations', () => {
         lastName: 'Created',
         email: 'manager.created@test.com'
       });
-      await helpers.submitEmployeeForm();
+      await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       await helpers.expectSuccessMessage('employee created successfully');
     });

@@ -116,12 +116,17 @@ export class EmployeeTestHelpers {
     }
   }
 
-  async submitEmployeeForm(): Promise<void> {
+  async submitEmployeeForm(waitForClose: boolean = false): Promise<void> {
     // Button text is "Add Employee" or "Update Employee" - match the actual text
     const submitButton = this.page.getByRole('button', { name: /(add|update) employee/i });
     await submitButton.click();
-    // Wait for the form to close by checking if submit button is gone
-    await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+    // Only wait for dialog to close if expected (not for validation errors)
+    if (waitForClose) {
+      await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+    } else {
+      // Small delay to allow form submission to process
+      await this.page.waitForTimeout(500);
+    }
   }
 
   async cancelEmployeeForm(): Promise<void> {

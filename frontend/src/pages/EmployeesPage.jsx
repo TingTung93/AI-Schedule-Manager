@@ -239,6 +239,23 @@ const EmployeesPage = () => {
   const validateExtendedFields = () => {
     const errors = [];
 
+    // Validate required fields
+    if (!employeeForm.firstName || !employeeForm.firstName.trim()) {
+      errors.push('First name is required');
+    }
+    if (!employeeForm.lastName || !employeeForm.lastName.trim()) {
+      errors.push('Last name is required');
+    }
+    if (!employeeForm.email || !employeeForm.email.trim()) {
+      errors.push('Email is required');
+    } else {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(employeeForm.email)) {
+        errors.push('Please enter a valid email address');
+      }
+    }
+
     // Validate qualifications (max 20 items)
     if (employeeForm.qualifications.length > 20) {
       errors.push('Maximum 20 qualifications allowed');
@@ -284,7 +301,11 @@ const EmployeesPage = () => {
         await api.post('/api/employees', payload);
         setNotification({ type: 'success', message: 'Employee created successfully' });
       }
-      setDialogOpen(false);
+
+      // Close dialog after a small delay to allow notification to render
+      // This prevents React batching from hiding the notification before it appears
+      setTimeout(() => setDialogOpen(false), 100);
+
       loadEmployees();
     } catch (error) {
       console.error('[EmployeesPage] Error submitting employee:', error);
@@ -1067,11 +1088,17 @@ const EmployeesPage = () => {
       {/* Notification Snackbar */}
       <Snackbar
         open={!!notification}
-        autoHideDuration={4000}
+        autoHideDuration={6000}
         onClose={() => setNotification(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ zIndex: 10000 }}
       >
         {notification && (
-          <Alert onClose={() => setNotification(null)} severity={notification.type}>
+          <Alert
+            onClose={() => setNotification(null)}
+            severity={notification.type}
+            sx={{ width: '100%', minWidth: 300 }}
+          >
             {notification.message}
           </Alert>
         )}
