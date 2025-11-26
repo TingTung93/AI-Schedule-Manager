@@ -185,31 +185,31 @@
                           "workerIndex": 0,
                           "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 9025,
+                          "duration": 8292,
                           "error": {
                             "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee created successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee created successfully/i)\u001b[22m\n",
-                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee created successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee created successfully/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:195:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:41:21",
+                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee created successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee created successfully/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:229:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:41:21",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 65,
-                              "line": 195
+                              "line": 229
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:195\n\n  193 |\n  194 |   async expectSuccessMessage(message: string): Promise<void> {\n> 195 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  196 |   }\n  197 |\n  198 |   async expectErrorMessage(message: string): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:229\n\n  227 |\n  228 |   async expectSuccessMessage(message: string): Promise<void> {\n> 229 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  230 |   }\n  231 |\n  232 |   async expectErrorMessage(message: string): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 65,
-                                "line": 195
+                                "line": 229
                               },
-                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee created successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee created successfully/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:195\n\n  193 |\n  194 |   async expectSuccessMessage(message: string): Promise<void> {\n> 195 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  196 |   }\n  197 |\n  198 |   async expectErrorMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:195:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:41:21"
+                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee created successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee created successfully/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:229\n\n  227 |\n  228 |   async expectSuccessMessage(message: string): Promise<void> {\n> 229 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  230 |   }\n  231 |\n  232 |   async expectErrorMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:229:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:41:21"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:53:50.279Z",
+                          "startTime": "2025-11-26T19:19:55.472Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -231,7 +231,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 65,
-                            "line": 195
+                            "line": 229
                           }
                         }
                       ],
@@ -259,7 +259,7 @@
                           "workerIndex": 1,
                           "parallelIndex": 1,
                           "status": "timedOut",
-                          "duration": 30102,
+                          "duration": 30072,
                           "error": {
                             "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                             "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -274,13 +274,13 @@
                                 "column": 43,
                                 "line": 101
                               },
-                              "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/role/i)\u001b[22m\n\u001b[2m    - locator resolved to <div tabindex=\"0\" role=\"combobox\" aria-expanded=\"false\" aria-haspopup=\"listbox\" aria-labelledby=\"role-filter-label\" class=\"MuiSelect-select MuiSelect-outlined MuiSelect-multiple MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css-16qqw7w\">…</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <input id=\":r12:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <input id=\":r12:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-8azq84\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  12 × retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <input id=\":r12:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <input id=\":r12:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-8azq84\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-8azq84\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <input id=\":r12:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\n\n   at helpers/employee-helpers.ts:101\n\n   99 |     }\n  100 |     if (data.role) {\n> 101 |       await this.page.getByLabel(/role/i).click();\n      |                                           ^\n  102 |       await this.page.getByRole('option', { name: new RegExp(data.role, 'i') }).click();\n  103 |     }\n  104 |     if (data.department) {\n    at EmployeeTestHelpers.fillEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:101:43)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:53:7"
+                              "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/role/i)\u001b[22m\n\u001b[2m    - locator resolved to <div tabindex=\"0\" role=\"combobox\" aria-expanded=\"false\" aria-haspopup=\"listbox\" aria-labelledby=\"role-filter-label\" class=\"MuiSelect-select MuiSelect-outlined MuiSelect-multiple MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css-16qqw7w\">…</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <input id=\":r1c:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <input id=\":r1c:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-8azq84\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  12 × retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <input id=\":r1c:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <input id=\":r1c:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-8azq84\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-8azq84\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <input id=\":r1c:\" type=\"text\" value=\"+1234567891\" aria-invalid=\"false\" class=\"MuiInputBase-input MuiOutlinedInput-input css-1pk1fka\"/> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-8azq84\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-1egf66k\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\n\n   at helpers/employee-helpers.ts:101\n\n   99 |     }\n  100 |     if (data.role) {\n> 101 |       await this.page.getByLabel(/role/i).click();\n      |                                           ^\n  102 |       await this.page.getByRole('option', { name: new RegExp(data.role, 'i') }).click();\n  103 |     }\n  104 |     if (data.department) {\n    at EmployeeTestHelpers.fillEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:101:43)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:53:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:53:50.281Z",
+                          "startTime": "2025-11-26T19:19:55.486Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -325,31 +325,31 @@
                           "workerIndex": 2,
                           "parallelIndex": 2,
                           "status": "failed",
-                          "duration": 8831,
+                          "duration": 8198,
                           "error": {
                             "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/first name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/first name is required/i)\u001b[22m\n",
-                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/first name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/first name is required/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:79:21",
+                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/first name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/first name is required/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:225:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:79:21",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 65,
-                              "line": 191
+                              "line": 225
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:191\n\n  189 |\n  190 |   async expectValidationError(message: string): Promise<void> {\n> 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  192 |   }\n  193 |\n  194 |   async expectSuccessMessage(message: string): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:225\n\n  223 |\n  224 |   async expectValidationError(message: string): Promise<void> {\n> 225 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  226 |   }\n  227 |\n  228 |   async expectSuccessMessage(message: string): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 65,
-                                "line": 191
+                                "line": 225
                               },
-                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/first name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/first name is required/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:191\n\n  189 |\n  190 |   async expectValidationError(message: string): Promise<void> {\n> 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  192 |   }\n  193 |\n  194 |   async expectSuccessMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:79:21"
+                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/first name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/first name is required/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:225\n\n  223 |\n  224 |   async expectValidationError(message: string): Promise<void> {\n> 225 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  226 |   }\n  227 |\n  228 |   async expectSuccessMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:225:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:79:21"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:53:50.281Z",
+                          "startTime": "2025-11-26T19:19:55.472Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -371,7 +371,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 65,
-                            "line": 191
+                            "line": 225
                           }
                         }
                       ],
@@ -399,31 +399,31 @@
                           "workerIndex": 3,
                           "parallelIndex": 2,
                           "status": "failed",
-                          "duration": 8237,
+                          "duration": 7919,
                           "error": {
                             "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/last name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/last name is required/i)\u001b[22m\n",
-                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/last name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/last name is required/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:91:21",
+                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/last name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/last name is required/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:225:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:91:21",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 65,
-                              "line": 191
+                              "line": 225
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:191\n\n  189 |\n  190 |   async expectValidationError(message: string): Promise<void> {\n> 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  192 |   }\n  193 |\n  194 |   async expectSuccessMessage(message: string): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:225\n\n  223 |\n  224 |   async expectValidationError(message: string): Promise<void> {\n> 225 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  226 |   }\n  227 |\n  228 |   async expectSuccessMessage(message: string): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 65,
-                                "line": 191
+                                "line": 225
                               },
-                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/last name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/last name is required/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:191\n\n  189 |\n  190 |   async expectValidationError(message: string): Promise<void> {\n> 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  192 |   }\n  193 |\n  194 |   async expectSuccessMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:91:21"
+                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/last name is required/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/last name is required/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:225\n\n  223 |\n  224 |   async expectValidationError(message: string): Promise<void> {\n> 225 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  226 |   }\n  227 |\n  228 |   async expectSuccessMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:225:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:91:21"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:53:59.804Z",
+                          "startTime": "2025-11-26T19:20:04.094Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -445,7 +445,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 65,
-                            "line": 191
+                            "line": 225
                           }
                         }
                       ],
@@ -473,31 +473,31 @@
                           "workerIndex": 4,
                           "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 8380,
+                          "duration": 7838,
                           "error": {
                             "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/valid email/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/valid email/i)\u001b[22m\n",
-                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/valid email/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/valid email/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:103:21",
+                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/valid email/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/valid email/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:225:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:103:21",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 65,
-                              "line": 191
+                              "line": 225
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:191\n\n  189 |\n  190 |   async expectValidationError(message: string): Promise<void> {\n> 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  192 |   }\n  193 |\n  194 |   async expectSuccessMessage(message: string): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:225\n\n  223 |\n  224 |   async expectValidationError(message: string): Promise<void> {\n> 225 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  226 |   }\n  227 |\n  228 |   async expectSuccessMessage(message: string): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 65,
-                                "line": 191
+                                "line": 225
                               },
-                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/valid email/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/valid email/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:191\n\n  189 |\n  190 |   async expectValidationError(message: string): Promise<void> {\n> 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  192 |   }\n  193 |\n  194 |   async expectSuccessMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:103:21"
+                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/valid email/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/valid email/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:225\n\n  223 |\n  224 |   async expectValidationError(message: string): Promise<void> {\n> 225 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  226 |   }\n  227 |\n  228 |   async expectSuccessMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:225:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:103:21"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:53:59.951Z",
+                          "startTime": "2025-11-26T19:20:04.195Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -519,7 +519,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 65,
-                            "line": 191
+                            "line": 225
                           }
                         }
                       ],
@@ -547,31 +547,31 @@
                           "workerIndex": 5,
                           "parallelIndex": 2,
                           "status": "failed",
-                          "duration": 13403,
+                          "duration": 12958,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:119:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:119:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:119:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:119:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:08.700Z",
+                          "startTime": "2025-11-26T19:20:12.429Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -593,7 +593,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -621,31 +621,31 @@
                           "workerIndex": 6,
                           "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 13243,
+                          "duration": 12860,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:142:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:142:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:142:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:142:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:08.991Z",
+                          "startTime": "2025-11-26T19:20:12.447Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -667,7 +667,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -693,33 +693,33 @@
                       "results": [
                         {
                           "workerIndex": 7,
-                          "parallelIndex": 1,
+                          "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 13105,
+                          "duration": 13168,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:155:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:155:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:155:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:155:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:21.021Z",
+                          "startTime": "2025-11-26T19:20:25.747Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -741,7 +741,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -769,12 +769,12 @@
                           "workerIndex": 8,
                           "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 3441,
+                          "duration": 3290,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:22.761Z",
+                          "startTime": "2025-11-26T19:20:25.818Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -809,14 +809,14 @@
                       "results": [
                         {
                           "workerIndex": 9,
-                          "parallelIndex": 0,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 2752,
+                          "duration": 2601,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:22.898Z",
+                          "startTime": "2025-11-26T19:20:26.069Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -843,9 +843,9 @@
                       "results": [
                         {
                           "workerIndex": 9,
-                          "parallelIndex": 0,
+                          "parallelIndex": 1,
                           "status": "failed",
-                          "duration": 8164,
+                          "duration": 7657,
                           "error": {
                             "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('tr:has-text(\"john.doe@test.com\")')\nExpected string: \u001b[32m\"John\"\u001b[39m\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('tr:has-text(\"john.doe@test.com\")')\u001b[22m\n",
                             "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nLocator: locator('tr:has-text(\"john.doe@test.com\")')\nExpected string: \u001b[32m\"John\"\u001b[39m\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('tr:has-text(\"john.doe@test.com\")')\u001b[22m\n\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:204:25",
@@ -869,7 +869,7 @@
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:25.736Z",
+                          "startTime": "2025-11-26T19:20:28.730Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -919,12 +919,12 @@
                           "workerIndex": 8,
                           "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 2915,
+                          "duration": 2636,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:26.285Z",
+                          "startTime": "2025-11-26T19:20:29.163Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -953,12 +953,12 @@
                           "workerIndex": 8,
                           "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 2840,
+                          "duration": 2697,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:29.206Z",
+                          "startTime": "2025-11-26T19:20:31.803Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -987,12 +987,12 @@
                           "workerIndex": 8,
                           "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 2845,
+                          "duration": 2614,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:32.053Z",
+                          "startTime": "2025-11-26T19:20:34.503Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1019,9 +1019,9 @@
                       "results": [
                         {
                           "workerIndex": 10,
-                          "parallelIndex": 0,
+                          "parallelIndex": 1,
                           "status": "timedOut",
-                          "duration": 31320,
+                          "duration": 30842,
                           "error": {
                             "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                             "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -1033,16 +1033,16 @@
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                                "column": 49,
-                                "line": 173
+                                "column": 65,
+                                "line": 188
                               },
-                              "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/filter.*role/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:173\n\n  171 |\n  172 |   async filterByRole(role: string): Promise<void> {\n> 173 |     await this.page.getByLabel(/filter.*role/i).click();\n      |                                                 ^\n  174 |     await this.page.getByRole('option', { name: new RegExp(role, 'i') }).click();\n  175 |   }\n  176 |\n    at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:173:49)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:234:21"
+                              "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Admin', { exact: true })\u001b[22m\n\n\n   at helpers/employee-helpers.ts:188\n\n  186 |\n  187 |     // Click the menu item by its text content\n> 188 |     await this.page.getByText(capitalizedRole, { exact: true }).click();\n      |                                                                 ^\n  189 |\n  190 |     // Close the dropdown by pressing Escape\n  191 |     await this.page.keyboard.press('Escape');\n    at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:188:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:234:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:34.508Z",
+                          "startTime": "2025-11-26T19:20:36.757Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1084,10 +1084,10 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 11,
-                          "parallelIndex": 1,
+                          "workerIndex": 8,
+                          "parallelIndex": 2,
                           "status": "timedOut",
-                          "duration": 30089,
+                          "duration": 30770,
                           "error": {
                             "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                             "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -1099,16 +1099,16 @@
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                                "column": 49,
-                                "line": 173
+                                "column": 65,
+                                "line": 188
                               },
-                              "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel(/filter.*role/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:173\n\n  171 |\n  172 |   async filterByRole(role: string): Promise<void> {\n> 173 |     await this.page.getByLabel(/filter.*role/i).click();\n      |                                                 ^\n  174 |     await this.page.getByRole('option', { name: new RegExp(role, 'i') }).click();\n  175 |   }\n  176 |\n    at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:173:49)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:243:21"
+                              "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Admin', { exact: true })\u001b[22m\n\n\n   at helpers/employee-helpers.ts:188\n\n  186 |\n  187 |     // Click the menu item by its text content\n> 188 |     await this.page.getByText(capitalizedRole, { exact: true }).click();\n      |                                                                 ^\n  189 |\n  190 |     // Close the dropdown by pressing Escape\n  191 |     await this.page.keyboard.press('Escape');\n    at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:188:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:243:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:34.791Z",
+                          "startTime": "2025-11-26T19:20:37.121Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1158,34 +1158,34 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 2,
+                          "workerIndex": 11,
+                          "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 13343,
+                          "duration": 12654,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:269:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:269:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:269:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:269:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:34.904Z",
+                          "startTime": "2025-11-26T19:20:39.354Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1207,7 +1207,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1233,33 +1233,33 @@
                       "results": [
                         {
                           "workerIndex": 12,
-                          "parallelIndex": 2,
+                          "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 12971,
+                          "duration": 12672,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:292:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:292:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:292:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:292:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:54:48.825Z",
+                          "startTime": "2025-11-26T19:20:52.432Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1281,7 +1281,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1307,30 +1307,33 @@
                       "results": [
                         {
                           "workerIndex": 13,
-                          "parallelIndex": 2,
-                          "status": "timedOut",
-                          "duration": 31280,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 7787,
                           "error": {
-                            "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                            "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                            "message": "TimeoutError: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[class*=\"MuiCard-root\"]').filter({ hasText: 'update.phone@test.com' }).locator('button[class*=\"MuiIconButton\"]').first() to be visible\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[class*=\"MuiCard-root\"]').filter({ hasText: 'update.phone@test.com' }).locator('button[class*=\"MuiIconButton\"]').first() to be visible\u001b[22m\n\n    at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:142:22)\n    at EmployeeTestHelpers.editEmployee (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:152:16)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:319:21",
+                            "location": {
+                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                              "column": 22,
+                              "line": 142
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:142\n\n  140 |     const card = this.page.locator('[class*=\"MuiCard-root\"]').filter({ hasText: email });\n  141 |     const menuButton = card.locator('button[class*=\"MuiIconButton\"]').first();\n> 142 |     await menuButton.waitFor({ state: 'visible', timeout: 5000 });\n      |                      ^\n  143 |     await menuButton.click();\n  144 |     await this.page.waitForSelector('[role=\"menu\"]', { state: 'visible', timeout: 5000 });\n  145 |   }"
                           },
                           "errors": [
                             {
-                              "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                            },
-                            {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                                "column": 67,
-                                "line": 139
+                                "column": 22,
+                                "line": 142
                               },
-                              "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('tr:has-text(\"update.phone@test.com\")').getByRole('button', { name: /more|actions|menu/i })\u001b[22m\n\n\n   at helpers/employee-helpers.ts:139\n\n  137 |   async openEmployeeActionsMenu(email: string): Promise<void> {\n  138 |     const row = this.page.locator(`tr:has-text(\"${email}\")`);\n> 139 |     await row.getByRole('button', { name: /more|actions|menu/i }).click();\n      |                                                                   ^\n  140 |     await this.page.waitForSelector('[role=\"menu\"]', { state: 'visible' });\n  141 |   }\n  142 |\n    at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:139:67)\n    at EmployeeTestHelpers.editEmployee (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:148:16)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:319:21"
+                              "message": "TimeoutError: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[class*=\"MuiCard-root\"]').filter({ hasText: 'update.phone@test.com' }).locator('button[class*=\"MuiIconButton\"]').first() to be visible\u001b[22m\n\n\n   at helpers/employee-helpers.ts:142\n\n  140 |     const card = this.page.locator('[class*=\"MuiCard-root\"]').filter({ hasText: email });\n  141 |     const menuButton = card.locator('button[class*=\"MuiIconButton\"]').first();\n> 142 |     await menuButton.waitFor({ state: 'visible', timeout: 5000 });\n      |                      ^\n  143 |     await menuButton.click();\n  144 |     await this.page.waitForSelector('[role=\"menu\"]', { state: 'visible', timeout: 5000 });\n  145 |   }\n    at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:142:22)\n    at EmployeeTestHelpers.editEmployee (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:152:16)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:319:21"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:02.456Z",
+                          "startTime": "2025-11-26T19:21:05.539Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1348,7 +1351,12 @@
                               "contentType": "text/markdown",
                               "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-5e95e-pdate-employee-phone-number-chromium/error-context.md"
                             }
-                          ]
+                          ],
+                          "errorLocation": {
+                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                            "column": 22,
+                            "line": 142
+                          }
                         }
                       ],
                       "status": "unexpected"
@@ -1375,31 +1383,31 @@
                           "workerIndex": 14,
                           "parallelIndex": 1,
                           "status": "failed",
-                          "duration": 13117,
+                          "duration": 12961,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:337:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:337:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:337:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:337:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:05.622Z",
+                          "startTime": "2025-11-26T19:21:08.057Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1421,7 +1429,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1447,33 +1455,33 @@
                       "results": [
                         {
                           "workerIndex": 15,
-                          "parallelIndex": 0,
+                          "parallelIndex": 2,
                           "status": "failed",
-                          "duration": 13067,
+                          "duration": 12883,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:358:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:358:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:358:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:358:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:06.492Z",
+                          "startTime": "2025-11-26T19:21:08.295Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1495,7 +1503,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1521,33 +1529,33 @@
                       "results": [
                         {
                           "workerIndex": 16,
-                          "parallelIndex": 1,
+                          "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 13011,
+                          "duration": 12552,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:379:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:379:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:379:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:379:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:19.388Z",
+                          "startTime": "2025-11-26T19:21:13.749Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1569,7 +1577,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1595,33 +1603,33 @@
                       "results": [
                         {
                           "workerIndex": 17,
-                          "parallelIndex": 0,
+                          "parallelIndex": 1,
                           "status": "failed",
-                          "duration": 13118,
+                          "duration": 12982,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:408:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:408:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:408:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:408:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:20.220Z",
+                          "startTime": "2025-11-26T19:21:21.444Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1643,7 +1651,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1677,33 +1685,33 @@
                       "results": [
                         {
                           "workerIndex": 18,
-                          "parallelIndex": 1,
+                          "parallelIndex": 2,
                           "status": "failed",
-                          "duration": 13165,
+                          "duration": 12833,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    6 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    6 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:438:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:438:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    6 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:438:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:438:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:33.077Z",
+                          "startTime": "2025-11-26T19:21:21.590Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1725,7 +1733,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1753,31 +1761,31 @@
                           "workerIndex": 19,
                           "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 13310,
+                          "duration": 12685,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:459:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:459:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:459:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:459:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:34.037Z",
+                          "startTime": "2025-11-26T19:21:26.720Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1799,7 +1807,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1827,31 +1835,31 @@
                           "workerIndex": 20,
                           "parallelIndex": 2,
                           "status": "failed",
-                          "duration": 13417,
+                          "duration": 12946,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:480:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:480:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    5 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    20 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:480:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:480:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:34.407Z",
+                          "startTime": "2025-11-26T19:21:34.834Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1873,7 +1881,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1909,31 +1917,31 @@
                           "workerIndex": 21,
                           "parallelIndex": 1,
                           "status": "failed",
-                          "duration": 13169,
+                          "duration": 12909,
                           "error": {
-                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    6 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n",
-                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    6 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:505:7",
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:505:7",
                             "location": {
                               "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                               "column": 24,
-                              "line": 123
+                              "line": 124
                             },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {"
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                                 "column": 24,
-                                "line": 123
+                                "line": 124
                               },
-                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden\u001b[22m\n\u001b[2m    6 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\u001b[2m    19 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:123\n\n  121 |     await submitButton.click();\n  122 |     // Wait for the form to close by checking if submit button is gone\n> 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  124 |   }\n  125 |\n  126 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:505:7"
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:124\n\n  122 |     await submitButton.click();\n  123 |     // Wait for the form to close by checking if submit button is gone\n> 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                        ^\n  125 |   }\n  126 |\n  127 |   async cancelEmployeeForm(): Promise<void> {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:505:7"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:46.903Z",
+                          "startTime": "2025-11-26T19:21:34.839Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -1955,7 +1963,7 @@
                           "errorLocation": {
                             "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
                             "column": 24,
-                            "line": 123
+                            "line": 124
                           }
                         }
                       ],
@@ -1983,12 +1991,12 @@
                           "workerIndex": 22,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 2632,
+                          "duration": 2196,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:48.049Z",
+                          "startTime": "2025-11-26T19:21:39.825Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2014,31 +2022,34 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 23,
-                          "parallelIndex": 2,
-                          "status": "timedOut",
-                          "duration": 31227,
+                          "workerIndex": 22,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 7179,
                           "error": {
-                            "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                            "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                            "message": "TimeoutError: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[class*=\"MuiCard-root\"]').filter({ hasText: 'admin@example.com' }).locator('button[class*=\"MuiIconButton\"]').first() to be visible\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[class*=\"MuiCard-root\"]').filter({ hasText: 'admin@example.com' }).locator('button[class*=\"MuiIconButton\"]').first() to be visible\u001b[22m\n\n    at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:142:22)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:523:21",
+                            "location": {
+                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                              "column": 22,
+                              "line": 142
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:142\n\n  140 |     const card = this.page.locator('[class*=\"MuiCard-root\"]').filter({ hasText: email });\n  141 |     const menuButton = card.locator('button[class*=\"MuiIconButton\"]').first();\n> 142 |     await menuButton.waitFor({ state: 'visible', timeout: 5000 });\n      |                      ^\n  143 |     await menuButton.click();\n  144 |     await this.page.waitForSelector('[role=\"menu\"]', { state: 'visible', timeout: 5000 });\n  145 |   }"
                           },
                           "errors": [
                             {
-                              "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                            },
-                            {
                               "location": {
                                 "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                                "column": 67,
-                                "line": 139
+                                "column": 22,
+                                "line": 142
                               },
-                              "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('tr:has-text(\"admin@example.com\")').getByRole('button', { name: /more|actions|menu/i })\u001b[22m\n\n\n   at helpers/employee-helpers.ts:139\n\n  137 |   async openEmployeeActionsMenu(email: string): Promise<void> {\n  138 |     const row = this.page.locator(`tr:has-text(\"${email}\")`);\n> 139 |     await row.getByRole('button', { name: /more|actions|menu/i }).click();\n      |                                                                   ^\n  140 |     await this.page.waitForSelector('[role=\"menu\"]', { state: 'visible' });\n  141 |   }\n  142 |\n    at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:139:67)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:523:21"
+                              "message": "TimeoutError: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[class*=\"MuiCard-root\"]').filter({ hasText: 'admin@example.com' }).locator('button[class*=\"MuiIconButton\"]').first() to be visible\u001b[22m\n\n\n   at helpers/employee-helpers.ts:142\n\n  140 |     const card = this.page.locator('[class*=\"MuiCard-root\"]').filter({ hasText: email });\n  141 |     const menuButton = card.locator('button[class*=\"MuiIconButton\"]').first();\n> 142 |     await menuButton.waitFor({ state: 'visible', timeout: 5000 });\n      |                      ^\n  143 |     await menuButton.click();\n  144 |     await this.page.waitForSelector('[role=\"menu\"]', { state: 'visible', timeout: 5000 });\n  145 |   }\n    at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:142:22)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:523:21"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T18:55:48.492Z",
+                          "startTime": "2025-11-26T19:21:42.077Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -2056,7 +2067,12 @@
                               "contentType": "text/markdown",
                               "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-de92e-be-able-to-delete-employees-chromium/error-context.md"
                             }
-                          ]
+                          ],
+                          "errorLocation": {
+                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                            "column": 22,
+                            "line": 142
+                          }
                         }
                       ],
                       "status": "unexpected"
@@ -2076,8 +2092,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-26T18:53:49.747Z",
-    "duration": 150154.797,
+    "startTime": "2025-11-26T19:19:55.015Z",
+    "duration": 114333.136,
     "expected": 6,
     "skipped": 0,
     "unexpected": 23,

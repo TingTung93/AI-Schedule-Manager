@@ -117,7 +117,8 @@ export class EmployeeTestHelpers {
   }
 
   async submitEmployeeForm(): Promise<void> {
-    const submitButton = this.page.getByRole('button', { name: /save|create|submit|add employee/i }).last();
+    // Button text is "Add Employee" or "Update Employee" - match the actual text
+    const submitButton = this.page.getByRole('button', { name: /(add|update) employee/i });
     await submitButton.click();
     // Wait for the form to close by checking if submit button is gone
     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });

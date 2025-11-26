@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="29" failures="23" skipped="0" errors="0" time="150.154797">
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T18:53:49.774Z" hostname="chromium" tests="29" failures="23" skipped="0" time="385.519" errors="0">
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields" classname="employee-management/01-employee-crud.spec.ts" time="9.025">
+<testsuites id="" name="" tests="29" failures="23" skipped="0" errors="0" time="114.333136">
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T19:19:55.113Z" hostname="chromium" tests="29" failures="23" skipped="0" time="329.651" errors="0">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields" classname="employee-management/01-employee-crud.spec.ts" time="8.292">
 <failure message="01-employee-crud.spec.ts:29:9 01.01 Should create employee with all required fields" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:29:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields 
 
@@ -14,16 +14,16 @@
       - waiting for getByText(/employee created successfully/i)
 
 
-       at helpers/employee-helpers.ts:195
+       at helpers/employee-helpers.ts:229
 
-      193 |
-      194 |   async expectSuccessMessage(message: string): Promise<void> {
-    > 195 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
+      227 |
+      228 |   async expectSuccessMessage(message: string): Promise<void> {
+    > 229 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
           |                                                                 ^
-      196 |   }
-      197 |
-      198 |   async expectErrorMessage(message: string): Promise<void> {
-        at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:195:65)
+      230 |   }
+      231 |
+      232 |   async expectErrorMessage(message: string): Promise<void> {
+        at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:229:65)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:41:21
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.02 Should create employee with all extended fields" classname="employee-management/01-employee-crud.spec.ts" time="30.102">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.02 Should create employee with all extended fields" classname="employee-management/01-employee-crud.spec.ts" time="30.072">
 <failure message="01-employee-crud.spec.ts:46:9 01.02 Should create employee with all extended fields" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:46:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.02 Should create employee with all extended fields 
 
@@ -62,14 +62,14 @@
           - element is visible, enabled and stable
           - scrolling into view if needed
           - done scrolling
-          - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+          - <input id=":r1c:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
         - retrying click action
         - waiting 20ms
         - waiting for element to be visible, enabled and stable
         - element is visible, enabled and stable
         - scrolling into view if needed
         - done scrolling
-        - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+        - <input id=":r1c:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
       2 × retrying click action
           - waiting 100ms
           - waiting for element to be visible, enabled and stable
@@ -83,14 +83,14 @@
            - element is visible, enabled and stable
            - scrolling into view if needed
            - done scrolling
-           - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+           - <input id=":r1c:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
          - retrying click action
            - waiting 500ms
            - waiting for element to be visible, enabled and stable
            - element is visible, enabled and stable
            - scrolling into view if needed
            - done scrolling
-           - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+           - <input id=":r1c:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
          - retrying click action
            - waiting 500ms
            - waiting for element to be visible, enabled and stable
@@ -111,7 +111,14 @@
           - element is visible, enabled and stable
           - scrolling into view if needed
           - done scrolling
-          - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+          - <input id=":r1c:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-8azq84">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
       - retrying click action
         - waiting 500ms
 
@@ -149,7 +156,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.03 Should validate required first name" classname="employee-management/01-employee-crud.spec.ts" time="8.831">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.03 Should validate required first name" classname="employee-management/01-employee-crud.spec.ts" time="8.198">
 <failure message="01-employee-crud.spec.ts:70:9 01.03 Should validate required first name" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:70:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.03 Should validate required first name 
 
@@ -163,16 +170,16 @@
       - waiting for getByText(/first name is required/i)
 
 
-       at helpers/employee-helpers.ts:191
+       at helpers/employee-helpers.ts:225
 
-      189 |
-      190 |   async expectValidationError(message: string): Promise<void> {
-    > 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
+      223 |
+      224 |   async expectValidationError(message: string): Promise<void> {
+    > 225 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
           |                                                                 ^
-      192 |   }
-      193 |
-      194 |   async expectSuccessMessage(message: string): Promise<void> {
-        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)
+      226 |   }
+      227 |
+      228 |   async expectSuccessMessage(message: string): Promise<void> {
+        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:225:65)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:79:21
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -196,7 +203,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.04 Should validate required last name" classname="employee-management/01-employee-crud.spec.ts" time="8.237">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.04 Should validate required last name" classname="employee-management/01-employee-crud.spec.ts" time="7.919">
 <failure message="01-employee-crud.spec.ts:82:9 01.04 Should validate required last name" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:82:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.04 Should validate required last name 
 
@@ -210,16 +217,16 @@
       - waiting for getByText(/last name is required/i)
 
 
-       at helpers/employee-helpers.ts:191
+       at helpers/employee-helpers.ts:225
 
-      189 |
-      190 |   async expectValidationError(message: string): Promise<void> {
-    > 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
+      223 |
+      224 |   async expectValidationError(message: string): Promise<void> {
+    > 225 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
           |                                                                 ^
-      192 |   }
-      193 |
-      194 |   async expectSuccessMessage(message: string): Promise<void> {
-        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)
+      226 |   }
+      227 |
+      228 |   async expectSuccessMessage(message: string): Promise<void> {
+        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:225:65)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:91:21
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -243,7 +250,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.05 Should validate email format" classname="employee-management/01-employee-crud.spec.ts" time="8.38">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.05 Should validate email format" classname="employee-management/01-employee-crud.spec.ts" time="7.838">
 <failure message="01-employee-crud.spec.ts:94:9 01.05 Should validate email format" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:94:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.05 Should validate email format 
 
@@ -257,16 +264,16 @@
       - waiting for getByText(/valid email/i)
 
 
-       at helpers/employee-helpers.ts:191
+       at helpers/employee-helpers.ts:225
 
-      189 |
-      190 |   async expectValidationError(message: string): Promise<void> {
-    > 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
+      223 |
+      224 |   async expectValidationError(message: string): Promise<void> {
+    > 225 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
           |                                                                 ^
-      192 |   }
-      193 |
-      194 |   async expectSuccessMessage(message: string): Promise<void> {
-        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)
+      226 |   }
+      227 |
+      228 |   async expectSuccessMessage(message: string): Promise<void> {
+        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:225:65)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:103:21
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -290,26 +297,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.06 Should prevent duplicate email addresses" classname="employee-management/01-employee-crud.spec.ts" time="13.403">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.06 Should prevent duplicate email addresses" classname="employee-management/01-employee-crud.spec.ts" time="12.958">
 <failure message="01-employee-crud.spec.ts:106:9 01.06 Should prevent duplicate email addresses" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:106:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.06 Should prevent duplicate email addresses 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
         25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:119:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -333,26 +340,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.07 Should validate hourly rate range (0-1000)" classname="employee-management/01-employee-crud.spec.ts" time="13.243">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.07 Should validate hourly rate range (0-1000)" classname="employee-management/01-employee-crud.spec.ts" time="12.86">
 <failure message="01-employee-crud.spec.ts:134:9 01.07 Should validate hourly rate range (0-1000)" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:134:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.07 Should validate hourly rate range (0-1000) 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
         25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:142:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -376,26 +383,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.08 Should validate max hours per week (1-168)" classname="employee-management/01-employee-crud.spec.ts" time="13.105">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.08 Should validate max hours per week (1-168)" classname="employee-management/01-employee-crud.spec.ts" time="13.168">
 <failure message="01-employee-crud.spec.ts:147:9 01.08 Should validate max hours per week (1-168)" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:147:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.08 Should validate max hours per week (1-168) 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
         25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:155:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -419,11 +426,11 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.09 Should allow canceling employee creation" classname="employee-management/01-employee-crud.spec.ts" time="3.441">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.09 Should allow canceling employee creation" classname="employee-management/01-employee-crud.spec.ts" time="3.29">
 </testcase>
-<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table" classname="employee-management/01-employee-crud.spec.ts" time="2.752">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table" classname="employee-management/01-employee-crud.spec.ts" time="2.601">
 </testcase>
-<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.02 Should display employee details correctly" classname="employee-management/01-employee-crud.spec.ts" time="8.164">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.02 Should display employee details correctly" classname="employee-management/01-employee-crud.spec.ts" time="7.657">
 <failure message="01-employee-crud.spec.ts:189:9 02.02 Should display employee details correctly" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:189:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.02 Should display employee details correctly 
 
@@ -467,13 +474,13 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.03 Should search employees by name" classname="employee-management/01-employee-crud.spec.ts" time="2.915">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.03 Should search employees by name" classname="employee-management/01-employee-crud.spec.ts" time="2.636">
 </testcase>
-<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.04 Should search employees by email" classname="employee-management/01-employee-crud.spec.ts" time="2.84">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.04 Should search employees by email" classname="employee-management/01-employee-crud.spec.ts" time="2.697">
 </testcase>
-<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.05 Should perform case-insensitive search" classname="employee-management/01-employee-crud.spec.ts" time="2.845">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.05 Should perform case-insensitive search" classname="employee-management/01-employee-crud.spec.ts" time="2.614">
 </testcase>
-<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.06 Should filter employees by role" classname="employee-management/01-employee-crud.spec.ts" time="31.32">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.06 Should filter employees by role" classname="employee-management/01-employee-crud.spec.ts" time="30.842">
 <failure message="01-employee-crud.spec.ts:233:9 02.06 Should filter employees by role" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:233:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.06 Should filter employees by role 
 
@@ -481,20 +488,20 @@
 
     Error: locator.click: Test timeout of 30000ms exceeded.
     Call log:
-      - waiting for getByLabel(/filter.*role/i)
+      - waiting for getByText('Admin', { exact: true })
 
 
-       at helpers/employee-helpers.ts:173
+       at helpers/employee-helpers.ts:188
 
-      171 |
-      172 |   async filterByRole(role: string): Promise<void> {
-    > 173 |     await this.page.getByLabel(/filter.*role/i).click();
-          |                                                 ^
-      174 |     await this.page.getByRole('option', { name: new RegExp(role, 'i') }).click();
-      175 |   }
-      176 |
-        at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:173:49)
-        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:234:21
+      186 |
+      187 |     // Click the menu item by its text content
+    > 188 |     await this.page.getByText(capitalizedRole, { exact: true }).click();
+          |                                                                 ^
+      189 |
+      190 |     // Close the dropdown by pressing Escape
+      191 |     await this.page.keyboard.press('Escape');
+        at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:188:65)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:234:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../test-results/employee-management-01-emp-b30c0-ld-filter-employees-by-role-chromium/test-failed-1.png
@@ -517,7 +524,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.07 Should clear all filters" classname="employee-management/01-employee-crud.spec.ts" time="30.089">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.07 Should clear all filters" classname="employee-management/01-employee-crud.spec.ts" time="30.77">
 <failure message="01-employee-crud.spec.ts:241:9 02.07 Should clear all filters" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:241:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.07 Should clear all filters 
 
@@ -525,20 +532,20 @@
 
     Error: locator.click: Test timeout of 30000ms exceeded.
     Call log:
-      - waiting for getByLabel(/filter.*role/i)
+      - waiting for getByText('Admin', { exact: true })
 
 
-       at helpers/employee-helpers.ts:173
+       at helpers/employee-helpers.ts:188
 
-      171 |
-      172 |   async filterByRole(role: string): Promise<void> {
-    > 173 |     await this.page.getByLabel(/filter.*role/i).click();
-          |                                                 ^
-      174 |     await this.page.getByRole('option', { name: new RegExp(role, 'i') }).click();
-      175 |   }
-      176 |
-        at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:173:49)
-        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:243:21
+      186 |
+      187 |     // Click the menu item by its text content
+    > 188 |     await this.page.getByText(capitalizedRole, { exact: true }).click();
+          |                                                                 ^
+      189 |
+      190 |     // Close the dropdown by pressing Escape
+      191 |     await this.page.keyboard.press('Escape');
+        at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:188:65)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:243:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/test-failed-1.png
@@ -561,27 +568,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.01 Should update employee first name" classname="employee-management/01-employee-crud.spec.ts" time="13.343">
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.01 Should update employee first name" classname="employee-management/01-employee-crud.spec.ts" time="12.654">
 <failure message="01-employee-crud.spec.ts:259:9 03.01 Should update employee first name" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:259:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.01 Should update employee first name 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:269:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -605,27 +611,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.02 Should update employee last name" classname="employee-management/01-employee-crud.spec.ts" time="12.971">
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.02 Should update employee last name" classname="employee-management/01-employee-crud.spec.ts" time="12.672">
 <failure message="01-employee-crud.spec.ts:282:9 03.02 Should update employee last name" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:282:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.02 Should update employee last name 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:292:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -649,28 +654,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.03 Should update employee phone number" classname="employee-management/01-employee-crud.spec.ts" time="31.28">
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.03 Should update employee phone number" classname="employee-management/01-employee-crud.spec.ts" time="7.787">
 <failure message="01-employee-crud.spec.ts:305:9 03.03 Should update employee phone number" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:305:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.03 Should update employee phone number 
 
-    Test timeout of 30000ms exceeded.
-
-    Error: locator.click: Test timeout of 30000ms exceeded.
+    TimeoutError: locator.waitFor: Timeout 5000ms exceeded.
     Call log:
-      - waiting for locator('tr:has-text("update.phone@test.com")').getByRole('button', { name: /more|actions|menu/i })
+      - waiting for locator('[class*="MuiCard-root"]').filter({ hasText: 'update.phone@test.com' }).locator('button[class*="MuiIconButton"]').first() to be visible
 
 
-       at helpers/employee-helpers.ts:139
+       at helpers/employee-helpers.ts:142
 
-      137 |   async openEmployeeActionsMenu(email: string): Promise<void> {
-      138 |     const row = this.page.locator(`tr:has-text("${email}")`);
-    > 139 |     await row.getByRole('button', { name: /more|actions|menu/i }).click();
-          |                                                                   ^
-      140 |     await this.page.waitForSelector('[role="menu"]', { state: 'visible' });
-      141 |   }
-      142 |
-        at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:139:67)
-        at EmployeeTestHelpers.editEmployee (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:148:16)
+      140 |     const card = this.page.locator('[class*="MuiCard-root"]').filter({ hasText: email });
+      141 |     const menuButton = card.locator('button[class*="MuiIconButton"]').first();
+    > 142 |     await menuButton.waitFor({ state: 'visible', timeout: 5000 });
+          |                      ^
+      143 |     await menuButton.click();
+      144 |     await this.page.waitForSelector('[role="menu"]', { state: 'visible', timeout: 5000 });
+      145 |   }
+        at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:142:22)
+        at EmployeeTestHelpers.editEmployee (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:152:16)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:319:21
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -694,27 +697,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.04 Should update employee hourly rate" classname="employee-management/01-employee-crud.spec.ts" time="13.117">
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.04 Should update employee hourly rate" classname="employee-management/01-employee-crud.spec.ts" time="12.961">
 <failure message="01-employee-crud.spec.ts:326:9 03.04 Should update employee hourly rate" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:326:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.04 Should update employee hourly rate 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:337:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -738,27 +740,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.05 Should update employee max hours" classname="employee-management/01-employee-crud.spec.ts" time="13.067">
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.05 Should update employee max hours" classname="employee-management/01-employee-crud.spec.ts" time="12.883">
 <failure message="01-employee-crud.spec.ts:347:9 03.05 Should update employee max hours" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:347:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.05 Should update employee max hours 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:358:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -782,27 +783,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.06 Should prevent updating email to duplicate" classname="employee-management/01-employee-crud.spec.ts" time="13.011">
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.06 Should prevent updating email to duplicate" classname="employee-management/01-employee-crud.spec.ts" time="12.552">
 <failure message="01-employee-crud.spec.ts:368:9 03.06 Should prevent updating email to duplicate" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:368:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.06 Should prevent updating email to duplicate 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:379:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -826,27 +826,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.07 Should allow canceling update" classname="employee-management/01-employee-crud.spec.ts" time="13.118">
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.07 Should allow canceling update" classname="employee-management/01-employee-crud.spec.ts" time="12.982">
 <failure message="01-employee-crud.spec.ts:398:9 03.07 Should allow canceling update" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:398:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.07 Should allow canceling update 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:408:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -870,27 +869,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully" classname="employee-management/01-employee-crud.spec.ts" time="13.165">
+<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully" classname="employee-management/01-employee-crud.spec.ts" time="12.833">
 <failure message="01-employee-crud.spec.ts:428:9 04.01 Should delete employee successfully" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:428:9 › Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        6 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        19 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:438:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -914,27 +912,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.02 Should require confirmation before deletion" classname="employee-management/01-employee-crud.spec.ts" time="13.31">
+<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.02 Should require confirmation before deletion" classname="employee-management/01-employee-crud.spec.ts" time="12.685">
 <failure message="01-employee-crud.spec.ts:449:9 04.02 Should require confirmation before deletion" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:449:9 › Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.02 Should require confirmation before deletion 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:459:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -958,27 +955,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.03 Should allow canceling deletion" classname="employee-management/01-employee-crud.spec.ts" time="13.417">
+<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.03 Should allow canceling deletion" classname="employee-management/01-employee-crud.spec.ts" time="12.946">
 <failure message="01-employee-crud.spec.ts:470:9 04.03 Should allow canceling deletion" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:470:9 › Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.03 Should allow canceling deletion 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:480:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -1002,27 +998,26 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 05. Permission-Based CRUD › 05.01 Managers should be able to create employees" classname="employee-management/01-employee-crud.spec.ts" time="13.169">
+<testcase name="Employee CRUD Operations › 05. Permission-Based CRUD › 05.01 Managers should be able to create employees" classname="employee-management/01-employee-crud.spec.ts" time="12.909">
 <failure message="01-employee-crud.spec.ts:495:9 05.01 Managers should be able to create employees" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:495:9 › Employee CRUD Operations › 05. Permission-Based CRUD › 05.01 Managers should be able to create employees 
 
     TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
-        6 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
-        19 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       at helpers/employee-helpers.ts:123
+       at helpers/employee-helpers.ts:124
 
-      121 |     await submitButton.click();
-      122 |     // Wait for the form to close by checking if submit button is gone
-    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      122 |     await submitButton.click();
+      123 |     // Wait for the form to close by checking if submit button is gone
+    > 124 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
           |                        ^
-      124 |   }
-      125 |
-      126 |   async cancelEmployeeForm(): Promise<void> {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+      125 |   }
+      126 |
+      127 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:124:24)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:505:7
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
@@ -1046,29 +1041,27 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Employee CRUD Operations › 05. Permission-Based CRUD › 05.02 Regular employees should NOT be able to create employees" classname="employee-management/01-employee-crud.spec.ts" time="2.632">
+<testcase name="Employee CRUD Operations › 05. Permission-Based CRUD › 05.02 Regular employees should NOT be able to create employees" classname="employee-management/01-employee-crud.spec.ts" time="2.196">
 </testcase>
-<testcase name="Employee CRUD Operations › 05. Permission-Based CRUD › 05.03 Regular employees should NOT be able to delete employees" classname="employee-management/01-employee-crud.spec.ts" time="31.227">
+<testcase name="Employee CRUD Operations › 05. Permission-Based CRUD › 05.03 Regular employees should NOT be able to delete employees" classname="employee-management/01-employee-crud.spec.ts" time="7.179">
 <failure message="01-employee-crud.spec.ts:518:9 05.03 Regular employees should NOT be able to delete employees" type="FAILURE">
 <![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:518:9 › Employee CRUD Operations › 05. Permission-Based CRUD › 05.03 Regular employees should NOT be able to delete employees 
 
-    Test timeout of 30000ms exceeded.
-
-    Error: locator.click: Test timeout of 30000ms exceeded.
+    TimeoutError: locator.waitFor: Timeout 5000ms exceeded.
     Call log:
-      - waiting for locator('tr:has-text("admin@example.com")').getByRole('button', { name: /more|actions|menu/i })
+      - waiting for locator('[class*="MuiCard-root"]').filter({ hasText: 'admin@example.com' }).locator('button[class*="MuiIconButton"]').first() to be visible
 
 
-       at helpers/employee-helpers.ts:139
+       at helpers/employee-helpers.ts:142
 
-      137 |   async openEmployeeActionsMenu(email: string): Promise<void> {
-      138 |     const row = this.page.locator(`tr:has-text("${email}")`);
-    > 139 |     await row.getByRole('button', { name: /more|actions|menu/i }).click();
-          |                                                                   ^
-      140 |     await this.page.waitForSelector('[role="menu"]', { state: 'visible' });
-      141 |   }
-      142 |
-        at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:139:67)
+      140 |     const card = this.page.locator('[class*="MuiCard-root"]').filter({ hasText: email });
+      141 |     const menuButton = card.locator('button[class*="MuiIconButton"]').first();
+    > 142 |     await menuButton.waitFor({ state: 'visible', timeout: 5000 });
+          |                      ^
+      143 |     await menuButton.click();
+      144 |     await this.page.waitForSelector('[role="menu"]', { state: 'visible', timeout: 5000 });
+      145 |   }
+        at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:142:22)
         at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:523:21
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
