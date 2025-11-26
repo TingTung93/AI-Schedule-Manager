@@ -72,7 +72,7 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.fillEmployeeForm({
         firstName: '',
         lastName: 'Doe',
-        email: 'test@example.com'
+        email: `test.${Date.now()}@example.com`
       });
       await helpers.submitEmployeeForm();
 
@@ -84,7 +84,7 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.fillEmployeeForm({
         firstName: 'John',
         lastName: '',
-        email: 'test@example.com'
+        email: `test.${Date.now()}@example.com`
       });
       await helpers.submitEmployeeForm();
 
@@ -104,9 +104,10 @@ test.describe('Employee CRUD Operations', () => {
     });
 
     test('01.06 Should prevent duplicate email addresses', async () => {
+      const uniqueEmail = `duplicate.test.${Date.now()}@example.com`;
       const employee = {
         ...validEmployees[0],
-        email: 'duplicate.test@example.com'
+        email: uniqueEmail
       };
 
       // Create first employee
@@ -136,7 +137,7 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.fillEmployeeForm({
         firstName: 'John',
         lastName: 'Doe',
-        email: 'rate.test@example.com',
+        email: `rate.test.${Date.now()}@example.com`,
         hourlyRate: '1500' // Above max
       });
       await helpers.submitEmployeeForm();
@@ -149,7 +150,7 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.fillEmployeeForm({
         firstName: 'John',
         lastName: 'Doe',
-        email: 'hours.test@example.com',
+        email: `hours.test.${Date.now()}@example.com`,
         maxHours: '200' // Above max
       });
       await helpers.submitEmployeeForm();
@@ -158,15 +159,16 @@ test.describe('Employee CRUD Operations', () => {
     });
 
     test('01.09 Should allow canceling employee creation', async () => {
+      const cancelEmail = `cancel.test.${Date.now()}@example.com`;
       await helpers.openAddEmployeeDialog();
       await helpers.fillEmployeeForm({
         firstName: 'John',
         lastName: 'Doe',
-        email: 'cancel.test@example.com'
+        email: cancelEmail
       });
       await helpers.cancelEmployeeForm();
 
-      const exists = await helpers.findEmployeeInList('cancel.test@example.com');
+      const exists = await helpers.findEmployeeInList(cancelEmail);
       expect(exists).toBeFalsy();
     });
   });
