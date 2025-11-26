@@ -96,19 +96,25 @@ export class EmployeeTestHelpers {
     }
     if (data.phone) {
       await this.page.getByLabel(/phone/i).fill(data.phone);
+      // Blur the phone input to remove focus
+      await this.page.getByLabel(/phone/i).blur();
     }
     if (data.role) {
-      // Force click to avoid phone input intercepting the click
-      await this.page.getByLabel(/role/i).click({ force: true });
-      // Wait for menu to fully render
-      await this.page.waitForTimeout(300);
+      // Find the role dropdown within the dialog by locating it after the "Role" text
+      const dialog = this.page.getByRole('dialog', { name: /add new employee/i });
+      const roleCombobox = dialog.locator('text=Role').locator('..').getByRole('combobox').first();
+      await roleCombobox.click();
+      // Wait for MUI dropdown menu to be visible
+      await this.page.waitForSelector('[role="listbox"]', { state: 'visible' });
       await this.page.getByRole('option', { name: new RegExp(data.role, 'i') }).click();
     }
     if (data.department) {
-      // Force click to avoid overlapping elements
-      await this.page.getByLabel(/department/i).click({ force: true });
-      // Wait for menu to fully render
-      await this.page.waitForTimeout(300);
+      // Find the department dropdown within the dialog
+      const dialog = this.page.getByRole('dialog', { name: /add new employee/i });
+      const deptCombobox = dialog.getByRole('combobox', { name: /department/i });
+      await deptCombobox.click();
+      // Wait for MUI dropdown menu to be visible
+      await this.page.waitForSelector('[role="listbox"]', { state: 'visible' });
       await this.page.getByRole('option', { name: new RegExp(data.department, 'i') }).click();
     }
     if (data.hireDate) {
