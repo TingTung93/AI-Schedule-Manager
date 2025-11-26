@@ -31,23 +31,36 @@ export default defineConfig({
 
   projects: [
     {
+      name: 'API Tests',
+      testDir: './tests/e2e/api',
+      testMatch: /.*\.spec\.ts/,
+      use: {
+        baseURL: 'http://localhost:8000',
+      }
+    },
+    {
       name: 'chromium',
+      testDir: './e2e-tests',
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'firefox',
+      testDir: './e2e-tests',
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
+      testDir: './e2e-tests',
       use: { ...devices['Desktop Safari'] },
     },
     {
       name: 'Mobile Chrome',
+      testDir: './e2e-tests',
       use: { ...devices['Pixel 5'] },
     },
     {
       name: 'Mobile Safari',
+      testDir: './e2e-tests',
       use: { ...devices['iPhone 12'] },
     },
   ],
