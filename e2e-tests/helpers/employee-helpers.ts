@@ -98,11 +98,17 @@ export class EmployeeTestHelpers {
       await this.page.getByLabel(/phone/i).fill(data.phone);
     }
     if (data.role) {
-      await this.page.getByLabel(/role/i).click();
+      // Force click to avoid phone input intercepting the click
+      await this.page.getByLabel(/role/i).click({ force: true });
+      // Wait for menu to fully render
+      await this.page.waitForTimeout(300);
       await this.page.getByRole('option', { name: new RegExp(data.role, 'i') }).click();
     }
     if (data.department) {
-      await this.page.getByLabel(/department/i).click();
+      // Force click to avoid overlapping elements
+      await this.page.getByLabel(/department/i).click({ force: true });
+      // Wait for menu to fully render
+      await this.page.waitForTimeout(300);
       await this.page.getByRole('option', { name: new RegExp(data.department, 'i') }).click();
     }
     if (data.hireDate) {

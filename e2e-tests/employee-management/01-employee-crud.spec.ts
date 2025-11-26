@@ -142,7 +142,7 @@ test.describe('Employee CRUD Operations', () => {
       });
       await helpers.submitEmployeeForm(); // Dialog stays open for API error
 
-      await helpers.expectErrorMessage('email already exists');
+      await helpers.expectErrorMessage('already registered');
     });
 
     test('01.07 Should validate hourly rate range (0-1000)', async () => {
@@ -407,7 +407,7 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.fillEmployeeForm({ email: email1 });
       await helpers.submitEmployeeForm(); // Dialog stays open for API error
 
-      await helpers.expectErrorMessage('email already exists');
+      await helpers.expectErrorMessage('already registered');
     });
 
     test('03.07 Should allow canceling update', async () => {
