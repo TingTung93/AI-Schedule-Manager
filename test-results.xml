@@ -1,34 +1,45 @@
-<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="75.07493299999999">
-<testsuite name="debug-form.spec.ts" timestamp="2025-11-26T19:29:21.474Z" hostname="chromium" tests="1" failures="1" skipped="0" time="74.288" errors="0">
-<testcase name="Debug form submission behavior" classname="debug-form.spec.ts" time="74.288">
-<failure message="debug-form.spec.ts:3:5 Debug form submission behavior" type="FAILURE">
-<![CDATA[  [chromium] › debug-form.spec.ts:3:5 › Debug form submission behavior ─────────────────────────────
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="14.590631000000002">
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T21:10:20.320Z" hostname="chromium" tests="1" failures="1" skipped="0" time="13.843" errors="0">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields" classname="employee-management/01-employee-crud.spec.ts" time="13.843">
+<failure message="01-employee-crud.spec.ts:29:9 01.01 Should create employee with all required fields" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:29:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields 
 
-    Test timeout of 60000ms exceeded.
-
-    Error: page.goto: net::ERR_ABORTED; maybe frame was detached?
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
     Call log:
-      - navigating to "http://localhost:3000/login", waiting until "load"
+      - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
 
 
-       8 |   // Login
-       9 |   console.log('[TEST] Logging in...');
-    > 10 |   await page.goto('http://localhost:3000/login');
-         |              ^
-      11 |   await page.getByLabel(/email/i).fill('admin@example.com');
-      12 |   await page.getByLabel(/password/i).fill('Admin123!');
-      13 |   await page.getByRole('button', { name: /sign in/i }).click();
-        at /home/peter/AI-Schedule-Manager/e2e-tests/debug-form.spec.ts:10:14
+       at helpers/employee-helpers.ts:125
 
-    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/debug-form-Debug-form-submission-behavior-chromium/video.webm
+      123 |     // Only wait for dialog to close if expected (not for validation errors)
+      124 |     if (waitForClose) {
+    > 125 |       await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                          ^
+      126 |     } else {
+      127 |       // Small delay to allow form submission to process
+      128 |       await this.page.waitForTimeout(500);
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:125:26)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:39:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/error-context.md
 ]]>
 </failure>
 <system-out>
-<![CDATA[[TEST] Logging in...
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/test-failed-1.png]]
 
-[[ATTACHMENT|test-results/debug-form-Debug-form-submission-behavior-chromium/video.webm]]
+[[ATTACHMENT|test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>

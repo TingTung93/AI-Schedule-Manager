@@ -58,7 +58,7 @@
         "testMatch": [
           "/.*\\.spec\\.ts/"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
@@ -74,7 +74,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
@@ -90,7 +90,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
@@ -106,7 +106,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
@@ -122,7 +122,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
@@ -138,7 +138,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       }
     ],
     "shard": null,
@@ -150,78 +150,110 @@
   },
   "suites": [
     {
-      "title": "debug-form.spec.ts",
-      "file": "debug-form.spec.ts",
+      "title": "employee-management/01-employee-crud.spec.ts",
+      "file": "employee-management/01-employee-crud.spec.ts",
       "column": 0,
       "line": 0,
-      "specs": [
+      "specs": [],
+      "suites": [
         {
-          "title": "Debug form submission behavior",
-          "ok": false,
-          "tags": [],
-          "tests": [
+          "title": "Employee CRUD Operations",
+          "file": "employee-management/01-employee-crud.spec.ts",
+          "line": 15,
+          "column": 6,
+          "specs": [],
+          "suites": [
             {
-              "timeout": 60000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
+              "title": "01. Employee Creation (Create)",
+              "file": "employee-management/01-employee-crud.spec.ts",
+              "line": 22,
+              "column": 8,
+              "specs": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "timedOut",
-                  "duration": 74288,
-                  "error": {
-                    "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
-                    "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                  },
-                  "errors": [
+                  "title": "01.01 Should create employee with all required fields",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
                     {
-                      "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                    },
-                    {
-                      "location": {
-                        "file": "/home/peter/AI-Schedule-Manager/e2e-tests/debug-form.spec.ts",
-                        "column": 14,
-                        "line": 10
-                      },
-                      "message": "Error: page.goto: net::ERR_ABORTED; maybe frame was detached?\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/login\", waiting until \"load\"\u001b[22m\n\n\n   8 |   // Login\n   9 |   console.log('[TEST] Logging in...');\n> 10 |   await page.goto('http://localhost:3000/login');\n     |              ^\n  11 |   await page.getByLabel(/email/i).fill('admin@example.com');\n  12 |   await page.getByLabel(/password/i).fill('Admin123!');\n  13 |   await page.getByRole('button', { name: /sign in/i }).click();\n    at /home/peter/AI-Schedule-Manager/e2e-tests/debug-form.spec.ts:10:14"
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 13843,
+                          "error": {
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:125:26)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:39:7",
+                            "location": {
+                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                              "column": 26,
+                              "line": 125
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:125\n\n  123 |     // Only wait for dialog to close if expected (not for validation errors)\n  124 |     if (waitForClose) {\n> 125 |       await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                          ^\n  126 |     } else {\n  127 |       // Small delay to allow form submission to process\n  128 |       await this.page.waitForTimeout(500);"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                                "column": 26,
+                                "line": 125
+                              },
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /(add|update) employee/i }) to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi\">…</button>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:125\n\n  123 |     // Only wait for dialog to close if expected (not for validation errors)\n  124 |     if (waitForClose) {\n> 125 |       await submitButton.waitFor({ state: 'hidden', timeout: 10000 });\n      |                          ^\n  126 |     } else {\n  127 |       // Small delay to allow form submission to process\n  128 |       await this.page.waitForTimeout(500);\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:125:26)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:39:7"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-26T21:10:20.864Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                            "column": 26,
+                            "line": 125
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
                     }
                   ],
-                  "stdout": [
-                    {
-                      "text": "[TEST] Logging in...\n"
-                    }
-                  ],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2025-11-26T19:29:21.993Z",
-                  "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "video",
-                      "contentType": "video/webm",
-                      "path": "/home/peter/AI-Schedule-Manager/test-results/debug-form-Debug-form-submission-behavior-chromium/video.webm"
-                    }
-                  ]
+                  "id": "09b1f89aab42121cbbe4-c2f8974017d116b33724",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 29,
+                  "column": 9
                 }
-              ],
-              "status": "unexpected"
+              ]
             }
-          ],
-          "id": "84fb9b6ebcba9da83339-4ca7c3426290aee3524c",
-          "file": "debug-form.spec.ts",
-          "line": 3,
-          "column": 5
+          ]
         }
       ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-26T19:29:21.353Z",
-    "duration": 75074.93299999999,
+    "startTime": "2025-11-26T21:10:20.293Z",
+    "duration": 14590.631000000001,
     "expected": 0,
     "skipped": 0,
     "unexpected": 1,

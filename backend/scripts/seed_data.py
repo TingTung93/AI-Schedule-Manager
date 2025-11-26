@@ -22,6 +22,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.auth.models import User  # Import User first so SQLAlchemy can resolve relationships
 from src.models import Base, Department, Employee
 from src.models.employee import Employee as EmployeeModel
 
@@ -386,9 +387,29 @@ async def seed_users_and_employees(session: AsyncSession):
 
             print(f"  ✓ Created user: {user_data['email']} ({user_data['role']})")
 
-        # Note: Employees table was removed in favor of users table
-        # Skipping employee creation as users table now handles all user data
-        print(f"  → User {user_data['first_name']} {user_data['last_name']} created (employees table deprecated)")
+        # Also create employee record (employees table is still used by Employee API)
+        emp_result = await session.execute(
+            text("SELECT id FROM employees WHERE email = :email"),
+            {"email": user_data["email"]}
+        )
+        emp_id = emp_result.scalar()
+
+        if not emp_id:
+            hashed_password = hash_password(user_data["password"])
+            await session.execute(
+                text("INSERT INTO employees (email, password_hash, first_name, last_name, role, department_id, is_active, is_admin, created_at, updated_at) "
+                     "VALUES (:email, :password_hash, :first_name, :last_name, :role, :department_id, TRUE, :is_admin, NOW(), NOW())"),
+                {
+                    "email": user_data["email"],
+                    "password_hash": hashed_password,
+                    "first_name": user_data["first_name"],
+                    "last_name": user_data["last_name"],
+                    "role": user_data["role"],
+                    "department_id": user_data["department_id"],
+                    "is_admin": user_data.get("is_admin", False),
+                }
+            )
+            print(f"  ✓ Created employee: {user_data['first_name']} {user_data['last_name']}")
 
     await session.commit()
     print("Users and employees created successfully!")

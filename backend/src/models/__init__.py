@@ -19,7 +19,7 @@ from .role_history import RoleChangeHistory
 from .account_status_history import AccountStatusHistory
 
 # User model is in auth.models, not in models package
-# Import it directly from auth.models where needed
+# It will be imported by seed_data.py before models are used
 
 __all__ = [
     "Base",

@@ -304,7 +304,9 @@ const EmployeesPage = () => {
 
       // Close dialog after a small delay to allow notification to render
       // This prevents React batching from hiding the notification before it appears
-      setTimeout(() => setDialogOpen(false), 100);
+      setTimeout(() => {
+        setDialogOpen(false);
+      }, 100);
 
       loadEmployees();
     } catch (error) {
