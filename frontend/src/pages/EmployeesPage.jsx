@@ -48,7 +48,11 @@ import {
   School,
   AccessTime,
   AttachMoney,
-  Schedule
+  Schedule,
+  History,
+  Timeline,
+  Assessment,
+  Divider
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/routeConfig';
@@ -57,8 +61,11 @@ import SearchBar from '../components/search/SearchBar';
 import { filterEmployees } from '../utils/filterUtils';
 import DepartmentSelector from '../components/common/DepartmentSelector';
 import AccountStatusDialog from '../components/AccountStatusDialog';
+import AccountStatusHistoryDialog from '../components/AccountStatusHistoryDialog';
 import PasswordResetDialog from '../components/PasswordResetDialog';
 import ChangePasswordDialog from '../components/ChangePasswordDialog';
+import DepartmentHistoryDialog from '../components/departments/DepartmentHistoryDialog';
+import RoleHistoryDialog from '../components/RoleHistoryDialog';
 
 const EmployeesPage = () => {
   const { user } = useAuth();
@@ -71,6 +78,9 @@ const EmployeesPage = () => {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false);
   const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
+  const [statusHistoryDialogOpen, setStatusHistoryDialogOpen] = useState(false);
+  const [departmentHistoryDialogOpen, setDepartmentHistoryDialogOpen] = useState(false);
+  const [roleHistoryDialogOpen, setRoleHistoryDialogOpen] = useState(false);
   const [notification, setNotification] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState([]);
@@ -142,6 +152,24 @@ const EmployeesPage = () => {
   const handlePasswordSuccess = (message) => {
     setNotification({ type: 'success', message });
     setSelectedEmployee(null);
+  };
+
+  const handleViewStatusHistory = (employee) => {
+    setSelectedEmployee(employee);
+    setStatusHistoryDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleViewDepartmentHistory = (employee) => {
+    setSelectedEmployee(employee);
+    setDepartmentHistoryDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleViewRoleHistory = (employee) => {
+    setSelectedEmployee(employee);
+    setRoleHistoryDialogOpen(true);
+    handleMenuClose();
   };
 
   const handleAddEmployee = () => {
@@ -679,20 +707,59 @@ const EmployeesPage = () => {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
+        {/* Basic Actions */}
         <MenuItem onClick={() => handleEditEmployee(selectedEmployee)}>
           <Edit fontSize="small" sx={{ mr: 1 }} />
-          Edit
+          Edit Employee
         </MenuItem>
+
+        {/* Admin-Only Actions */}
         {user?.role === 'admin' && (
-          <MenuItem onClick={() => handleManageStatus(selectedEmployee)}>
-            <ManageAccounts fontSize="small" sx={{ mr: 1 }} />
-            Manage Status
+          <>
+            <MenuItem onClick={() => handleManageStatus(selectedEmployee)}>
+              <ManageAccounts fontSize="small" sx={{ mr: 1 }} />
+              Manage Status
+            </MenuItem>
+            <MenuItem onClick={() => handleResetPassword(selectedEmployee)}>
+              <LockReset fontSize="small" sx={{ mr: 1 }} />
+              Reset Password
+            </MenuItem>
+          </>
+        )}
+
+        {/* Self or Admin */}
+        {(user?.role === 'admin' || selectedEmployee?.id === user?.id) && (
+          <MenuItem onClick={() => handleChangePassword(selectedEmployee)}>
+            <VpnKey fontSize="small" sx={{ mr: 1 }} />
+            Change Password
           </MenuItem>
         )}
-        <MenuItem onClick={() => handleDeleteEmployee(selectedEmployee?.id)}>
-          <Delete fontSize="small" sx={{ mr: 1 }} />
-          Delete
+
+        <Divider />
+
+        {/* History Views */}
+        <MenuItem onClick={() => handleViewRoleHistory(selectedEmployee)}>
+          <History fontSize="small" sx={{ mr: 1 }} />
+          Role History
         </MenuItem>
+        <MenuItem onClick={() => handleViewStatusHistory(selectedEmployee)}>
+          <Timeline fontSize="small" sx={{ mr: 1 }} />
+          Status History
+        </MenuItem>
+        <MenuItem onClick={() => handleViewDepartmentHistory(selectedEmployee)}>
+          <Assessment fontSize="small" sx={{ mr: 1 }} />
+          Department History
+        </MenuItem>
+
+        <Divider />
+
+        {/* Destructive Action */}
+        {user?.role === 'admin' && (
+          <MenuItem onClick={() => handleDeleteEmployee(selectedEmployee?.id)} sx={{ color: 'error.main' }}>
+            <Delete fontSize="small" sx={{ mr: 1 }} />
+            Delete Employee
+          </MenuItem>
+        )}
       </Menu>
 
       {/* Add/Edit Employee Dialog */}
@@ -963,7 +1030,40 @@ const EmployeesPage = () => {
         onSuccess={handlePasswordSuccess}
       />
 
-            {/* Notification Snackbar */}
+      {/* Account Status History Dialog */}
+      <AccountStatusHistoryDialog
+        open={statusHistoryDialogOpen}
+        onClose={() => {
+          setStatusHistoryDialogOpen(false);
+          setSelectedEmployee(null);
+        }}
+        employeeId={selectedEmployee?.id}
+        employeeName={selectedEmployee ? `${selectedEmployee.firstName || selectedEmployee.first_name} ${selectedEmployee.lastName || selectedEmployee.last_name}` : ''}
+      />
+
+      {/* Department History Dialog */}
+      <DepartmentHistoryDialog
+        open={departmentHistoryDialogOpen}
+        onClose={() => {
+          setDepartmentHistoryDialogOpen(false);
+          setSelectedEmployee(null);
+        }}
+        employeeId={selectedEmployee?.id}
+        employeeName={selectedEmployee ? `${selectedEmployee.firstName || selectedEmployee.first_name} ${selectedEmployee.lastName || selectedEmployee.last_name}` : ''}
+      />
+
+      {/* Role History Dialog */}
+      <RoleHistoryDialog
+        open={roleHistoryDialogOpen}
+        onClose={() => {
+          setRoleHistoryDialogOpen(false);
+          setSelectedEmployee(null);
+        }}
+        employeeId={selectedEmployee?.id}
+        employeeName={selectedEmployee ? `${selectedEmployee.firstName || selectedEmployee.first_name} ${selectedEmployee.lastName || selectedEmployee.last_name}` : ''}
+      />
+
+      {/* Notification Snackbar */}
       <Snackbar
         open={!!notification}
         autoHideDuration={4000}
