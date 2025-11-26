@@ -6,6 +6,7 @@ with automatic audit trail logging for department assignment changes.
 """
 
 import html
+import os
 import secrets
 import string
 from datetime import datetime, timezone
@@ -549,7 +550,7 @@ async def get_employee(
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(require_roles("admin", "manager"))],
 )
-@limiter.limit("10/minute")
+@limiter.limit("10/minute" if os.getenv("ENVIRONMENT") == "production" else "1000/minute")
 async def create_employee(
     request: Request,
     employee_data: EmployeeCreate,
@@ -685,7 +686,7 @@ async def create_employee(
 
 @router.patch("/{employee_id}", response_model=EmployeeResponse, dependencies=[Depends(require_roles("admin", "manager"))])
 @router.put("/{employee_id}", response_model=EmployeeResponse, dependencies=[Depends(require_roles("admin", "manager"))])
-@limiter.limit("10/minute")
+@limiter.limit("10/minute" if os.getenv("ENVIRONMENT") == "production" else "1000/minute")
 async def update_employee(
     request: Request,
     employee_id: int,
