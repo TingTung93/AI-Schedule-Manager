@@ -1,6 +1,1096 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="3.421993">
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T18:53:10.841Z" hostname="chromium" tests="1" failures="0" skipped="0" time="2.615" errors="0">
-<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table" classname="employee-management/01-employee-crud.spec.ts" time="2.615">
+<testsuites id="" name="" tests="29" failures="23" skipped="0" errors="0" time="150.154797">
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T18:53:49.774Z" hostname="chromium" tests="29" failures="23" skipped="0" time="385.519" errors="0">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields" classname="employee-management/01-employee-crud.spec.ts" time="9.025">
+<failure message="01-employee-crud.spec.ts:29:9 01.01 Should create employee with all required fields" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:29:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.01 Should create employee with all required fields 
+
+    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+
+    Locator: getByText(/employee created successfully/i)
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText(/employee created successfully/i)
+
+
+       at helpers/employee-helpers.ts:195
+
+      193 |
+      194 |   async expectSuccessMessage(message: string): Promise<void> {
+    > 195 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
+          |                                                                 ^
+      196 |   }
+      197 |
+      198 |   async expectErrorMessage(message: string): Promise<void> {
+        at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:195:65)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:41:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-bebf6-ee-with-all-required-fields-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.02 Should create employee with all extended fields" classname="employee-management/01-employee-crud.spec.ts" time="30.102">
+<failure message="01-employee-crud.spec.ts:46:9 01.02 Should create employee with all extended fields" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:46:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.02 Should create employee with all extended fields 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByLabel(/role/i)
+        - locator resolved to <div tabindex="0" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-labelledby="role-filter-label" class="MuiSelect-select MuiSelect-outlined MuiSelect-multiple MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css-16qqw7w">…</div>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+      2 × retrying click action
+          - waiting 100ms
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-8azq84">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+      12 × retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-8azq84">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-8azq84">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+      2 × retrying click action
+          - waiting 500ms
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <input id=":r12:" type="text" value="+1234567891" aria-invalid="false" class="MuiInputBase-input MuiOutlinedInput-input css-1pk1fka"/> from <div role="presentation" class="MuiDialog-root MuiModal-root css-1egf66k">…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+
+
+       at helpers/employee-helpers.ts:101
+
+       99 |     }
+      100 |     if (data.role) {
+    > 101 |       await this.page.getByLabel(/role/i).click();
+          |                                           ^
+      102 |       await this.page.getByRole('option', { name: new RegExp(data.role, 'i') }).click();
+      103 |     }
+      104 |     if (data.department) {
+        at EmployeeTestHelpers.fillEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:101:43)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:53:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-498b1-ee-with-all-extended-fields-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-498b1-ee-with-all-extended-fields-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-498b1-ee-with-all-extended-fields-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-498b1-ee-with-all-extended-fields-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-498b1-ee-with-all-extended-fields-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-498b1-ee-with-all-extended-fields-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.03 Should validate required first name" classname="employee-management/01-employee-crud.spec.ts" time="8.831">
+<failure message="01-employee-crud.spec.ts:70:9 01.03 Should validate required first name" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:70:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.03 Should validate required first name 
+
+    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+
+    Locator: getByText(/first name is required/i)
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText(/first name is required/i)
+
+
+       at helpers/employee-helpers.ts:191
+
+      189 |
+      190 |   async expectValidationError(message: string): Promise<void> {
+    > 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
+          |                                                                 ^
+      192 |   }
+      193 |
+      194 |   async expectSuccessMessage(message: string): Promise<void> {
+        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:79:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-16317-alidate-required-first-name-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-16317-alidate-required-first-name-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-16317-alidate-required-first-name-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-16317-alidate-required-first-name-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-16317-alidate-required-first-name-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-16317-alidate-required-first-name-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.04 Should validate required last name" classname="employee-management/01-employee-crud.spec.ts" time="8.237">
+<failure message="01-employee-crud.spec.ts:82:9 01.04 Should validate required last name" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:82:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.04 Should validate required last name 
+
+    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+
+    Locator: getByText(/last name is required/i)
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText(/last name is required/i)
+
+
+       at helpers/employee-helpers.ts:191
+
+      189 |
+      190 |   async expectValidationError(message: string): Promise<void> {
+    > 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
+          |                                                                 ^
+      192 |   }
+      193 |
+      194 |   async expectSuccessMessage(message: string): Promise<void> {
+        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:91:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-7789b-validate-required-last-name-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-7789b-validate-required-last-name-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-7789b-validate-required-last-name-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-7789b-validate-required-last-name-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-7789b-validate-required-last-name-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-7789b-validate-required-last-name-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.05 Should validate email format" classname="employee-management/01-employee-crud.spec.ts" time="8.38">
+<failure message="01-employee-crud.spec.ts:94:9 01.05 Should validate email format" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:94:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.05 Should validate email format 
+
+    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+
+    Locator: getByText(/valid email/i)
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByText(/valid email/i)
+
+
+       at helpers/employee-helpers.ts:191
+
+      189 |
+      190 |   async expectValidationError(message: string): Promise<void> {
+    > 191 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
+          |                                                                 ^
+      192 |   }
+      193 |
+      194 |   async expectSuccessMessage(message: string): Promise<void> {
+        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:191:65)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:103:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-171eb-hould-validate-email-format-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-171eb-hould-validate-email-format-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-171eb-hould-validate-email-format-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-171eb-hould-validate-email-format-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-171eb-hould-validate-email-format-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-171eb-hould-validate-email-format-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.06 Should prevent duplicate email addresses" classname="employee-management/01-employee-crud.spec.ts" time="13.403">
+<failure message="01-employee-crud.spec.ts:106:9 01.06 Should prevent duplicate email addresses" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:106:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.06 Should prevent duplicate email addresses 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:119:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-f48a8-t-duplicate-email-addresses-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-f48a8-t-duplicate-email-addresses-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-f48a8-t-duplicate-email-addresses-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-f48a8-t-duplicate-email-addresses-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-f48a8-t-duplicate-email-addresses-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-f48a8-t-duplicate-email-addresses-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.07 Should validate hourly rate range (0-1000)" classname="employee-management/01-employee-crud.spec.ts" time="13.243">
+<failure message="01-employee-crud.spec.ts:134:9 01.07 Should validate hourly rate range (0-1000)" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:134:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.07 Should validate hourly rate range (0-1000) 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:142:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-1f0e7-e-hourly-rate-range-0-1000--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-1f0e7-e-hourly-rate-range-0-1000--chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-1f0e7-e-hourly-rate-range-0-1000--chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-1f0e7-e-hourly-rate-range-0-1000--chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-1f0e7-e-hourly-rate-range-0-1000--chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-1f0e7-e-hourly-rate-range-0-1000--chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.08 Should validate max hours per week (1-168)" classname="employee-management/01-employee-crud.spec.ts" time="13.105">
+<failure message="01-employee-crud.spec.ts:147:9 01.08 Should validate max hours per week (1-168)" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:147:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.08 Should validate max hours per week (1-168) 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        25 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:155:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.09 Should allow canceling employee creation" classname="employee-management/01-employee-crud.spec.ts" time="3.441">
+</testcase>
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table" classname="employee-management/01-employee-crud.spec.ts" time="2.752">
+</testcase>
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.02 Should display employee details correctly" classname="employee-management/01-employee-crud.spec.ts" time="8.164">
+<failure message="01-employee-crud.spec.ts:189:9 02.02 Should display employee details correctly" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:189:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.02 Should display employee details correctly 
+
+    Error: Timed out 5000ms waiting for expect(locator).toContainText(expected)
+
+    Locator: locator('tr:has-text("john.doe@test.com")')
+    Expected string: "John"
+    Received: <element(s) not found>
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('tr:has-text("john.doe@test.com")')
+
+
+      202 |       // Verify details in table
+      203 |       const row = page.locator(`tr:has-text("${employee.email}")`);
+    > 204 |       await expect(row).toContainText(employee.firstName);
+          |                         ^
+      205 |       await expect(row).toContainText(employee.lastName);
+      206 |       await expect(row).toContainText(employee.email);
+      207 |     });
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:204:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-75ad4--employee-details-correctly-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-75ad4--employee-details-correctly-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-75ad4--employee-details-correctly-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-75ad4--employee-details-correctly-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-75ad4--employee-details-correctly-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-75ad4--employee-details-correctly-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.03 Should search employees by name" classname="employee-management/01-employee-crud.spec.ts" time="2.915">
+</testcase>
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.04 Should search employees by email" classname="employee-management/01-employee-crud.spec.ts" time="2.84">
+</testcase>
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.05 Should perform case-insensitive search" classname="employee-management/01-employee-crud.spec.ts" time="2.845">
+</testcase>
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.06 Should filter employees by role" classname="employee-management/01-employee-crud.spec.ts" time="31.32">
+<failure message="01-employee-crud.spec.ts:233:9 02.06 Should filter employees by role" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:233:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.06 Should filter employees by role 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByLabel(/filter.*role/i)
+
+
+       at helpers/employee-helpers.ts:173
+
+      171 |
+      172 |   async filterByRole(role: string): Promise<void> {
+    > 173 |     await this.page.getByLabel(/filter.*role/i).click();
+          |                                                 ^
+      174 |     await this.page.getByRole('option', { name: new RegExp(role, 'i') }).click();
+      175 |   }
+      176 |
+        at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:173:49)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:234:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-b30c0-ld-filter-employees-by-role-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-b30c0-ld-filter-employees-by-role-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-b30c0-ld-filter-employees-by-role-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-b30c0-ld-filter-employees-by-role-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-b30c0-ld-filter-employees-by-role-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-b30c0-ld-filter-employees-by-role-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.07 Should clear all filters" classname="employee-management/01-employee-crud.spec.ts" time="30.089">
+<failure message="01-employee-crud.spec.ts:241:9 02.07 Should clear all filters" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:241:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.07 Should clear all filters 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByLabel(/filter.*role/i)
+
+
+       at helpers/employee-helpers.ts:173
+
+      171 |
+      172 |   async filterByRole(role: string): Promise<void> {
+    > 173 |     await this.page.getByLabel(/filter.*role/i).click();
+          |                                                 ^
+      174 |     await this.page.getByRole('option', { name: new RegExp(role, 'i') }).click();
+      175 |   }
+      176 |
+        at EmployeeTestHelpers.filterByRole (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:173:49)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:243:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.01 Should update employee first name" classname="employee-management/01-employee-crud.spec.ts" time="13.343">
+<failure message="01-employee-crud.spec.ts:259:9 03.01 Should update employee first name" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:259:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.01 Should update employee first name 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:269:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-c9631--update-employee-first-name-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-c9631--update-employee-first-name-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-c9631--update-employee-first-name-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-c9631--update-employee-first-name-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-c9631--update-employee-first-name-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-c9631--update-employee-first-name-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.02 Should update employee last name" classname="employee-management/01-employee-crud.spec.ts" time="12.971">
+<failure message="01-employee-crud.spec.ts:282:9 03.02 Should update employee last name" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:282:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.02 Should update employee last name 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:292:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a4cd5-d-update-employee-last-name-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a4cd5-d-update-employee-last-name-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-a4cd5-d-update-employee-last-name-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-a4cd5-d-update-employee-last-name-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a4cd5-d-update-employee-last-name-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a4cd5-d-update-employee-last-name-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.03 Should update employee phone number" classname="employee-management/01-employee-crud.spec.ts" time="31.28">
+<failure message="01-employee-crud.spec.ts:305:9 03.03 Should update employee phone number" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:305:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.03 Should update employee phone number 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('tr:has-text("update.phone@test.com")').getByRole('button', { name: /more|actions|menu/i })
+
+
+       at helpers/employee-helpers.ts:139
+
+      137 |   async openEmployeeActionsMenu(email: string): Promise<void> {
+      138 |     const row = this.page.locator(`tr:has-text("${email}")`);
+    > 139 |     await row.getByRole('button', { name: /more|actions|menu/i }).click();
+          |                                                                   ^
+      140 |     await this.page.waitForSelector('[role="menu"]', { state: 'visible' });
+      141 |   }
+      142 |
+        at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:139:67)
+        at EmployeeTestHelpers.editEmployee (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:148:16)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:319:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-5e95e-pdate-employee-phone-number-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-5e95e-pdate-employee-phone-number-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-5e95e-pdate-employee-phone-number-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-5e95e-pdate-employee-phone-number-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-5e95e-pdate-employee-phone-number-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-5e95e-pdate-employee-phone-number-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.04 Should update employee hourly rate" classname="employee-management/01-employee-crud.spec.ts" time="13.117">
+<failure message="01-employee-crud.spec.ts:326:9 03.04 Should update employee hourly rate" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:326:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.04 Should update employee hourly rate 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:337:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-eaf85-update-employee-hourly-rate-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-eaf85-update-employee-hourly-rate-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-eaf85-update-employee-hourly-rate-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-eaf85-update-employee-hourly-rate-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-eaf85-update-employee-hourly-rate-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-eaf85-update-employee-hourly-rate-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.05 Should update employee max hours" classname="employee-management/01-employee-crud.spec.ts" time="13.067">
+<failure message="01-employee-crud.spec.ts:347:9 03.05 Should update employee max hours" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:347:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.05 Should update employee max hours 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:358:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-808e4-d-update-employee-max-hours-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-808e4-d-update-employee-max-hours-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-808e4-d-update-employee-max-hours-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-808e4-d-update-employee-max-hours-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-808e4-d-update-employee-max-hours-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-808e4-d-update-employee-max-hours-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.06 Should prevent updating email to duplicate" classname="employee-management/01-employee-crud.spec.ts" time="13.011">
+<failure message="01-employee-crud.spec.ts:368:9 03.06 Should prevent updating email to duplicate" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:368:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.06 Should prevent updating email to duplicate 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:379:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-ecd62-updating-email-to-duplicate-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-ecd62-updating-email-to-duplicate-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-ecd62-updating-email-to-duplicate-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-ecd62-updating-email-to-duplicate-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-ecd62-updating-email-to-duplicate-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-ecd62-updating-email-to-duplicate-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.07 Should allow canceling update" classname="employee-management/01-employee-crud.spec.ts" time="13.118">
+<failure message="01-employee-crud.spec.ts:398:9 03.07 Should allow canceling update" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:398:9 › Employee CRUD Operations › 03. Employee Updating (Update) › 03.07 Should allow canceling update 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:408:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-0ab45-ould-allow-canceling-update-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-0ab45-ould-allow-canceling-update-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-0ab45-ould-allow-canceling-update-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-0ab45-ould-allow-canceling-update-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-0ab45-ould-allow-canceling-update-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-0ab45-ould-allow-canceling-update-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully" classname="employee-management/01-employee-crud.spec.ts" time="13.165">
+<failure message="01-employee-crud.spec.ts:428:9 04.01 Should delete employee successfully" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:428:9 › Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        6 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        19 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:438:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.02 Should require confirmation before deletion" classname="employee-management/01-employee-crud.spec.ts" time="13.31">
+<failure message="01-employee-crud.spec.ts:449:9 04.02 Should require confirmation before deletion" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:449:9 › Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.02 Should require confirmation before deletion 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:459:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-c630b-onfirmation-before-deletion-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-c630b-onfirmation-before-deletion-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-c630b-onfirmation-before-deletion-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-c630b-onfirmation-before-deletion-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-c630b-onfirmation-before-deletion-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-c630b-onfirmation-before-deletion-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.03 Should allow canceling deletion" classname="employee-management/01-employee-crud.spec.ts" time="13.417">
+<failure message="01-employee-crud.spec.ts:470:9 04.03 Should allow canceling deletion" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:470:9 › Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.03 Should allow canceling deletion 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        5 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        20 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:480:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a83f3-ld-allow-canceling-deletion-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a83f3-ld-allow-canceling-deletion-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-a83f3-ld-allow-canceling-deletion-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-a83f3-ld-allow-canceling-deletion-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a83f3-ld-allow-canceling-deletion-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a83f3-ld-allow-canceling-deletion-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 05. Permission-Based CRUD › 05.01 Managers should be able to create employees" classname="employee-management/01-employee-crud.spec.ts" time="13.169">
+<failure message="01-employee-crud.spec.ts:495:9 05.01 Managers should be able to create employees" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:495:9 › Employee CRUD Operations › 05. Permission-Based CRUD › 05.01 Managers should be able to create employees 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /save|create|submit|add employee/i }).last() to be hidden
+        6 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1erfnoi">…</button>
+        19 × locator resolved to visible <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-1ronsc0">…</button>
+
+
+       at helpers/employee-helpers.ts:123
+
+      121 |     await submitButton.click();
+      122 |     // Wait for the form to close by checking if submit button is gone
+    > 123 |     await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+          |                        ^
+      124 |   }
+      125 |
+      126 |   async cancelEmployeeForm(): Promise<void> {
+        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:123:24)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:505:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-3cac9-be-able-to-create-employees-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-3cac9-be-able-to-create-employees-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-3cac9-be-able-to-create-employees-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-3cac9-be-able-to-create-employees-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-3cac9-be-able-to-create-employees-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-3cac9-be-able-to-create-employees-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee CRUD Operations › 05. Permission-Based CRUD › 05.02 Regular employees should NOT be able to create employees" classname="employee-management/01-employee-crud.spec.ts" time="2.632">
+</testcase>
+<testcase name="Employee CRUD Operations › 05. Permission-Based CRUD › 05.03 Regular employees should NOT be able to delete employees" classname="employee-management/01-employee-crud.spec.ts" time="31.227">
+<failure message="01-employee-crud.spec.ts:518:9 05.03 Regular employees should NOT be able to delete employees" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:518:9 › Employee CRUD Operations › 05. Permission-Based CRUD › 05.03 Regular employees should NOT be able to delete employees 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('tr:has-text("admin@example.com")').getByRole('button', { name: /more|actions|menu/i })
+
+
+       at helpers/employee-helpers.ts:139
+
+      137 |   async openEmployeeActionsMenu(email: string): Promise<void> {
+      138 |     const row = this.page.locator(`tr:has-text("${email}")`);
+    > 139 |     await row.getByRole('button', { name: /more|actions|menu/i }).click();
+          |                                                                   ^
+      140 |     await this.page.waitForSelector('[role="menu"]', { state: 'visible' });
+      141 |   }
+      142 |
+        at EmployeeTestHelpers.openEmployeeActionsMenu (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:139:67)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:523:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-de92e-be-able-to-delete-employees-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-de92e-be-able-to-delete-employees-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-de92e-be-able-to-delete-employees-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-de92e-be-able-to-delete-employees-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-de92e-be-able-to-delete-employees-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-de92e-be-able-to-delete-employees-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>
