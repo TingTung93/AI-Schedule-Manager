@@ -130,11 +130,13 @@ export class EmployeeTestHelpers {
 
   async submitEmployeeForm(waitForClose: boolean = false): Promise<void> {
     // Button text is "Add Employee" or "Update Employee" - match the actual text
-    const submitButton = this.page.getByRole('button', { name: /(add|update) employee/i });
+    // Scope to dialog to avoid finding the "Add Employee" button on the main page
+    const dialog = this.page.getByRole('dialog');
+    const submitButton = dialog.getByRole('button', { name: /(add|update) employee/i });
     await submitButton.click();
     // Only wait for dialog to close if expected (not for validation errors)
     if (waitForClose) {
-      await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
+      await dialog.waitFor({ state: 'hidden', timeout: 10000 });
     } else {
       // Small delay to allow form submission to process
       await this.page.waitForTimeout(500);
@@ -251,8 +253,8 @@ export class EmployeeTestHelpers {
   }
 
   async expectEmployeeCount(count: number): Promise<void> {
-    const rows = this.page.locator('tbody tr');
-    await expect(rows).toHaveCount(count, { timeout: 5000 });
+    const cards = this.page.locator('[class*="MuiCard-root"]');
+    await expect(cards).toHaveCount(count, { timeout: 5000 });
   }
 
   /**

@@ -212,11 +212,11 @@ test.describe('Employee CRUD Operations', () => {
       });
       await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
-      // Verify details in table
-      const row = page.locator(`tr:has-text("${employee.email}")`);
-      await expect(row).toContainText(employee.firstName);
-      await expect(row).toContainText(employee.lastName);
-      await expect(row).toContainText(employee.email);
+      // Verify details in card
+      const card = page.locator('[class*="MuiCard-root"]').filter({ hasText: employee.email });
+      await expect(card).toContainText(employee.firstName);
+      await expect(card).toContainText(employee.lastName);
+      await expect(card).toContainText(employee.email);
     });
 
     test('02.03 Should search employees by name', async () => {
@@ -288,8 +288,8 @@ test.describe('Employee CRUD Operations', () => {
 
       // Verify update
       await helpers.expectSuccessMessage('employee updated successfully');
-      const row = page.locator(`tr:has-text("${testEmail}")`);
-      await expect(row).toContainText('Updated');
+      const card = page.locator('[class*="MuiCard-root"]').filter({ hasText: testEmail });
+      await expect(card).toContainText('Updated');
     });
 
     test('03.02 Should update employee last name', async ({ page }) => {
@@ -311,8 +311,8 @@ test.describe('Employee CRUD Operations', () => {
 
       // Verify update
       await helpers.expectSuccessMessage('employee updated successfully');
-      const row = page.locator(`tr:has-text("${testEmail}")`);
-      await expect(row).toContainText('Updated');
+      const card = page.locator('[class*="MuiCard-root"]').filter({ hasText: testEmail });
+      await expect(card).toContainText('Updated');
     });
 
     test('03.03 Should update employee phone number', async () => {
