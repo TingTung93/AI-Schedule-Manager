@@ -35,36 +35,37 @@ export interface TestUser {
 }
 
 /**
- * Test Users for Authentication
+ * Test Users for Authentication (Pre-seeded in database)
  */
 export const testUsers: Record<string, TestUser> = {
   admin: {
     email: 'admin@example.com',
-    password: 'Admin123!@#',
+    password: 'Admin123!',
     role: 'admin',
     firstName: 'Admin',
     lastName: 'User'
   },
   manager: {
     email: 'manager@example.com',
-    password: 'Manager123!@#',
+    password: 'Manager123!',
     role: 'manager',
-    firstName: 'Manager',
-    lastName: 'User'
+    firstName: 'Sarah',
+    lastName: 'Johnson'
   },
   employee: {
-    email: 'employee@example.com',
-    password: 'Employee123!@#',
+    email: 'employee1@example.com',
+    password: 'Employee123!',
     role: 'employee',
-    firstName: 'Employee',
-    lastName: 'User'
+    firstName: 'John',
+    lastName: 'Smith'
   },
+  // Using supervisor as scheduler proxy (no scheduler role in seed data)
   scheduler: {
-    email: 'scheduler@example.com',
-    password: 'Scheduler123!@#',
+    email: 'supervisor@example.com',
+    password: 'Supervisor123!',
     role: 'scheduler',
-    firstName: 'Scheduler',
-    lastName: 'User'
+    firstName: 'Mike',
+    lastName: 'Williams'
   }
 };
 
@@ -198,9 +199,9 @@ export const invalidEmployees = {
  */
 export const passwordTestData = {
   valid: {
-    current: 'Employee123!@#',
-    new: 'NewPassword123!@#',
-    confirm: 'NewPassword123!@#'
+    current: 'Employee123!',
+    new: 'NewPassword123!',
+    confirm: 'NewPassword123!'
   },
   weakPasswords: [
     'weak',           // Too short

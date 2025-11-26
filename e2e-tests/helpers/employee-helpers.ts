@@ -13,7 +13,7 @@ export class EmployeeTestHelpers {
   private baseURL: string;
   private authToken?: string;
 
-  constructor(page: Page, request: APIRequestContext, baseURL: string = 'http://localhost:3000') {
+  constructor(page: Page, request: APIRequestContext, baseURL: string = 'http://localhost') {
     this.page = page;
     this.request = request;
     this.baseURL = baseURL;
@@ -34,15 +34,15 @@ export class EmployeeTestHelpers {
   }
 
   async loginAsAdmin(): Promise<void> {
-    await this.login('admin@example.com', 'Admin123!@#');
+    await this.login('admin@example.com', 'Admin123!');
   }
 
   async loginAsManager(): Promise<void> {
-    await this.login('manager@example.com', 'Manager123!@#');
+    await this.login('manager@example.com', 'Manager123!');
   }
 
   async loginAsEmployee(): Promise<void> {
-    await this.login('employee@example.com', 'Employee123!@#');
+    await this.login('employee1@example.com', 'Employee123!');
   }
 
   async logout(): Promise<void> {

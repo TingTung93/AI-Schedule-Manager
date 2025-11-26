@@ -186,9 +186,9 @@ test.describe('Password Management', () => {
 
       await helpers.openChangePasswordDialog(testEmail);
       await helpers.changePassword(
-        'Admin123!@#',
-        'NewAdminPass123!@#',
-        'NewAdminPass123!@#'
+        'Admin123!',
+        'NewAdminPass123!',
+        'NewAdminPass123!'
       );
 
       await helpers.expectSuccessMessage('password changed successfully');
