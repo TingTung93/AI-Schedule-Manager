@@ -19,6 +19,19 @@ test.describe('Employee CRUD Operations', () => {
     helpers = new EmployeeTestHelpers(page, request);
   });
 
+  // Clean up test data after each test to prevent pollution
+  test.afterEach(async ({ request }) => {
+    try {
+      // Delete test employees and users with @test.com emails
+      await request.delete('http://localhost/api/test-cleanup', {
+        headers: { 'X-Test-Cleanup': 'true' }
+      });
+    } catch (error) {
+      // Cleanup is best-effort - don't fail tests if it doesn't work
+      console.warn('Test cleanup failed:', error);
+    }
+  });
+
   test.describe('01. Employee Creation (Create)', () => {
 
     test.beforeEach(async () => {

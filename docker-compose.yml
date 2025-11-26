@@ -50,6 +50,8 @@ services:
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      FLASK_ENV: development
+      ENABLE_TEST_ROUTES: "true"
     volumes:
       - ./backend:/app
       - backend_logs:/app/logs

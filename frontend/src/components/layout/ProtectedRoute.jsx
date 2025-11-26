@@ -59,7 +59,7 @@ const ProtectedRoute = ({ children, requiredRoles = [] }) => {
           Required roles: {requiredRoles.join(', ')}
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          Your role: {user?.role || 'Unknown'}
+          Your role: {user?.roles ? user.roles.join(', ') : 'Unknown'}
         </Typography>
       </Box>
     );

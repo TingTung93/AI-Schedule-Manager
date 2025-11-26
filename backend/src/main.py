@@ -34,6 +34,7 @@ from .api.schedules import router as schedules_router
 from .api.settings import router as settings_router
 from .api.shift_definitions import router as shift_definitions_router
 from .api.shifts import router as shifts_router
+from .api.test_cleanup import router as test_cleanup_router
 from .api_docs import setup_docs
 from .auth.auth import auth_service
 from .auth.fastapi_routes import auth_router  # Native FastAPI auth routes
@@ -361,6 +362,7 @@ app.include_router(analytics_router)
 app.include_router(settings_router)
 app.include_router(shift_definitions_router)  # Shift definitions (reusable templates)
 app.include_router(shifts_router)
+app.include_router(test_cleanup_router)  # Test data cleanup (only in dev/test mode)
 
 # Initialize rule parser
 rule_parser = RuleParser()
