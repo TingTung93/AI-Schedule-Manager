@@ -135,9 +135,12 @@ export class EmployeeTestHelpers {
   }
 
   async openEmployeeActionsMenu(email: string): Promise<void> {
-    const row = this.page.locator(`tr:has-text("${email}")`);
-    await row.getByRole('button', { name: /more|actions|menu/i }).click();
-    await this.page.waitForSelector('[role="menu"]', { state: 'visible' });
+    // Find the Card containing the employee email, then find the IconButton within it
+    const card = this.page.locator('[class*="MuiCard-root"]').filter({ hasText: email });
+    const menuButton = card.locator('button[class*="MuiIconButton"]').first();
+    await menuButton.waitFor({ state: 'visible', timeout: 5000 });
+    await menuButton.click();
+    await this.page.waitForSelector('[role="menu"]', { state: 'visible', timeout: 5000 });
   }
 
   async selectMenuAction(action: string): Promise<void> {
@@ -170,8 +173,38 @@ export class EmployeeTestHelpers {
   }
 
   async filterByRole(role: string): Promise<void> {
-    await this.page.getByLabel(/filter.*role/i).click();
-    await this.page.getByRole('option', { name: new RegExp(role, 'i') }).click();
+    // Multi-select dropdown - click the Select input to open it
+    await this.page.getByLabel('Roles').click();
+
+    // Wait for the dropdown menu to appear
+    await this.page.waitForTimeout(500);
+
+    // MUI multi-select renders MenuItems with text content
+    // Role is capitalized in the UI (e.g., "Admin" not "admin")
+    const capitalizedRole = role.charAt(0).toUpperCase() + role.slice(1);
+
+    // Click the menu item by its text content
+    await this.page.getByText(capitalizedRole, { exact: true }).click();
+
+    // Close the dropdown by pressing Escape
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(300);
+  }
+
+  async filterByDepartment(department: string): Promise<void> {
+    // Multi-select dropdown - click the Select input to open it
+    await this.page.getByLabel('Departments').click();
+
+    // Wait for the dropdown menu to appear
+    await this.page.waitForTimeout(500);
+
+    // MUI multi-select renders MenuItems with text content
+    // Click the menu item by its text content
+    await this.page.getByText(department, { exact: true }).click();
+
+    // Close the dropdown by pressing Escape
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(300);
   }
 
   async filterByStatus(status: string): Promise<void> {
