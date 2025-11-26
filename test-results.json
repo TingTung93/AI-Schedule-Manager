@@ -1,0 +1,558 @@
+{
+  "config": {
+    "configFile": "/home/peter/AI-Schedule-Manager/playwright.config.ts",
+    "rootDir": "/home/peter/AI-Schedule-Manager/e2e-tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 5
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results.xml"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "API Tests",
+        "name": "API Tests",
+        "testDir": "/home/peter/AI-Schedule-Manager/tests/e2e/api",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/peter/AI-Schedule-Manager/e2e-tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/home/peter/AI-Schedule-Manager/e2e-tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/home/peter/AI-Schedule-Manager/e2e-tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/home/peter/AI-Schedule-Manager/e2e-tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/home/peter/AI-Schedule-Manager/e2e-tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 14,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "employee-management/01-employee-crud.spec.ts",
+      "file": "employee-management/01-employee-crud.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Employee CRUD Operations",
+          "file": "employee-management/01-employee-crud.spec.ts",
+          "line": 15,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "02. Employee Reading (Read)",
+              "file": "employee-management/01-employee-crud.spec.ts",
+              "line": 174,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "02.01 Should display all employees in table",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 12607,
+                          "error": {
+                            "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                            "stack": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7",
+                            "location": {
+                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                              "column": 21,
+                              "line": 33
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                                "column": 21,
+                                "line": 33
+                              },
+                              "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n   at helpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-26T17:17:14.898Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                            "column": 21,
+                            "line": 33
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "09b1f89aab42121cbbe4-5bdfecd346110224b60a",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 181,
+                  "column": 9
+                },
+                {
+                  "title": "02.01 Should display all employees in table",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 12237,
+                          "error": {
+                            "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                            "stack": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7",
+                            "location": {
+                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                              "column": 21,
+                              "line": 33
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                                "column": 21,
+                                "line": 33
+                              },
+                              "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n   at helpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-26T17:17:14.915Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-firefox/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-firefox/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-firefox/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                            "column": 21,
+                            "line": 33
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "09b1f89aab42121cbbe4-4c34afee10ac9a513ada",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 181,
+                  "column": 9
+                },
+                {
+                  "title": "02.01 Should display all employees in table",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "failed",
+                          "duration": 13806,
+                          "error": {
+                            "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                            "stack": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7",
+                            "location": {
+                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                              "column": 21,
+                              "line": 33
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                                "column": 21,
+                                "line": 33
+                              },
+                              "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n   at helpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-26T17:17:14.917Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-webkit/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-webkit/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-webkit/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                            "column": 21,
+                            "line": 33
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "09b1f89aab42121cbbe4-9e0cd1f1d4ac6c3b89ad",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 181,
+                  "column": 9
+                },
+                {
+                  "title": "02.01 Should display all employees in table",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "failed",
+                          "duration": 12428,
+                          "error": {
+                            "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                            "stack": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7",
+                            "location": {
+                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                              "column": 21,
+                              "line": 33
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                                "column": 21,
+                                "line": 33
+                              },
+                              "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n   at helpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-26T17:17:14.915Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Chrome/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Chrome/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Chrome/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                            "column": 21,
+                            "line": 33
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "09b1f89aab42121cbbe4-7fc02b3da694ff8e5f77",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 181,
+                  "column": 9
+                },
+                {
+                  "title": "02.01 Should display all employees in table",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "failed",
+                          "duration": 14076,
+                          "error": {
+                            "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                            "stack": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7",
+                            "location": {
+                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                              "column": 21,
+                              "line": 33
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                                "column": 21,
+                                "line": 33
+                              },
+                              "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n   at helpers/employee-helpers.ts:33\n\n  31 |\n  32 |     // Wait for navigation to dashboard or employees page\n> 33 |     await this.page.waitForURL(/\\/(dashboard|employees)/, { timeout: 10000 });\n     |                     ^\n  34 |   }\n  35 |\n  36 |   async loginAsAdmin(): Promise<void> {\n    at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)\n    at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-26T17:17:14.903Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Safari/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Safari/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Safari/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                            "column": 21,
+                            "line": 33
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "09b1f89aab42121cbbe4-55055959f59fd2b9dc8c",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 181,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-11-26T17:17:14.328Z",
+    "duration": 15385.632,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 5,
+    "flaky": 0
+  }
+}

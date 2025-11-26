@@ -1,1442 +1,227 @@
-<testsuites id="" name="" tests="345" failures="0" skipped="345" errors="0" time="0.287798">
-<testsuite name="tests/01-authentication.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
-<testcase name="Authentication › should display login form" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should login with valid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should show error with invalid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should validate email format" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should require password" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should logout successfully" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should handle session timeout" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should support remember me option" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/02-rule-management.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="chromium" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Rule Management › should display rule creation interface" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add availability rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add preference rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add requirement rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle multiple rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should toggle rule active status" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should delete rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should validate rule syntax" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should show rule preview before adding" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle rule conflicts" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should search and filter rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should export rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should import rules from file" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
+<testsuites id="" name="" tests="5" failures="5" skipped="0" errors="0" time="15.385632">
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T17:17:14.357Z" hostname="chromium" tests="1" failures="1" skipped="0" time="12.607" errors="0">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table" classname="employee-management/01-employee-crud.spec.ts" time="12.607">
+<failure message="01-employee-crud.spec.ts:181:9 02.01 Should display all employees in table" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:181:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+       at helpers/employee-helpers.ts:33
+
+      31 |
+      32 |     // Wait for navigation to dashboard or employees page
+    > 33 |     await this.page.waitForURL(/\/(dashboard|employees)/, { timeout: 10000 });
+         |                     ^
+      34 |   }
+      35 |
+      36 |   async loginAsAdmin(): Promise<void> {
+        at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)
+        at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
-<testsuite name="tests/03-schedule-generation.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="chromium" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Schedule Generation › should display schedule generation interface" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should generate weekly schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should respect rules when generating schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle schedule conflicts" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should allow manual schedule adjustments" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should validate schedule completeness" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should calculate labor costs" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should export schedule to different formats" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should publish schedule to employees" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should show schedule history" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should copy from previous schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle recurring schedules" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T17:17:14.357Z" hostname="firefox" tests="1" failures="1" skipped="0" time="12.237" errors="0">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table" classname="employee-management/01-employee-crud.spec.ts" time="12.237">
+<failure message="01-employee-crud.spec.ts:181:9 02.01 Should display all employees in table" type="FAILURE">
+<![CDATA[  [firefox] › employee-management/01-employee-crud.spec.ts:181:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+       at helpers/employee-helpers.ts:33
+
+      31 |
+      32 |     // Wait for navigation to dashboard or employees page
+    > 33 |     await this.page.waitForURL(/\/(dashboard|employees)/, { timeout: 10000 });
+         |                     ^
+      34 |   }
+      35 |
+      36 |   async loginAsAdmin(): Promise<void> {
+        at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)
+        at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-firefox/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-firefox/error-context.md]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
-<testsuite name="tests/04-ai-optimization.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="chromium" tests="11" failures="0" skipped="11" time="0" errors="0">
-<testcase name="AI Schedule Optimization › should display AI optimization options" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should optimize for minimal labor costs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should balance employee workload" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should respect employee preferences" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should show optimization progress" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should provide optimization recommendations" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should detect and resolve conflicts" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should predict staffing needs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should learn from historical data" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should compare multiple optimization strategies" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should export optimization report" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/05-calendar-integration.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="chromium" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Calendar Integration › should display calendar view" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should switch between calendar views" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should navigate between dates" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should display employee shifts on calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show shift details on click" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request shift swap" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request time off" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should sync with external calendars" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show availability overview" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should filter calendar by shift type" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should print calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show notifications for schedule changes" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should integrate with team calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T17:17:14.357Z" hostname="webkit" tests="1" failures="1" skipped="0" time="13.806" errors="0">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table" classname="employee-management/01-employee-crud.spec.ts" time="13.806">
+<failure message="01-employee-crud.spec.ts:181:9 02.01 Should display all employees in table" type="FAILURE">
+<![CDATA[  [webkit] › employee-management/01-employee-crud.spec.ts:181:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+       at helpers/employee-helpers.ts:33
+
+      31 |
+      32 |     // Wait for navigation to dashboard or employees page
+    > 33 |     await this.page.waitForURL(/\/(dashboard|employees)/, { timeout: 10000 });
+         |                     ^
+      34 |   }
+      35 |
+      36 |   async loginAsAdmin(): Promise<void> {
+        at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)
+        at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-webkit/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-webkit/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-webkit/error-context.md]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
-<testsuite name="tests/06-notifications.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="chromium" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Notification System › should display notification center" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show different notification types" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should receive real-time notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark notifications as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark all as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should delete notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should configure notification preferences" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle notification actions" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show notification history" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should support email notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle push notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should group similar notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T17:17:14.357Z" hostname="Mobile Chrome" tests="1" failures="1" skipped="0" time="12.428" errors="0">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table" classname="employee-management/01-employee-crud.spec.ts" time="12.428">
+<failure message="01-employee-crud.spec.ts:181:9 02.01 Should display all employees in table" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › employee-management/01-employee-crud.spec.ts:181:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+       at helpers/employee-helpers.ts:33
+
+      31 |
+      32 |     // Wait for navigation to dashboard or employees page
+    > 33 |     await this.page.waitForURL(/\/(dashboard|employees)/, { timeout: 10000 });
+         |                     ^
+      34 |   }
+      35 |
+      36 |   async loginAsAdmin(): Promise<void> {
+        at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)
+        at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
-<testsuite name="tests/01-authentication.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="firefox" tests="8" failures="0" skipped="8" time="0" errors="0">
-<testcase name="Authentication › should display login form" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should login with valid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should show error with invalid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should validate email format" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should require password" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should logout successfully" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should handle session timeout" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should support remember me option" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/02-rule-management.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="firefox" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Rule Management › should display rule creation interface" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add availability rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add preference rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add requirement rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle multiple rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should toggle rule active status" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should delete rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should validate rule syntax" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should show rule preview before adding" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle rule conflicts" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should search and filter rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should export rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should import rules from file" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/03-schedule-generation.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="firefox" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Schedule Generation › should display schedule generation interface" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should generate weekly schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should respect rules when generating schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle schedule conflicts" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should allow manual schedule adjustments" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should validate schedule completeness" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should calculate labor costs" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should export schedule to different formats" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should publish schedule to employees" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should show schedule history" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should copy from previous schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle recurring schedules" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/04-ai-optimization.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="firefox" tests="11" failures="0" skipped="11" time="0" errors="0">
-<testcase name="AI Schedule Optimization › should display AI optimization options" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should optimize for minimal labor costs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should balance employee workload" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should respect employee preferences" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should show optimization progress" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should provide optimization recommendations" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should detect and resolve conflicts" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should predict staffing needs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should learn from historical data" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should compare multiple optimization strategies" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should export optimization report" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/05-calendar-integration.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="firefox" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Calendar Integration › should display calendar view" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should switch between calendar views" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should navigate between dates" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should display employee shifts on calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show shift details on click" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request shift swap" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request time off" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should sync with external calendars" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show availability overview" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should filter calendar by shift type" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should print calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show notifications for schedule changes" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should integrate with team calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/06-notifications.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="firefox" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Notification System › should display notification center" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show different notification types" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should receive real-time notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark notifications as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark all as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should delete notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should configure notification preferences" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle notification actions" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show notification history" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should support email notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle push notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should group similar notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/01-authentication.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="webkit" tests="8" failures="0" skipped="8" time="0" errors="0">
-<testcase name="Authentication › should display login form" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should login with valid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should show error with invalid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should validate email format" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should require password" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should logout successfully" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should handle session timeout" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should support remember me option" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/02-rule-management.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="webkit" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Rule Management › should display rule creation interface" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add availability rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add preference rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add requirement rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle multiple rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should toggle rule active status" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should delete rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should validate rule syntax" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should show rule preview before adding" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle rule conflicts" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should search and filter rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should export rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should import rules from file" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/03-schedule-generation.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="webkit" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Schedule Generation › should display schedule generation interface" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should generate weekly schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should respect rules when generating schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle schedule conflicts" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should allow manual schedule adjustments" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should validate schedule completeness" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should calculate labor costs" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should export schedule to different formats" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should publish schedule to employees" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should show schedule history" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should copy from previous schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle recurring schedules" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/04-ai-optimization.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="webkit" tests="11" failures="0" skipped="11" time="0" errors="0">
-<testcase name="AI Schedule Optimization › should display AI optimization options" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should optimize for minimal labor costs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should balance employee workload" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should respect employee preferences" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should show optimization progress" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should provide optimization recommendations" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should detect and resolve conflicts" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should predict staffing needs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should learn from historical data" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should compare multiple optimization strategies" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should export optimization report" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/05-calendar-integration.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="webkit" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Calendar Integration › should display calendar view" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should switch between calendar views" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should navigate between dates" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should display employee shifts on calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show shift details on click" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request shift swap" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request time off" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should sync with external calendars" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show availability overview" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should filter calendar by shift type" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should print calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show notifications for schedule changes" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should integrate with team calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/06-notifications.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="webkit" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Notification System › should display notification center" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show different notification types" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should receive real-time notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark notifications as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark all as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should delete notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should configure notification preferences" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle notification actions" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show notification history" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should support email notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle push notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should group similar notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/01-authentication.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Chrome" tests="8" failures="0" skipped="8" time="0" errors="0">
-<testcase name="Authentication › should display login form" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should login with valid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should show error with invalid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should validate email format" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should require password" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should logout successfully" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should handle session timeout" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should support remember me option" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/02-rule-management.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Chrome" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Rule Management › should display rule creation interface" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add availability rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add preference rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add requirement rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle multiple rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should toggle rule active status" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should delete rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should validate rule syntax" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should show rule preview before adding" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle rule conflicts" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should search and filter rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should export rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should import rules from file" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/03-schedule-generation.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Chrome" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Schedule Generation › should display schedule generation interface" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should generate weekly schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should respect rules when generating schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle schedule conflicts" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should allow manual schedule adjustments" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should validate schedule completeness" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should calculate labor costs" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should export schedule to different formats" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should publish schedule to employees" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should show schedule history" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should copy from previous schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle recurring schedules" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/04-ai-optimization.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Chrome" tests="11" failures="0" skipped="11" time="0" errors="0">
-<testcase name="AI Schedule Optimization › should display AI optimization options" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should optimize for minimal labor costs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should balance employee workload" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should respect employee preferences" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should show optimization progress" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should provide optimization recommendations" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should detect and resolve conflicts" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should predict staffing needs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should learn from historical data" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should compare multiple optimization strategies" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should export optimization report" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/05-calendar-integration.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Chrome" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Calendar Integration › should display calendar view" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should switch between calendar views" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should navigate between dates" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should display employee shifts on calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show shift details on click" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request shift swap" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request time off" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should sync with external calendars" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show availability overview" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should filter calendar by shift type" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should print calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show notifications for schedule changes" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should integrate with team calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/06-notifications.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Chrome" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Notification System › should display notification center" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show different notification types" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should receive real-time notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark notifications as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark all as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should delete notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should configure notification preferences" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle notification actions" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show notification history" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should support email notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle push notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should group similar notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/01-authentication.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Safari" tests="8" failures="0" skipped="8" time="0" errors="0">
-<testcase name="Authentication › should display login form" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should login with valid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should show error with invalid credentials" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should validate email format" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should require password" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should logout successfully" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should handle session timeout" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Authentication › should support remember me option" classname="tests/01-authentication.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/02-rule-management.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Safari" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Rule Management › should display rule creation interface" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add availability rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add preference rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should parse and add requirement rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle multiple rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should toggle rule active status" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should delete rule" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should validate rule syntax" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should show rule preview before adding" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should handle rule conflicts" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should search and filter rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should export rules" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Rule Management › should import rules from file" classname="tests/02-rule-management.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/03-schedule-generation.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Safari" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Schedule Generation › should display schedule generation interface" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should generate weekly schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should respect rules when generating schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle schedule conflicts" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should allow manual schedule adjustments" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should validate schedule completeness" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should calculate labor costs" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should export schedule to different formats" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should publish schedule to employees" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should show schedule history" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should copy from previous schedule" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Schedule Generation › should handle recurring schedules" classname="tests/03-schedule-generation.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/04-ai-optimization.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Safari" tests="11" failures="0" skipped="11" time="0" errors="0">
-<testcase name="AI Schedule Optimization › should display AI optimization options" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should optimize for minimal labor costs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should balance employee workload" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should respect employee preferences" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should show optimization progress" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should provide optimization recommendations" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should detect and resolve conflicts" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should predict staffing needs" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should learn from historical data" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should compare multiple optimization strategies" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="AI Schedule Optimization › should export optimization report" classname="tests/04-ai-optimization.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/05-calendar-integration.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Safari" tests="13" failures="0" skipped="13" time="0" errors="0">
-<testcase name="Calendar Integration › should display calendar view" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should switch between calendar views" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should navigate between dates" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should display employee shifts on calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show shift details on click" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request shift swap" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should request time off" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should sync with external calendars" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show availability overview" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should filter calendar by shift type" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should print calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should show notifications for schedule changes" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Calendar Integration › should integrate with team calendar" classname="tests/05-calendar-integration.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-</testsuite>
-<testsuite name="tests/06-notifications.spec.ts" timestamp="2025-08-19T05:17:15.463Z" hostname="Mobile Safari" tests="12" failures="0" skipped="12" time="0" errors="0">
-<testcase name="Notification System › should display notification center" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show different notification types" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should receive real-time notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark notifications as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should mark all as read" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should delete notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should configure notification preferences" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle notification actions" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should show notification history" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should support email notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should handle push notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Notification System › should group similar notifications" classname="tests/06-notifications.spec.ts" time="0">
-<skipped>
-</skipped>
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-26T17:17:14.357Z" hostname="Mobile Safari" tests="1" failures="1" skipped="0" time="14.076" errors="0">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table" classname="employee-management/01-employee-crud.spec.ts" time="14.076">
+<failure message="01-employee-crud.spec.ts:181:9 02.01 Should display all employees in table" type="FAILURE">
+<![CDATA[  [Mobile Safari] › employee-management/01-employee-crud.spec.ts:181:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.01 Should display all employees in table 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+       at helpers/employee-helpers.ts:33
+
+      31 |
+      32 |     // Wait for navigation to dashboard or employees page
+    > 33 |     await this.page.waitForURL(/\/(dashboard|employees)/, { timeout: 10000 });
+         |                     ^
+      34 |   }
+      35 |
+      36 |   async loginAsAdmin(): Promise<void> {
+        at EmployeeTestHelpers.login (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:33:21)
+        at EmployeeTestHelpers.loginAsAdmin (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:37:5)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:177:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Safari/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Safari/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Safari/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Safari/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-a6e49-play-all-employees-in-table-Mobile-Safari/error-context.md]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>

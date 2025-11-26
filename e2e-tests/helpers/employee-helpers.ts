@@ -70,7 +70,8 @@ export class EmployeeTestHelpers {
 
   async openAddEmployeeDialog(): Promise<void> {
     await this.page.getByRole('button', { name: /add employee/i }).click();
-    await this.page.waitForSelector('[role="dialog"]', { state: 'visible' });
+    // Wait for the specific "Add New Employee" dialog to be visible
+    await this.page.getByRole('heading', { name: /add new employee/i }).waitFor({ state: 'visible' });
   }
 
   async fillEmployeeForm(data: {
@@ -116,14 +117,17 @@ export class EmployeeTestHelpers {
   }
 
   async submitEmployeeForm(): Promise<void> {
-    await this.page.getByRole('button', { name: /save|create|submit/i }).click();
-    // Wait for dialog to close
-    await this.page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 5000 });
+    const submitButton = this.page.getByRole('button', { name: /save|create|submit|add employee/i }).last();
+    await submitButton.click();
+    // Wait for the form to close by checking if submit button is gone
+    await submitButton.waitFor({ state: 'hidden', timeout: 10000 });
   }
 
   async cancelEmployeeForm(): Promise<void> {
-    await this.page.getByRole('button', { name: /cancel/i }).click();
-    await this.page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 5000 });
+    const cancelButton = this.page.getByRole('button', { name: /cancel/i }).last();
+    await cancelButton.click();
+    // Wait for cancel button to disappear
+    await cancelButton.waitFor({ state: 'hidden', timeout: 5000 });
   }
 
   async findEmployeeInList(email: string): Promise<boolean> {
@@ -143,7 +147,8 @@ export class EmployeeTestHelpers {
   async editEmployee(email: string): Promise<void> {
     await this.openEmployeeActionsMenu(email);
     await this.selectMenuAction('edit employee');
-    await this.page.waitForSelector('[role="dialog"]', { state: 'visible' });
+    // Wait for the edit dialog heading instead of generic dialog
+    await this.page.getByRole('heading', { name: /edit employee/i }).waitFor({ state: 'visible', timeout: 5000 });
   }
 
   async deleteEmployee(email: string): Promise<void> {
@@ -206,7 +211,7 @@ export class EmployeeTestHelpers {
   async openStatusDialog(email: string): Promise<void> {
     await this.openEmployeeActionsMenu(email);
     await this.selectMenuAction('manage status');
-    await this.page.waitForSelector('[role="dialog"]', { state: 'visible' });
+    await this.page.getByRole('heading', { name: /status|manage/i }).waitFor({ state: 'visible' });
   }
 
   async changeEmployeeStatus(status: 'active' | 'inactive' | 'locked'): Promise<void> {
@@ -221,7 +226,7 @@ export class EmployeeTestHelpers {
   async openResetPasswordDialog(email: string): Promise<void> {
     await this.openEmployeeActionsMenu(email);
     await this.selectMenuAction('reset password');
-    await this.page.waitForSelector('[role="dialog"]', { state: 'visible' });
+    await this.page.getByRole('heading', { name: /reset password/i }).waitFor({ state: 'visible' });
   }
 
   async resetPassword(temporaryPassword: string): Promise<void> {
@@ -232,7 +237,7 @@ export class EmployeeTestHelpers {
   async openChangePasswordDialog(email: string): Promise<void> {
     await this.openEmployeeActionsMenu(email);
     await this.selectMenuAction('change password');
-    await this.page.waitForSelector('[role="dialog"]', { state: 'visible' });
+    await this.page.getByRole('heading', { name: /change password/i }).waitFor({ state: 'visible' });
   }
 
   async changePassword(currentPassword: string, newPassword: string, confirmPassword: string): Promise<void> {
@@ -249,19 +254,19 @@ export class EmployeeTestHelpers {
   async openRoleHistory(email: string): Promise<void> {
     await this.openEmployeeActionsMenu(email);
     await this.selectMenuAction('role history');
-    await this.page.waitForSelector('[role="dialog"]', { state: 'visible' });
+    await this.page.getByRole('heading', { name: /role.*history/i }).waitFor({ state: 'visible' });
   }
 
   async openStatusHistory(email: string): Promise<void> {
     await this.openEmployeeActionsMenu(email);
     await this.selectMenuAction('status history');
-    await this.page.waitForSelector('[role="dialog"]', { state: 'visible' });
+    await this.page.getByRole('heading', { name: /status.*history/i }).waitFor({ state: 'visible' });
   }
 
   async openDepartmentHistory(email: string): Promise<void> {
     await this.openEmployeeActionsMenu(email);
     await this.selectMenuAction('department history');
-    await this.page.waitForSelector('[role="dialog"]', { state: 'visible' });
+    await this.page.getByRole('heading', { name: /department.*history/i }).waitFor({ state: 'visible' });
   }
 
   async expectHistoryRecordCount(count: number): Promise<void> {
