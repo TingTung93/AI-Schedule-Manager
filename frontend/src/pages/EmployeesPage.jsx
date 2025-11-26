@@ -119,8 +119,9 @@ const EmployeesPage = () => {
       setLoading(true);
       const response = await api.get('/api/employees');
       console.log('[EmployeesPage] API Response:', response.data);
-      // Backend returns array directly, not wrapped in { employees: [...] }
-      setEmployees(response.data || []);
+      // Backend now returns array directly (List[EmployeeResponse])
+      const employeesData = Array.isArray(response.data) ? response.data : [];
+      setEmployees(employeesData);
     } catch (error) {
       console.error('[EmployeesPage] Error loading employees:', error);
       setNotification({ type: 'error', message: getErrorMessage(error) });

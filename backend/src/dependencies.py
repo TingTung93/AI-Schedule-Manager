@@ -5,7 +5,7 @@ FastAPI dependencies for database sessions, authentication, and validation.
 import logging
 from typing import AsyncGenerator, Optional
 
-from fastapi import Depends, HTTPException, Header, status
+from fastapi import Depends, HTTPException, Header, Cookie, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,16 +40,19 @@ async def get_database_session() -> AsyncGenerator[AsyncSession, None]:
 
 async def get_current_user(
     authorization: Optional[str] = Header(None),
-    db: AsyncSession = Depends(get_database_session)
+    db: AsyncSession = Depends(get_database_session),
+    access_token: Optional[str] = Cookie(None)
 ) -> User:
     """
     Dependency to get current authenticated user from JWT token.
 
-    Validates JWT token from Authorization header and returns the authenticated user.
+    Validates JWT token from Authorization header or access_token cookie
+    and returns the authenticated user.
 
     Args:
         authorization: Authorization header with Bearer token
         db: Database session
+        access_token: JWT token from access_token cookie (automatic via FastAPI Cookie dependency)
 
     Returns:
         User: Authenticated user object
@@ -57,32 +60,23 @@ async def get_current_user(
     Raises:
         HTTPException: 401 if authentication fails, 403 if user is inactive
     """
-    # Check if Authorization header exists
-    if not authorization:
-        logger.warning("Missing Authorization header")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated. Authorization header required.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    token = None
 
-    # Verify Bearer token format
-    if not authorization.startswith("Bearer "):
-        logger.warning("Invalid Authorization header format")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials. Expected Bearer token.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # Try to get token from Authorization header first
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ", 1)[1]
 
-    # Extract token
-    token = authorization.split(" ", 1)[1]
+    # Fallback to cookie if no Authorization header
+    if not token and access_token:
+        token = access_token
+        logger.debug("Using token from access_token cookie")
 
+    # Check if we have a token from either source
     if not token:
-        logger.warning("Empty token in Authorization header")
+        logger.warning("Missing authentication - no Authorization header or cookie")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials. Token is empty.",
+            detail="Not authenticated. Authorization header or cookie required.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

@@ -356,7 +356,7 @@ async def update_user_role(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update role: {str(e)}")
 
 
-@router.get("", response_model=dict)
+@router.get("", response_model=List[EmployeeResponse])
 async def get_employees(
     search: Optional[str] = Query(None, description="Search by name or email"),
     role: Optional[str] = Query(None, description="Filter by role"),
@@ -387,11 +387,7 @@ async def get_employees(
     - **limit**: Maximum number of records to return (max 1000)
 
     Returns:
-        Dictionary with:
-        - employees: List of employee records
-        - total: Total count of matching records
-        - skip: Number of records skipped
-        - limit: Maximum records returned
+        List of employee records (Pydantic models will auto-serialize)
     """
     try:
         # Get current user's roles
@@ -427,11 +423,6 @@ async def get_employees(
         # Apply role filter (requires join with user_roles table)
         if role:
             query = query.join(User.roles).where(Role.name == role)
-
-        # Get total count before pagination
-        count_query = select(func.count()).select_from(query.subquery())
-        total_result = await db.execute(count_query)
-        total = total_result.scalar()
 
         # Apply sorting
         # Validate sort_by field to prevent SQL injection
@@ -474,7 +465,8 @@ async def get_employees(
             for user in users:
                 user.department = None
 
-        return {"employees": users, "total": total, "skip": skip, "limit": limit}
+        # Return the list of users - FastAPI + Pydantic will auto-serialize using EmployeeResponse
+        return users
 
     except Exception as e:
         import logging
