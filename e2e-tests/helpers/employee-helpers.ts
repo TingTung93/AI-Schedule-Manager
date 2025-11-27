@@ -137,6 +137,8 @@ export class EmployeeTestHelpers {
     // Only wait for dialog to close if expected (not for validation errors)
     if (waitForClose) {
       await dialog.waitFor({ state: 'hidden', timeout: 10000 });
+      // After dialog closes, wait for the employee list to refresh
+      await this.waitForCardsToRefresh();
     } else {
       // Small delay to allow form submission to process
       await this.page.waitForTimeout(500);
@@ -150,21 +152,36 @@ export class EmployeeTestHelpers {
     await cancelButton.waitFor({ state: 'hidden', timeout: 5000 });
   }
 
-  async findEmployeeInList(email: string): Promise<boolean> {
-    return await this.page.getByText(email).isVisible();
+  async findEmployeeInList(email: string, options?: { timeout?: number }): Promise<boolean> {
+    try {
+      // Wait for the card containing the email to be visible
+      const card = this.page.locator('[class*="MuiCard-root"]').filter({ hasText: email });
+      await card.waitFor({ state: 'visible', timeout: options?.timeout || 5000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async openEmployeeActionsMenu(email: string): Promise<void> {
     // Find the Card containing the employee email, then find the IconButton within it
     const card = this.page.locator('[class*="MuiCard-root"]').filter({ hasText: email });
+    // First wait for the card itself to be visible
+    await card.waitFor({ state: 'visible', timeout: 10000 });
+    // Then wait for the menu button within the card to be visible
     const menuButton = card.locator('button[class*="MuiIconButton"]').first();
-    await menuButton.waitFor({ state: 'visible', timeout: 5000 });
+    await menuButton.waitFor({ state: 'visible', timeout: 10000 });
     await menuButton.click();
     await this.page.waitForSelector('[role="menu"]', { state: 'visible', timeout: 5000 });
   }
 
   async selectMenuAction(action: string): Promise<void> {
-    await this.page.getByRole('menuitem', { name: new RegExp(action, 'i') }).click();
+    // Scope to the visible menu to avoid finding stale menu items
+    const menu = this.page.locator('[role="menu"]').first();
+    await menu.waitFor({ state: 'visible', timeout: 5000 });
+    const menuItem = menu.getByRole('menuitem', { name: new RegExp(action, 'i') });
+    await menuItem.waitFor({ state: 'visible', timeout: 5000 });
+    await menuItem.click();
   }
 
   async editEmployee(email: string): Promise<void> {
@@ -176,11 +193,14 @@ export class EmployeeTestHelpers {
 
   async deleteEmployee(email: string): Promise<void> {
     await this.openEmployeeActionsMenu(email);
-    await this.selectMenuAction('delete');
+    await this.selectMenuAction('delete employee');
 
-    // Confirm deletion
-    await this.page.getByRole('button', { name: /confirm|delete|yes/i }).click();
-    await this.page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 5000 });
+    // Note: Currently the UI deletes immediately without confirmation
+    // Wait for the menu to close and action to complete
+    await this.page.waitForSelector('[role="menu"]', { state: 'hidden', timeout: 5000 });
+
+    // Wait for the employee list to refresh after deletion
+    await this.waitForCardsToRefresh();
   }
 
   /**
@@ -197,11 +217,20 @@ export class EmployeeTestHelpers {
     await this.page.waitForSelector('[class*="MuiCard-root"]', { state: 'visible', timeout: 10000 });
 
     // Multi-select dropdown - click the Select input to open it
-    await this.page.getByLabel('Roles').click();
+    const rolesSelect = this.page.getByTestId('role-filter-select');
+    await rolesSelect.click();
 
-    // Wait for listbox and options to be visible
+    // Wait for listbox to be visible
     await this.page.waitForSelector('[role="listbox"]', { state: 'visible', timeout: 5000 });
-    await this.page.waitForSelector('[role="option"]', { state: 'visible', timeout: 5000 });
+
+    // Wait for at least one option to appear
+    // This ensures the roles have been populated from the employee list
+    const options = this.page.locator('[role="option"]');
+    const optionCount = await options.count();
+    
+    if (optionCount === 0) {
+      throw new Error(`No role options found. Roles dropdown may not be populated. Available roles: ${role}`);
+    }
 
     // MUI multi-select renders MenuItems with text content
     // Role is capitalized in the UI (e.g., "Admin" not "admin")
@@ -215,16 +244,26 @@ export class EmployeeTestHelpers {
     await this.page.waitForTimeout(300);
   }
 
+
   async filterByDepartment(department: string): Promise<void> {
     // Ensure employees have loaded (departments dropdown is populated from employee data)
     await this.page.waitForSelector('[class*="MuiCard-root"]', { state: 'visible', timeout: 10000 });
 
     // Multi-select dropdown - click the Select input to open it
-    await this.page.getByLabel('Departments').click();
+    const deptSelect = this.page.getByLabel('Departments');
+    await deptSelect.click();
 
-    // Wait for listbox and options to be visible
+    // Wait for listbox to be visible
     await this.page.waitForSelector('[role="listbox"]', { state: 'visible', timeout: 5000 });
-    await this.page.waitForSelector('[role="option"]', { state: 'visible', timeout: 5000 });
+
+    // Wait for at least one option to appear
+    // This ensures the departments have been populated from the employee list
+    const options = this.page.locator('[role="option"]');
+    const optionCount = await options.count();
+    
+    if (optionCount === 0) {
+      throw new Error(`No department options found. Departments dropdown may not be populated. Looking for: ${department}`);
+    }
 
     // Scope to option role to avoid finding text in employee cards
     await this.page.getByRole('option', { name: department }).click();
@@ -233,6 +272,7 @@ export class EmployeeTestHelpers {
     await this.page.keyboard.press('Escape');
     await this.page.waitForTimeout(300);
   }
+
 
   async filterByStatus(status: string): Promise<void> {
     await this.page.getByLabel(/filter.*status/i).click();
@@ -248,7 +288,10 @@ export class EmployeeTestHelpers {
    */
 
   async expectValidationError(message: string): Promise<void> {
-    await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
+    // Validation errors appear in MUI Snackbar Alert at top center
+    // Wait for the alert role element containing the validation message
+    const alert = this.page.getByRole('alert').filter({ hasText: new RegExp(message, 'i') });
+    await expect(alert).toBeVisible({ timeout: 5000 });
   }
 
   async expectSuccessMessage(message: string): Promise<void> {
@@ -256,7 +299,10 @@ export class EmployeeTestHelpers {
   }
 
   async expectErrorMessage(message: string): Promise<void> {
-    await expect(this.page.getByRole('alert')).toContainText(new RegExp(message, 'i'), { timeout: 5000 });
+    // Error messages appear in MUI Snackbar Alert at top center
+    // Wait for the alert role element containing the error message
+    const alert = this.page.getByRole('alert').filter({ hasText: new RegExp(message, 'i') });
+    await expect(alert).toBeVisible({ timeout: 10000 });
   }
 
   async expectEmployeeCount(count: number): Promise<void> {
@@ -339,9 +385,53 @@ export class EmployeeTestHelpers {
     await this.page.waitForTimeout(1000); // Wait for download
   }
 
+
+  /**
+   * Wait for filter options to be populated
+   * This ensures that after creating/loading employees, the filter dropdowns have data
+   */
+  async waitForRoleOptionsPopulated(expectedRoles?: string[]): Promise<void> {
+    // Click the role filter to open the dropdown
+    const rolesSelect = this.page.getByTestId('role-filter-select');
+    await rolesSelect.click();
+    
+    // Wait for listbox and options to be visible
+    await this.page.waitForSelector('[role="listbox"]', { state: 'visible', timeout: 10000 });
+    
+    // Wait for at least one option
+    let optionCount = 0;
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (optionCount === 0 && attempts < maxAttempts) {
+      optionCount = await this.page.locator('[role="option"]').count();
+      if (optionCount === 0) {
+        await this.page.waitForTimeout(100);
+        attempts++;
+      }
+    }
+    
+    if (optionCount === 0) {
+      throw new Error('Timeout waiting for role options to be populated. No employees with roles may have been created yet.');
+    }
+    
+    // If specific roles are expected, wait for them
+    if (expectedRoles && expectedRoles.length > 0) {
+      for (const role of expectedRoles) {
+        const capitalizedRole = role.charAt(0).toUpperCase() + role.slice(1);
+        await this.page.getByRole('option', { name: capitalizedRole }).waitFor({ state: 'visible', timeout: 5000 });
+      }
+    }
+    
+    // Close the dropdown
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(300);
+  }
+
   /**
    * Permission Testing Helpers
    */
+
 
   async expectElementVisible(selector: string): Promise<void> {
     await expect(this.page.locator(selector)).toBeVisible({ timeout: 5000 });
@@ -363,10 +453,19 @@ export class EmployeeTestHelpers {
    * Wait Helpers
    */
 
+  async waitForCardsToRefresh(): Promise<void> {
+    // Wait for network idle after a create/update operation
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 });
+    // Small additional delay to ensure React has re-rendered the cards
+    await this.page.waitForTimeout(500);
+  }
+
   async waitForTableLoad(): Promise<void> {
     // Note: EmployeesPage uses Card-based Grid layout, not tables
     // Wait for employee cards to load
     await this.page.waitForSelector('[class*="MuiCard-root"]', { timeout: 10000 });
+    // Also wait for network to be idle to ensure data is fully loaded
+    await this.page.waitForLoadState('networkidle', { timeout: 5000 });
   }
 
   async waitForDialogToClose(): Promise<void> {

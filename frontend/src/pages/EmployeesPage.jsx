@@ -532,6 +532,7 @@ const EmployeesPage = () => {
               <InputLabel id="role-filter-label">Roles</InputLabel>
               <Select
                 labelId="role-filter-label"
+                data-testid="role-filter-select"
                 multiple
                 value={selectedRoles}
                 onChange={handleRoleChange}

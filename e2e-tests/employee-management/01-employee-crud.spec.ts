@@ -263,6 +263,9 @@ test.describe('Employee CRUD Operations', () => {
       });
       await helpers.submitEmployeeForm(true);
 
+      // Wait for role options to be populated with the newly created roles
+      await helpers.waitForRoleOptionsPopulated(['manager', 'employee']);
+
       // Now filter by manager role
       await helpers.filterByRole('manager');
       await helpers.waitForTableLoad();
@@ -293,6 +296,9 @@ test.describe('Employee CRUD Operations', () => {
         role: 'employee'
       });
       await helpers.submitEmployeeForm(true);
+
+      // Wait for role options to be populated with the newly created roles
+      await helpers.waitForRoleOptionsPopulated(['manager', 'employee']);
 
       // Apply filters
       await helpers.searchEmployees('Filter');
