@@ -379,7 +379,7 @@ test.describe('Employee CRUD Operations', () => {
         firstName: 'Test',
         lastName: 'User',
         email: testEmail,
-        phone: '+1234567890'
+        phone: '(212) 555-0100'
       });
       await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
@@ -393,7 +393,7 @@ test.describe('Employee CRUD Operations', () => {
 
       // Edit employee
       await helpers.editEmployee(testEmail);
-      await helpers.fillEmployeeForm({ phone: '+0987654321' });
+      await helpers.fillEmployeeForm({ phone: '(212) 555-0199' });
       await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
       await helpers.expectSuccessMessage('employee updated successfully');
@@ -605,18 +605,13 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.expectElementHidden('button:has-text("Add Employee")');
     });
 
-    test('05.03 Regular employees should NOT be able to delete employees', async () => {
+    test('05.03 Regular employees should NOT be able to delete employees', async ({ page }) => {
       await helpers.loginAsEmployee();
       await helpers.navigateToEmployees();
 
-      // Wait for employee list to load
-      await helpers.waitForTableLoad();
-
-      // Open menu for admin user
-      await helpers.openEmployeeActionsMenu(testUsers.admin.email);
-
-      // Delete option should be hidden
-      await helpers.expectMenuItemHidden('delete');
+      // Employees don't have permission to access employee management page
+      // They should see "Access Denied" instead of the employee list
+      await expect(page.getByRole('heading', { name: /access denied/i })).toBeVisible({ timeout: 10000 });
     });
   });
 });

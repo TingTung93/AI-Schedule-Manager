@@ -379,6 +379,12 @@ class EmployeeService:
             await db.commit()
             await db.refresh(user)
 
+            # Load roles relationship for role property serialization
+            user_with_roles = await db.execute(
+                select(User).where(User.id == user.id).options(selectinload(User.roles))
+            )
+            user = user_with_roles.scalar_one()
+
             # Load department relationship
             if user.department_id:
                 from ..models.department import Department

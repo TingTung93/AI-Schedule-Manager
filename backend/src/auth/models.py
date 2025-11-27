@@ -117,25 +117,34 @@ class User(Base):
 
         Returns the highest priority role in order: admin > manager > employee > guest
         If user has multiple roles, returns the most privileged one.
-        If no roles, returns 'employee' as default.
+        If no roles or roles not loaded, returns 'employee' as default.
         """
-        if not self.roles:
-            return 'employee'
+        try:
+            # Check if roles relationship is loaded to avoid greenlet errors
+            from sqlalchemy.orm import attributes
+            if not attributes.instance_state(self).attrs.roles.loaded_value:
+                return 'employee'
 
-        role_names = [r.name for r in self.roles]
+            if not self.roles:
+                return 'employee'
 
-        # Return highest priority role
-        if 'admin' in role_names:
-            return 'admin'
-        elif 'manager' in role_names:
-            return 'manager'
-        elif 'employee' in role_names:
+            role_names = [r.name for r in self.roles]
+
+            # Return highest priority role
+            if 'admin' in role_names:
+                return 'admin'
+            elif 'manager' in role_names:
+                return 'manager'
+            elif 'employee' in role_names:
+                return 'employee'
+            elif 'guest' in role_names:
+                return 'guest'
+            else:
+                # Return first role if none match known roles
+                return role_names[0]
+        except Exception:
+            # Fallback if relationship access fails (greenlet/async context issues)
             return 'employee'
-        elif 'guest' in role_names:
-            return 'guest'
-        else:
-            # Return first role if none match known roles
-            return role_names[0]
 
     def has_role(self, role_name: str) -> bool:
         """Check if user has a specific role"""

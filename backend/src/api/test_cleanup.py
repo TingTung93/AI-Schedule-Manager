@@ -39,7 +39,16 @@ async def cleanup_test_data(session: AsyncSession = Depends(get_database_session
         raise HTTPException(status_code=403, detail="Test routes are disabled in production")
 
     try:
-        # Delete test users from users table
+        # First, delete from user_roles for test users (respects FK constraint)
+        result_roles = await session.execute(
+            text("""
+                DELETE FROM user_roles
+                WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%test.com')
+            """)
+        )
+        roles_deleted = result_roles.rowcount
+
+        # Then delete test users from users table
         result_users = await session.execute(
             text("DELETE FROM users WHERE email LIKE '%test.com'")
         )
@@ -53,10 +62,11 @@ async def cleanup_test_data(session: AsyncSession = Depends(get_database_session
 
         await session.commit()
 
-        logger.info(f"Test cleanup: Deleted {users_deleted} users and {employees_deleted} employees")
+        logger.info(f"Test cleanup: Deleted {roles_deleted} roles, {users_deleted} users and {employees_deleted} employees")
 
         return {
             "message": "Test data cleaned up successfully",
+            "roles_deleted": roles_deleted,
             "users_deleted": users_deleted,
             "employees_deleted": employees_deleted
         }
