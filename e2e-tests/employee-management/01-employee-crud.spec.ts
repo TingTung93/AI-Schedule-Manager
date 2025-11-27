@@ -370,7 +370,7 @@ test.describe('Employee CRUD Operations', () => {
       await expect(card).toContainText('Updated');
     });
 
-    test('03.03 Should update employee phone number', async () => {
+    test('03.03 Should update employee phone number', async ({ page }) => {
       const testEmail = 'update.phone@test.com';
 
       // Create employee
@@ -382,6 +382,10 @@ test.describe('Employee CRUD Operations', () => {
         phone: '+1234567890'
       });
       await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
+
+      // Debug: Check page state after create
+      console.log('After create - URL:', page.url());
+      console.log('After create - Cards found:', await page.locator('[class*="MuiCard-root"]').count());
 
       // Explicitly verify employee exists in list before trying to edit
       const exists = await helpers.findEmployeeInList(testEmail, { timeout: 10000 });

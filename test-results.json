@@ -171,7 +171,7 @@
               "specs": [
                 {
                   "title": "01.08 Should validate max hours per week (1-168)",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -184,58 +184,18 @@
                         {
                           "workerIndex": 0,
                           "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 8857,
-                          "error": {
-                            "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('alert').filter({ hasText: /max hours must be between 1 and 168/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('alert').filter({ hasText: /max hours must be between 1 and 168/i })\u001b[22m\n",
-                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('alert').filter({ hasText: /max hours must be between 1 and 168/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('alert').filter({ hasText: /max hours must be between 1 and 168/i })\u001b[22m\n\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:324:25)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:169:7",
-                            "location": {
-                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                              "column": 25,
-                              "line": 324
-                            },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:324\n\n  322 |     // Check for Snackbar alert\n  323 |     const alert = this.page.getByRole('alert').filter({ hasText: messageRegex });\n> 324 |     await expect(alert).toBeVisible({ timeout: 5000 });\n      |                         ^\n  325 |   }\n  326 |\n  327 |   async expectSuccessMessage(message: string): Promise<void> {"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                                "column": 25,
-                                "line": 324
-                              },
-                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('alert').filter({ hasText: /max hours must be between 1 and 168/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('alert').filter({ hasText: /max hours must be between 1 and 168/i })\u001b[22m\n\n\n   at helpers/employee-helpers.ts:324\n\n  322 |     // Check for Snackbar alert\n  323 |     const alert = this.page.getByRole('alert').filter({ hasText: messageRegex });\n> 324 |     await expect(alert).toBeVisible({ timeout: 5000 });\n      |                         ^\n  325 |   }\n  326 |\n  327 |   async expectSuccessMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:324:25)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:169:7"
-                            }
-                          ],
+                          "status": "passed",
+                          "duration": 3662,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-27T01:24:38.956Z",
+                          "startTime": "2025-11-27T01:27:39.398Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                            "column": 25,
-                            "line": 324
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "09b1f89aab42121cbbe4-d9f9dc4861dc89b4bc29",
@@ -252,11 +212,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-27T01:24:38.346Z",
-    "duration": 9587.699999999999,
-    "expected": 0,
+    "startTime": "2025-11-27T01:27:38.885Z",
+    "duration": 4322.9800000000005,
+    "expected": 1,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }
