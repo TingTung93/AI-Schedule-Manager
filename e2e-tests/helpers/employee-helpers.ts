@@ -200,7 +200,7 @@ export class EmployeeTestHelpers {
     await this.page.getByRole('heading', { name: /edit employee/i }).waitFor({ state: 'visible', timeout: 5000 });
   }
 
-  async deleteEmployee(email: string): Promise<void> {
+  async deleteEmployee(email: string, waitForSuccess: boolean = true): Promise<void> {
     await this.openEmployeeActionsMenu(email);
     await this.selectMenuAction('delete employee');
 
@@ -213,8 +213,17 @@ export class EmployeeTestHelpers {
     await confirmButton.click();
     await dialog.waitFor({ state: 'hidden', timeout: 5000 });
 
-    // Wait for the employee list to refresh after deletion
-    await this.waitForCardsToRefresh();
+    if (waitForSuccess) {
+      // Wait for success notification to appear first (before cards refresh)
+      // This ensures the test can verify the message before it auto-dismisses
+      await this.page.getByText(/deleted successfully/i).waitFor({ state: 'visible', timeout: 5000 });
+
+      // Wait for the employee list to refresh after deletion
+      await this.waitForCardsToRefresh();
+    } else {
+      // Small delay to allow any error messages to appear
+      await this.page.waitForTimeout(500);
+    }
   }
 
   /**

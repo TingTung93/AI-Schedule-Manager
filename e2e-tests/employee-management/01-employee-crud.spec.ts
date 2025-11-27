@@ -504,8 +504,9 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.navigateToEmployees();
     });
 
-    test('04.01 Should delete employee successfully', async () => {
-      const testEmail = 'delete.test@test.com';
+    test('04.01 Should delete employee successfully', async ({ page }) => {
+      // Use timestamp to ensure unique email
+      const testEmail = `delete.test.${Date.now()}@test.com`;
 
       // Create employee
       await helpers.openAddEmployeeDialog();
@@ -516,17 +517,26 @@ test.describe('Employee CRUD Operations', () => {
       });
       await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
+      // Wait for employee to be fully persisted before attempting deletion
+      await helpers.waitForTableLoad();
+      const exists = await helpers.findEmployeeInList(testEmail, { timeout: 10000 });
+      expect(exists).toBeTruthy();
+
+      // Additional wait to ensure backend has fully persisted the employee
+      await page.waitForTimeout(1000);
+
       // Delete employee
       await helpers.deleteEmployee(testEmail);
 
       // Verify deletion
       await helpers.expectSuccessMessage('employee deleted successfully');
-      const exists = await helpers.findEmployeeInList(testEmail);
-      expect(exists).toBeFalsy();
+      const stillExists = await helpers.findEmployeeInList(testEmail);
+      expect(stillExists).toBeFalsy();
     });
 
     test('04.02 Should require confirmation before deletion', async ({ page }) => {
-      const testEmail = 'confirm.delete@test.com';
+      // Use timestamp to ensure unique email
+      const testEmail = `confirm.delete.${Date.now()}@test.com`;
 
       // Create employee
       await helpers.openAddEmployeeDialog();
@@ -539,7 +549,7 @@ test.describe('Employee CRUD Operations', () => {
 
       // Open delete menu
       await helpers.openEmployeeActionsMenu(testEmail);
-      await helpers.selectMenuAction('delete');
+      await helpers.selectMenuAction('delete employee');
 
       // Should see confirmation dialog
       await expect(page.getByRole('dialog')).toBeVisible();
@@ -547,7 +557,8 @@ test.describe('Employee CRUD Operations', () => {
     });
 
     test('04.03 Should allow canceling deletion', async () => {
-      const testEmail = 'cancel.delete@test.com';
+      // Use timestamp to ensure unique email
+      const testEmail = `cancel.delete.${Date.now()}@test.com`;
 
       // Create employee
       await helpers.openAddEmployeeDialog();
@@ -560,7 +571,7 @@ test.describe('Employee CRUD Operations', () => {
 
       // Start delete but cancel
       await helpers.openEmployeeActionsMenu(testEmail);
-      await helpers.selectMenuAction('delete');
+      await helpers.selectMenuAction('delete employee');
       await helpers.cancelEmployeeForm();
 
       // Verify still exists

@@ -11,14 +11,15 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 1
+      "actualWorkers": 3
     },
     "preserveOutput": "always",
     "reporter": [
       [
         "html",
         {
-          "outputFolder": "playwright-report"
+          "outputFolder": "playwright-report",
+          "open": "never"
         }
       ],
       [
@@ -49,7 +50,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 3
         },
         "id": "API Tests",
         "name": "API Tests",
@@ -62,10 +63,10 @@
       },
       {
         "outputDir": "/home/peter/AI-Schedule-Manager/test-results",
-        "repeatEach": 1,
+        "repeatEach": 5,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 3
         },
         "id": "chromium",
         "name": "chromium",
@@ -81,7 +82,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 3
         },
         "id": "firefox",
         "name": "firefox",
@@ -97,7 +98,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 3
         },
         "id": "webkit",
         "name": "webkit",
@@ -113,7 +114,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 3
         },
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
@@ -129,7 +130,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 3
         },
         "id": "Mobile Safari",
         "name": "Mobile Safari",
@@ -185,12 +186,12 @@
                           "workerIndex": 0,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 11496,
+                          "duration": 12298,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-27T01:33:32.228Z",
+                          "startTime": "2025-11-27T03:14:03.820Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -199,6 +200,182 @@
                     }
                   ],
                   "id": "09b1f89aab42121cbbe4-05acb4a12480273dbf07",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 507,
+                  "column": 9
+                },
+                {
+                  "title": "04.01 Should delete employee successfully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 12308,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-27T03:14:03.819Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "09b1f89aab42121cbbe4-61124be6b4b55c7cbb48",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 507,
+                  "column": 9
+                },
+                {
+                  "title": "04.01 Should delete employee successfully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 12303,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-27T03:14:03.819Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "09b1f89aab42121cbbe4-beb90f0993f8be12a7ab",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 507,
+                  "column": 9
+                },
+                {
+                  "title": "04.01 Should delete employee successfully",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 12778,
+                          "error": {
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog') to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\":r12:\" class=\"MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation24 MuiDialog-paper MuiDialog-paperScrollPaper MuiDialog-paperWidthSm MuiDialog-paperFullWidth css-109yog5\">…</div>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog') to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\":r12:\" class=\"MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation24 MuiDialog-paper MuiDialog-paperScrollPaper MuiDialog-paperWidthSm MuiDialog-paperFullWidth css-109yog5\">…</div>\u001b[22m\n\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:144:20)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:518:7",
+                            "location": {
+                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                              "column": 20,
+                              "line": 144
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:144\n\n  142 |     // Only wait for dialog to close if expected (not for validation errors)\n  143 |     if (waitForClose) {\n> 144 |       await dialog.waitFor({ state: 'hidden', timeout: 10000 });\n      |                    ^\n  145 |       // After dialog closes, wait for the employee list to refresh\n  146 |       await this.waitForCardsToRefresh();\n  147 |     } else {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                                "column": 20,
+                                "line": 144
+                              },
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog') to be hidden\u001b[22m\n\u001b[2m    25 × locator resolved to visible <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\":r12:\" class=\"MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation24 MuiDialog-paper MuiDialog-paperScrollPaper MuiDialog-paperWidthSm MuiDialog-paperFullWidth css-109yog5\">…</div>\u001b[22m\n\n\n   at helpers/employee-helpers.ts:144\n\n  142 |     // Only wait for dialog to close if expected (not for validation errors)\n  143 |     if (waitForClose) {\n> 144 |       await dialog.waitFor({ state: 'hidden', timeout: 10000 });\n      |                    ^\n  145 |       // After dialog closes, wait for the employee list to refresh\n  146 |       await this.waitForCardsToRefresh();\n  147 |     } else {\n    at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:144:20)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:518:7"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-27T03:14:16.570Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium-repeat3/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium-repeat3/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium-repeat3/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
+                            "column": 20,
+                            "line": 144
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "09b1f89aab42121cbbe4-11ad879f13ee75db9d8d",
+                  "file": "employee-management/01-employee-crud.spec.ts",
+                  "line": 507,
+                  "column": 9
+                },
+                {
+                  "title": "04.01 Should delete employee successfully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 11440,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-11-27T03:14:16.573Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "09b1f89aab42121cbbe4-e44df29a1209e391a26d",
                   "file": "employee-management/01-employee-crud.spec.ts",
                   "line": 507,
                   "column": 9
@@ -212,11 +389,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-27T01:33:31.737Z",
-    "duration": 12423.612,
-    "expected": 1,
+    "startTime": "2025-11-27T03:14:03.372Z",
+    "duration": 26118.213,
+    "expected": 4,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 1,
     "flaky": 0
   }
 }

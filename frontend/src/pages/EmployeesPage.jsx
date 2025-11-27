@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 // import VirtualList from '../components/performance/VirtualList'; // For 1000+ employee lists
 import {
@@ -440,8 +440,19 @@ const EmployeesPage = () => {
   };
 
   // Get unique departments and roles for filters
-  const departments = [...new Set(employees.map(emp => emp.department?.name || emp.department).filter(Boolean))];
-  const roles = [...new Set(employees.map(emp => emp.role).filter(Boolean))];
+  // Memoize to ensure filters update when employees change
+  const departments = useMemo(() => {
+    const depts = [...new Set(employees.map(emp => emp.department?.name || emp.department).filter(Boolean))];
+    console.log('[EmployeesPage] Departments computed:', depts, 'from', employees.length, 'employees');
+    return depts;
+  }, [employees]);
+
+  const roles = useMemo(() => {
+    const rolesList = [...new Set(employees.map(emp => emp.role).filter(Boolean))];
+    console.log('[EmployeesPage] Roles computed:', rolesList, 'from', employees.length, 'employees');
+    console.log('[EmployeesPage] Employee roles:', employees.map(emp => emp.role));
+    return rolesList;
+  }, [employees]);
 
   // Apply filters to employees
   let filteredEmployees = filterEmployees(employees, searchTerm, selectedDepartments, selectedRoles);
