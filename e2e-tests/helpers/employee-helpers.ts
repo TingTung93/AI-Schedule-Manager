@@ -193,18 +193,22 @@ export class EmployeeTestHelpers {
   }
 
   async filterByRole(role: string): Promise<void> {
+    // Ensure employees have loaded (roles dropdown is populated from employee data)
+    await this.page.waitForSelector('[class*="MuiCard-root"]', { state: 'visible', timeout: 10000 });
+
     // Multi-select dropdown - click the Select input to open it
     await this.page.getByLabel('Roles').click();
 
-    // Wait for the dropdown menu to appear
-    await this.page.waitForTimeout(500);
+    // Wait for listbox and options to be visible
+    await this.page.waitForSelector('[role="listbox"]', { state: 'visible', timeout: 5000 });
+    await this.page.waitForSelector('[role="option"]', { state: 'visible', timeout: 5000 });
 
     // MUI multi-select renders MenuItems with text content
     // Role is capitalized in the UI (e.g., "Admin" not "admin")
     const capitalizedRole = role.charAt(0).toUpperCase() + role.slice(1);
 
-    // Click the menu item by its text content
-    await this.page.getByText(capitalizedRole, { exact: true }).click();
+    // Scope to option role to avoid finding text in employee cards
+    await this.page.getByRole('option', { name: capitalizedRole }).click();
 
     // Close the dropdown by pressing Escape
     await this.page.keyboard.press('Escape');
@@ -212,15 +216,18 @@ export class EmployeeTestHelpers {
   }
 
   async filterByDepartment(department: string): Promise<void> {
+    // Ensure employees have loaded (departments dropdown is populated from employee data)
+    await this.page.waitForSelector('[class*="MuiCard-root"]', { state: 'visible', timeout: 10000 });
+
     // Multi-select dropdown - click the Select input to open it
     await this.page.getByLabel('Departments').click();
 
-    // Wait for the dropdown menu to appear
-    await this.page.waitForTimeout(500);
+    // Wait for listbox and options to be visible
+    await this.page.waitForSelector('[role="listbox"]', { state: 'visible', timeout: 5000 });
+    await this.page.waitForSelector('[role="option"]', { state: 'visible', timeout: 5000 });
 
-    // MUI multi-select renders MenuItems with text content
-    // Click the menu item by its text content
-    await this.page.getByText(department, { exact: true }).click();
+    // Scope to option role to avoid finding text in employee cards
+    await this.page.getByRole('option', { name: department }).click();
 
     // Close the dropdown by pressing Escape
     await this.page.keyboard.press('Escape');

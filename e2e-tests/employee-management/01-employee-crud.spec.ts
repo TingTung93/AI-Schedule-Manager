@@ -244,21 +244,70 @@ test.describe('Employee CRUD Operations', () => {
     });
 
     test('02.06 Should filter employees by role', async () => {
-      await helpers.filterByRole('admin');
+      // Create test employees with specific roles first
+      await helpers.openAddEmployeeDialog();
+      await helpers.fillEmployeeForm({
+        firstName: 'Test',
+        lastName: 'Manager',
+        email: 'test.manager@test.com',
+        role: 'manager'
+      });
+      await helpers.submitEmployeeForm(true);
+
+      await helpers.openAddEmployeeDialog();
+      await helpers.fillEmployeeForm({
+        firstName: 'Test',
+        lastName: 'Employee',
+        email: 'test.employee@test.com',
+        role: 'employee'
+      });
+      await helpers.submitEmployeeForm(true);
+
+      // Now filter by manager role
+      await helpers.filterByRole('manager');
       await helpers.waitForTableLoad();
 
-      const exists = await helpers.findEmployeeInList(testUsers.admin.email);
-      expect(exists).toBeTruthy();
+      const managerExists = await helpers.findEmployeeInList('test.manager@test.com');
+      const employeeExists = await helpers.findEmployeeInList('test.employee@test.com');
+
+      expect(managerExists).toBeTruthy();
+      expect(employeeExists).toBeFalsy(); // Should be filtered out
     });
 
     test('02.07 Should clear all filters', async () => {
-      await helpers.searchEmployees('Admin');
-      await helpers.filterByRole('admin');
+      // Create test employees
+      await helpers.openAddEmployeeDialog();
+      await helpers.fillEmployeeForm({
+        firstName: 'Filter',
+        lastName: 'Test1',
+        email: 'filter.test1@test.com',
+        role: 'manager'
+      });
+      await helpers.submitEmployeeForm(true);
+
+      await helpers.openAddEmployeeDialog();
+      await helpers.fillEmployeeForm({
+        firstName: 'Filter',
+        lastName: 'Test2',
+        email: 'filter.test2@test.com',
+        role: 'employee'
+      });
+      await helpers.submitEmployeeForm(true);
+
+      // Apply filters
+      await helpers.searchEmployees('Filter');
+      await helpers.filterByRole('manager');
+      await helpers.waitForTableLoad();
+
+      // Clear filters and verify all employees visible again
       await helpers.clearFilters();
       await helpers.waitForTableLoad();
 
-      // Should see more employees after clearing filters
-      await helpers.expectEmployeeCount(3); // At least admin, manager, employee
+      const test1Exists = await helpers.findEmployeeInList('filter.test1@test.com');
+      const test2Exists = await helpers.findEmployeeInList('filter.test2@test.com');
+
+      expect(test1Exists).toBeTruthy();
+      expect(test2Exists).toBeTruthy();
     });
   });
 
