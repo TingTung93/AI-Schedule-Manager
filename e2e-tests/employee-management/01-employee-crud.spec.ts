@@ -277,13 +277,13 @@ test.describe('Employee CRUD Operations', () => {
       expect(employeeExists).toBeFalsy(); // Should be filtered out
     });
 
-    test('02.07 Should clear all filters', async () => {
+    test('02.07 Should clear all filters', async ({ page }) => {
       // Create test employees
       await helpers.openAddEmployeeDialog();
       await helpers.fillEmployeeForm({
         firstName: 'Filter',
-        lastName: 'Test1',
-        email: 'filter.test1@test.com',
+        lastName: 'TestOne',
+        email: 'filter.testone@test.com',
         role: 'manager'
       });
       await helpers.submitEmployeeForm(true);
@@ -291,8 +291,8 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.openAddEmployeeDialog();
       await helpers.fillEmployeeForm({
         firstName: 'Filter',
-        lastName: 'Test2',
-        email: 'filter.test2@test.com',
+        lastName: 'TestTwo',
+        email: 'filter.testtwo@test.com',
         role: 'employee'
       });
       await helpers.submitEmployeeForm(true);
@@ -305,12 +305,15 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.filterByRole('manager');
       await helpers.waitForTableLoad();
 
+      // Verify filter is applied - only manager role employees should show
+      await expect(page.getByTestId('clear-filters-button')).toBeVisible({ timeout: 5000 });
+
       // Clear filters and verify all employees visible again
       await helpers.clearFilters();
       await helpers.waitForTableLoad();
 
-      const test1Exists = await helpers.findEmployeeInList('filter.test1@test.com');
-      const test2Exists = await helpers.findEmployeeInList('filter.test2@test.com');
+      const test1Exists = await helpers.findEmployeeInList('filter.testone@test.com');
+      const test2Exists = await helpers.findEmployeeInList('filter.testtwo@test.com');
 
       expect(test1Exists).toBeTruthy();
       expect(test2Exists).toBeTruthy();

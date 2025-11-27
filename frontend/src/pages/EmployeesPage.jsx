@@ -52,7 +52,8 @@ import {
   Schedule,
   History,
   Timeline,
-  Assessment
+  Assessment,
+  FilterListOff
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { ROLES } from '../utils/routeConfig';
@@ -469,6 +470,16 @@ const EmployeesPage = () => {
     setSearchTerm(term);
   };
 
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setSelectedDepartments([]);
+    setSelectedRoles([]);
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = searchTerm || statusFilter !== 'all' || selectedDepartments.length > 0 || selectedRoles.length > 0;
+
   const handleDepartmentChange = (event) => {
     const {
       target: { value }
@@ -594,6 +605,20 @@ const EmployeesPage = () => {
                 ))}
               </Select>
             </FormControl>
+          </Grid>
+          <Grid item xs={12} sm="auto">
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<FilterListOff />}
+              onClick={clearAllFilters}
+              size="small"
+              data-testid="clear-filters-button"
+              disabled={!hasActiveFilters}
+              sx={{ height: '40px', visibility: hasActiveFilters ? 'visible' : 'hidden' }}
+            >
+              Clear Filters
+            </Button>
           </Grid>
         </Grid>
       </Box>

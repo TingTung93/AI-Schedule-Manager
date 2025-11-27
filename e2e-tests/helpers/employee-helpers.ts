@@ -303,7 +303,18 @@ export class EmployeeTestHelpers {
   }
 
   async clearFilters(): Promise<void> {
-    await this.page.getByRole('button', { name: /clear filters/i }).click();
+    // Wait for the Clear Filters button to be visible (only shows when filters are active)
+    const clearBtn = this.page.getByTestId('clear-filters-button');
+
+    // First verify the button exists and is visible (filters are active)
+    try {
+      await clearBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await clearBtn.click();
+    } catch {
+      // If button not visible, filters may not be active - try clicking by role as fallback
+      const fallbackBtn = this.page.getByRole('button', { name: /clear filters/i });
+      await fallbackBtn.click({ timeout: 5000 });
+    }
   }
 
   /**
