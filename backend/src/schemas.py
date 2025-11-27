@@ -362,7 +362,7 @@ class EmployeeUpdate(BaseModel):
     department_id: Optional[int] = Field(None, gt=0, description="Department ID for employee assignment")
     active: Optional[bool] = None
 
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='ignore')
 
     @field_validator('department_id', 'phone', 'hire_date', 'hourly_rate', 'max_hours_per_week', mode='before')
     @classmethod

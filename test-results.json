@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 2
+      "actualWorkers": 1
     },
     "preserveOutput": "always",
     "reporter": [
@@ -49,7 +49,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "API Tests",
         "name": "API Tests",
@@ -65,7 +65,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "chromium",
         "name": "chromium",
@@ -81,7 +81,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "firefox",
         "name": "firefox",
@@ -97,7 +97,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "webkit",
         "name": "webkit",
@@ -113,7 +113,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
@@ -129,7 +129,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "Mobile Safari",
         "name": "Mobile Safari",
@@ -171,7 +171,7 @@
               "specs": [
                 {
                   "title": "03.01 Should update employee first name",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -184,137 +184,23 @@
                         {
                           "workerIndex": 0,
                           "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 9314,
-                          "error": {
-                            "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee updated successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee updated successfully/i)\u001b[22m\n",
-                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee updated successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee updated successfully/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:248:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:290:21",
-                            "location": {
-                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                              "column": 65,
-                              "line": 248
-                            },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:248\n\n  246 |\n  247 |   async expectSuccessMessage(message: string): Promise<void> {\n> 248 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  249 |   }\n  250 |\n  251 |   async expectErrorMessage(message: string): Promise<void> {"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                                "column": 65,
-                                "line": 248
-                              },
-                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee updated successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee updated successfully/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:248\n\n  246 |\n  247 |   async expectSuccessMessage(message: string): Promise<void> {\n> 248 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  249 |   }\n  250 |\n  251 |   async expectErrorMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:248:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:290:21"
-                            }
-                          ],
+                          "status": "passed",
+                          "duration": 5784,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-11-26T23:43:34.664Z",
+                          "startTime": "2025-11-27T00:22:32.402Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-c9631--update-employee-first-name-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-c9631--update-employee-first-name-chromium/video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-c9631--update-employee-first-name-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                            "column": 65,
-                            "line": 248
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "09b1f89aab42121cbbe4-8472ae297a78488d8a20",
                   "file": "employee-management/01-employee-crud.spec.ts",
                   "line": 272,
-                  "column": 9
-                },
-                {
-                  "title": "03.02 Should update employee last name",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 30000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "chromium",
-                      "projectName": "chromium",
-                      "results": [
-                        {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
-                          "status": "failed",
-                          "duration": 9281,
-                          "error": {
-                            "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee updated successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee updated successfully/i)\u001b[22m\n",
-                            "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee updated successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee updated successfully/i)\u001b[22m\n\n    at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:248:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:313:21",
-                            "location": {
-                              "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                              "column": 65,
-                              "line": 248
-                            },
-                            "snippet": "\u001b[90m   at \u001b[39mhelpers/employee-helpers.ts:248\n\n  246 |\n  247 |   async expectSuccessMessage(message: string): Promise<void> {\n> 248 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  249 |   }\n  250 |\n  251 |   async expectErrorMessage(message: string): Promise<void> {"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                                "column": 65,
-                                "line": 248
-                              },
-                              "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByText(/employee updated successfully/i)\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/employee updated successfully/i)\u001b[22m\n\n\n   at helpers/employee-helpers.ts:248\n\n  246 |\n  247 |   async expectSuccessMessage(message: string): Promise<void> {\n> 248 |     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });\n      |                                                                 ^\n  249 |   }\n  250 |\n  251 |   async expectErrorMessage(message: string): Promise<void> {\n    at EmployeeTestHelpers.expectSuccessMessage (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:248:65)\n    at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:313:21"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-11-26T23:43:34.662Z",
-                          "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a4cd5-d-update-employee-last-name-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a4cd5-d-update-employee-last-name-chromium/video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/home/peter/AI-Schedule-Manager/test-results/employee-management-01-emp-a4cd5-d-update-employee-last-name-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts",
-                            "column": 65,
-                            "line": 248
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "09b1f89aab42121cbbe4-419a4e9610a7b04cb917",
-                  "file": "employee-management/01-employee-crud.spec.ts",
-                  "line": 295,
                   "column": 9
                 }
               ]
@@ -326,11 +212,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-26T23:43:34.321Z",
-    "duration": 9773.466,
-    "expected": 0,
+    "startTime": "2025-11-27T00:22:31.813Z",
+    "duration": 6557.597000000001,
+    "expected": 1,
     "skipped": 0,
-    "unexpected": 2,
+    "unexpected": 0,
     "flaky": 0
   }
 }
