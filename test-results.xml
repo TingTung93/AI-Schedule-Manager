@@ -1,6 +1,51 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="6.557597">
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T00:22:31.838Z" hostname="chromium" tests="1" failures="0" skipped="0" time="5.784" errors="0">
-<testcase name="Employee CRUD Operations › 03. Employee Updating (Update) › 03.01 Should update employee first name" classname="employee-management/01-employee-crud.spec.ts" time="5.784">
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="9.587699999999998">
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T01:24:38.496Z" hostname="chromium" tests="1" failures="1" skipped="0" time="8.857" errors="0">
+<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.08 Should validate max hours per week (1-168)" classname="employee-management/01-employee-crud.spec.ts" time="8.857">
+<failure message="01-employee-crud.spec.ts:159:9 01.08 Should validate max hours per week (1-168)" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:159:9 › Employee CRUD Operations › 01. Employee Creation (Create) › 01.08 Should validate max hours per week (1-168) 
+
+    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+
+    Locator: getByRole('alert').filter({ hasText: /max hours must be between 1 and 168/i })
+    Expected: visible
+    Received: <element(s) not found>
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('alert').filter({ hasText: /max hours must be between 1 and 168/i })
+
+
+       at helpers/employee-helpers.ts:324
+
+      322 |     // Check for Snackbar alert
+      323 |     const alert = this.page.getByRole('alert').filter({ hasText: messageRegex });
+    > 324 |     await expect(alert).toBeVisible({ timeout: 5000 });
+          |                         ^
+      325 |   }
+      326 |
+      327 |   async expectSuccessMessage(message: string): Promise<void> {
+        at EmployeeTestHelpers.expectValidationError (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:324:25)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:169:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/video.webm]]
+
+[[ATTACHMENT|test-results/employee-management-01-emp-9f552-e-max-hours-per-week-1-168--chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>

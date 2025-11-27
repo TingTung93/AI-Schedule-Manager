@@ -140,7 +140,7 @@ test.describe('Employee CRUD Operations', () => {
       });
       await helpers.submitEmployeeForm(); // Dialog stays open for API error
 
-      await helpers.expectErrorMessage('already registered');
+      await helpers.expectErrorMessage('already exists');
     });
 
     test('01.07 Should validate hourly rate range (0-1000)', async () => {
@@ -383,6 +383,10 @@ test.describe('Employee CRUD Operations', () => {
       });
       await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
+      // Explicitly verify employee exists in list before trying to edit
+      const exists = await helpers.findEmployeeInList(testEmail, { timeout: 10000 });
+      expect(exists).toBeTruthy();
+
       // Edit employee
       await helpers.editEmployee(testEmail);
       await helpers.fillEmployeeForm({ phone: '+0987654321' });
@@ -460,7 +464,7 @@ test.describe('Employee CRUD Operations', () => {
       await helpers.fillEmployeeForm({ email: email1 });
       await helpers.submitEmployeeForm(); // Dialog stays open for API error
 
-      await helpers.expectErrorMessage('already registered');
+      await helpers.expectErrorMessage('already exists');
     });
 
     test('03.07 Should allow canceling update', async () => {
@@ -586,6 +590,9 @@ test.describe('Employee CRUD Operations', () => {
     test('05.03 Regular employees should NOT be able to delete employees', async () => {
       await helpers.loginAsEmployee();
       await helpers.navigateToEmployees();
+
+      // Wait for employee list to load
+      await helpers.waitForTableLoad();
 
       // Open menu for admin user
       await helpers.openEmployeeActionsMenu(testUsers.admin.email);

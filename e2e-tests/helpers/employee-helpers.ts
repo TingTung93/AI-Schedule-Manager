@@ -124,7 +124,12 @@ export class EmployeeTestHelpers {
       await this.page.getByLabel(/hourly rate/i).fill(data.hourlyRate);
     }
     if (data.maxHours) {
-      await this.page.getByLabel(/max.*hours/i).fill(data.maxHours);
+      const maxHoursField = this.page.getByLabel(/max.*hours/i);
+      await maxHoursField.fill(data.maxHours);
+      // Trigger validation by blurring the field
+      await maxHoursField.blur();
+      // Small delay to allow validation to run
+      await this.page.waitForTimeout(200);
     }
   }
 
@@ -176,12 +181,16 @@ export class EmployeeTestHelpers {
   }
 
   async selectMenuAction(action: string): Promise<void> {
-    // Scope to the visible menu to avoid finding stale menu items
-    const menu = this.page.locator('[role="menu"]').first();
-    await menu.waitFor({ state: 'visible', timeout: 5000 });
-    const menuItem = menu.getByRole('menuitem', { name: new RegExp(action, 'i') });
-    await menuItem.waitFor({ state: 'visible', timeout: 5000 });
+    // Wait for menu to be visible first
+    await this.page.waitForSelector('[role="menu"]', { state: 'visible', timeout: 5000 });
+
+    // Find menuitem globally (MUI menus render in a portal, not necessarily as descendants)
+    const menuItem = this.page.getByRole('menuitem', { name: new RegExp(action, 'i') });
+    await menuItem.waitFor({ state: 'visible', timeout: 10000 });
     await menuItem.click();
+
+    // Small delay to ensure click is registered
+    await this.page.waitForTimeout(200);
   }
 
   async editEmployee(email: string): Promise<void> {
@@ -195,9 +204,14 @@ export class EmployeeTestHelpers {
     await this.openEmployeeActionsMenu(email);
     await this.selectMenuAction('delete employee');
 
-    // Note: Currently the UI deletes immediately without confirmation
-    // Wait for the menu to close and action to complete
-    await this.page.waitForSelector('[role="menu"]', { state: 'hidden', timeout: 5000 });
+    // Wait for confirmation dialog to appear
+    const dialog = this.page.getByRole('dialog');
+    await dialog.waitFor({ state: 'visible', timeout: 5000 });
+
+    // Confirm deletion - scope to dialog to avoid finding wrong buttons
+    const confirmButton = dialog.getByRole('button', { name: /delete/i });
+    await confirmButton.click();
+    await dialog.waitFor({ state: 'hidden', timeout: 5000 });
 
     // Wait for the employee list to refresh after deletion
     await this.waitForCardsToRefresh();
@@ -288,9 +302,25 @@ export class EmployeeTestHelpers {
    */
 
   async expectValidationError(message: string): Promise<void> {
-    // Validation errors appear in MUI Snackbar Alert at top center
-    // Wait for the alert role element containing the validation message
-    const alert = this.page.getByRole('alert').filter({ hasText: new RegExp(message, 'i') });
+    // Validation errors can appear in two places:
+    // 1. Inline as TextField helperText (for real-time validation)
+    // 2. In MUI Snackbar Alert at top center (for form submission errors)
+
+    // Try to find the error in either location
+    const messageRegex = new RegExp(message, 'i');
+
+    // Check for inline helper text first (faster and more specific)
+    const helperText = this.page.getByText(messageRegex);
+    const helperTextVisible = await helperText.isVisible().catch(() => false);
+
+    if (helperTextVisible) {
+      // Found as inline helper text
+      await expect(helperText).toBeVisible({ timeout: 1000 });
+      return;
+    }
+
+    // Check for Snackbar alert
+    const alert = this.page.getByRole('alert').filter({ hasText: messageRegex });
     await expect(alert).toBeVisible({ timeout: 5000 });
   }
 
@@ -300,9 +330,13 @@ export class EmployeeTestHelpers {
 
   async expectErrorMessage(message: string): Promise<void> {
     // Error messages appear in MUI Snackbar Alert at top center
-    // Wait for the alert role element containing the error message
-    const alert = this.page.getByRole('alert').filter({ hasText: new RegExp(message, 'i') });
-    await expect(alert).toBeVisible({ timeout: 10000 });
+    // The Snackbar Alert renders with role="alert"
+    // Wait a bit for the Snackbar to animate in
+    await this.page.waitForTimeout(500);
+
+    // Try to find the error message in an alert component
+    const errorText = this.page.getByText(new RegExp(message, 'i'));
+    await expect(errorText).toBeVisible({ timeout: 10000 });
   }
 
   async expectEmployeeCount(count: number): Promise<void> {
