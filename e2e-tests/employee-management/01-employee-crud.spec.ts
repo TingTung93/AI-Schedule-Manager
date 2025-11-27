@@ -140,7 +140,7 @@ test.describe('Employee CRUD Operations', () => {
       });
       await helpers.submitEmployeeForm(); // Dialog stays open for API error
 
-      await helpers.expectErrorMessage('already exists');
+      await helpers.expectErrorMessage('already registered');
     });
 
     test('01.07 Should validate hourly rate range (0-1000)', async () => {
@@ -463,12 +463,15 @@ test.describe('Employee CRUD Operations', () => {
       });
       await helpers.submitEmployeeForm(true); // Wait for dialog to close on success
 
+      // Wait for the employee to appear in the list before trying to edit
+      await helpers.waitForTableLoad();
+
       // Try to change second email to first
       await helpers.editEmployee(email2);
       await helpers.fillEmployeeForm({ email: email1 });
       await helpers.submitEmployeeForm(); // Dialog stays open for API error
 
-      await helpers.expectErrorMessage('already exists');
+      await helpers.expectErrorMessage('already registered');
     });
 
     test('03.07 Should allow canceling update', async () => {

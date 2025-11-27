@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="4.32298">
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T01:27:38.913Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.662" errors="0">
-<testcase name="Employee CRUD Operations › 01. Employee Creation (Create) › 01.08 Should validate max hours per week (1-168)" classname="employee-management/01-employee-crud.spec.ts" time="3.662">
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="12.423611999999999">
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T01:33:31.761Z" hostname="chromium" tests="1" failures="0" skipped="0" time="11.496" errors="0">
+<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully" classname="employee-management/01-employee-crud.spec.ts" time="11.496">
 </testcase>
 </testsuite>
 </testsuites>

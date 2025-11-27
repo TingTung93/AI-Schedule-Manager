@@ -775,7 +775,7 @@ const EmployeesPage = () => {
         </MenuItem>
 
         {/* Admin-Only Actions */}
-        {user?.role === 'admin' && (
+        {user?.roles?.includes('admin') && (
           <>
             <MenuItem onClick={() => handleManageStatus(selectedEmployee)}>
               <ManageAccounts fontSize="small" sx={{ mr: 1 }} />
@@ -789,7 +789,7 @@ const EmployeesPage = () => {
         )}
 
         {/* Self or Admin */}
-        {(user?.role === 'admin' || selectedEmployee?.id === user?.id) && (
+        {(user?.roles?.includes('admin') || selectedEmployee?.id === user?.id) && (
           <MenuItem onClick={() => handleChangePassword(selectedEmployee)}>
             <VpnKey fontSize="small" sx={{ mr: 1 }} />
             Change Password
@@ -815,7 +815,7 @@ const EmployeesPage = () => {
         <Divider />
 
         {/* Destructive Action */}
-        {user?.role === 'admin' && (
+        {user?.roles?.includes('admin') && (
           <MenuItem onClick={handleDeleteEmployee} sx={{ color: 'error.main' }}>
             <Delete fontSize="small" sx={{ mr: 1 }} />
             Delete Employee

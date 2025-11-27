@@ -231,7 +231,7 @@ export class EmployeeTestHelpers {
     await this.page.waitForSelector('[class*="MuiCard-root"]', { state: 'visible', timeout: 10000 });
 
     // Multi-select dropdown - click the Select input to open it
-    const rolesSelect = this.page.getByTestId('role-filter-select');
+    const rolesSelect = this.page.locator('[data-testid="role-filter-select"]');
     await rolesSelect.click();
 
     // Wait for listbox to be visible
@@ -426,7 +426,7 @@ export class EmployeeTestHelpers {
    */
   async waitForRoleOptionsPopulated(expectedRoles?: string[]): Promise<void> {
     // Click the role filter to open the dropdown
-    const rolesSelect = this.page.getByTestId('role-filter-select');
+    const rolesSelect = this.page.locator('[data-testid="role-filter-select"]');
     await rolesSelect.click();
     
     // Wait for listbox and options to be visible
