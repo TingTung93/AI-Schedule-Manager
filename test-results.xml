@@ -1,63 +1,50 @@
-<testsuites id="" name="" tests="5" failures="1" skipped="0" errors="0" time="26.118213">
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T03:14:03.474Z" hostname="chromium" tests="1" failures="0" skipped="0" time="12.298" errors="0">
-<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully" classname="employee-management/01-employee-crud.spec.ts" time="12.298">
+<testsuites id="" name="" tests="2" failures="1" skipped="0" errors="0" time="31.234929999999995">
+<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T03:18:55.905Z" hostname="chromium" tests="2" failures="1" skipped="0" time="44.37" errors="0">
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.06 Should filter employees by role" classname="employee-management/01-employee-crud.spec.ts" time="13.638">
 </testcase>
-</testsuite>
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T03:14:03.474Z" hostname="chromium" tests="1" failures="0" skipped="0" time="12.308" errors="0">
-<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully" classname="employee-management/01-employee-crud.spec.ts" time="12.308">
-</testcase>
-</testsuite>
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T03:14:03.474Z" hostname="chromium" tests="1" failures="0" skipped="0" time="12.303" errors="0">
-<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully" classname="employee-management/01-employee-crud.spec.ts" time="12.303">
-</testcase>
-</testsuite>
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T03:14:03.474Z" hostname="chromium" tests="1" failures="1" skipped="0" time="12.778" errors="0">
-<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully" classname="employee-management/01-employee-crud.spec.ts" time="12.778">
-<failure message="01-employee-crud.spec.ts:507:9 04.01 Should delete employee successfully" type="FAILURE">
-<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:507:9 › Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully 
+<testcase name="Employee CRUD Operations › 02. Employee Reading (Read) › 02.07 Should clear all filters" classname="employee-management/01-employee-crud.spec.ts" time="30.732">
+<failure message="01-employee-crud.spec.ts:280:9 02.07 Should clear all filters" type="FAILURE">
+<![CDATA[  [chromium] › employee-management/01-employee-crud.spec.ts:280:9 › Employee CRUD Operations › 02. Employee Reading (Read) › 02.07 Should clear all filters 
 
-    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
     Call log:
-      - waiting for getByRole('dialog') to be hidden
-        25 × locator resolved to visible <div role="dialog" aria-modal="true" aria-labelledby=":r12:" class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation24 MuiDialog-paper MuiDialog-paperScrollPaper MuiDialog-paperWidthSm MuiDialog-paperFullWidth css-109yog5">…</div>
+      - waiting for getByRole('button', { name: /add employee/i })
 
 
-       at helpers/employee-helpers.ts:144
+       at helpers/employee-helpers.ts:72
 
-      142 |     // Only wait for dialog to close if expected (not for validation errors)
-      143 |     if (waitForClose) {
-    > 144 |       await dialog.waitFor({ state: 'hidden', timeout: 10000 });
-          |                    ^
-      145 |       // After dialog closes, wait for the employee list to refresh
-      146 |       await this.waitForCardsToRefresh();
-      147 |     } else {
-        at EmployeeTestHelpers.submitEmployeeForm (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:144:20)
-        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:518:7
+      70 |
+      71 |   async openAddEmployeeDialog(): Promise<void> {
+    > 72 |     await this.page.getByRole('button', { name: /add employee/i }).click();
+         |                                                                    ^
+      73 |     // Wait for the specific "Add New Employee" dialog to be visible
+      74 |     await this.page.getByRole('heading', { name: /add new employee/i }).waitFor({ state: 'visible' });
+      75 |   }
+        at EmployeeTestHelpers.openAddEmployeeDialog (/home/peter/AI-Schedule-Manager/e2e-tests/helpers/employee-helpers.ts:72:68)
+        at /home/peter/AI-Schedule-Manager/e2e-tests/employee-management/01-employee-crud.spec.ts:291:21
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium-repeat3/test-failed-1.png
+    ../test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium-repeat3/video.webm
+    ../test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: ../test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium-repeat3/error-context.md
+    Error Context: ../test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/error-context.md
 ]]>
 </failure>
 <system-out>
 <![CDATA[
-[[ATTACHMENT|test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium-repeat3/test-failed-1.png]]
+[[ATTACHMENT|test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/test-failed-1.png]]
 
-[[ATTACHMENT|test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium-repeat3/video.webm]]
+[[ATTACHMENT|test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/video.webm]]
 
-[[ATTACHMENT|test-results/employee-management-01-emp-9d353-elete-employee-successfully-chromium-repeat3/error-context.md]]
+[[ATTACHMENT|test-results/employee-management-01-emp-35f02-07-Should-clear-all-filters-chromium/error-context.md]]
 ]]>
 </system-out>
-</testcase>
-</testsuite>
-<testsuite name="employee-management/01-employee-crud.spec.ts" timestamp="2025-11-27T03:14:03.474Z" hostname="chromium" tests="1" failures="0" skipped="0" time="11.44" errors="0">
-<testcase name="Employee CRUD Operations › 04. Employee Deletion (Delete) › 04.01 Should delete employee successfully" classname="employee-management/01-employee-crud.spec.ts" time="11.44">
 </testcase>
 </testsuite>
 </testsuites>

@@ -111,6 +111,32 @@ class User(Base):
                 perms.add(permission.name)
         return list(perms)
 
+    @property
+    def role(self):
+        """Get primary role name as a string for frontend compatibility.
+
+        Returns the highest priority role in order: admin > manager > employee > guest
+        If user has multiple roles, returns the most privileged one.
+        If no roles, returns 'employee' as default.
+        """
+        if not self.roles:
+            return 'employee'
+
+        role_names = [r.name for r in self.roles]
+
+        # Return highest priority role
+        if 'admin' in role_names:
+            return 'admin'
+        elif 'manager' in role_names:
+            return 'manager'
+        elif 'employee' in role_names:
+            return 'employee'
+        elif 'guest' in role_names:
+            return 'guest'
+        else:
+            # Return first role if none match known roles
+            return role_names[0]
+
     def has_role(self, role_name: str) -> bool:
         """Check if user has a specific role"""
         return any(role.name == role_name for role in self.roles)

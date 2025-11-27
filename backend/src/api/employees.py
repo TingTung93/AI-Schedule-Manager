@@ -658,12 +658,49 @@ async def create_employee(
             )
 
         await db.commit()
-        await db.refresh(new_user)
+
+        # Reload user with roles relationship
+        from sqlalchemy.orm import selectinload
+
+        user_query = select(User).where(User.id == new_user.id).options(selectinload(User.roles))
+        user_result = await db.execute(user_query)
+        new_user = user_result.scalar_one()
+
+        # Assign role if provided (default to 'employee' if not specified)
+        role_name = employee_data.role if employee_data.role else 'employee'
+        role_result = await db.execute(select(Role).where(Role.name == role_name))
+        role = role_result.scalar_one_or_none()
+
+        if role:
+            # Check if role already assigned (in case of re-execution)
+            has_role = any(r.name == role_name for r in new_user.roles)
+            if not has_role:
+                new_user.roles.append(role)
+                # Log role assignment in history
+                history_record = RoleChangeHistory(
+                    user_id=new_user.id,
+                    old_role=None,
+                    new_role=role_name,
+                    changed_by_id=current_user.id,
+                    changed_at=datetime.utcnow(),
+                    reason="Initial role assignment on employee creation",
+                    metadata_json={"action": "create", "initial_assignment": True}
+                )
+                db.add(history_record)
+                await db.commit()
+        else:
+            # If role doesn't exist in database, log warning but don't fail
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Role '{role_name}' not found in database, skipping role assignment for user {new_user.id}")
+
+        # Reload user again to get fresh roles
+        user_query = select(User).where(User.id == new_user.id).options(selectinload(User.roles))
+        user_result = await db.execute(user_query)
+        new_user = user_result.scalar_one()
 
         # Load department relationship for response with children eagerly loaded
         if new_user.department_id:
-            from sqlalchemy.orm import selectinload
-
             dept_result = await db.execute(
                 select(Department).where(Department.id == new_user.department_id).options(selectinload(Department.children))
             )
