@@ -81,12 +81,14 @@ const EmployeesPage = () => {
   const [statusHistoryDialogOpen, setStatusHistoryDialogOpen] = useState(false);
   const [departmentHistoryDialogOpen, setDepartmentHistoryDialogOpen] = useState(false);
   const [roleHistoryDialogOpen, setRoleHistoryDialogOpen] = useState(false);
+  const [deleteConfirmDialogOpen, setDeleteConfirmDialogOpen] = useState(false);
   const [notification, setNotification] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedRoles, setSelectedRoles] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [newQualification, setNewQualification] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [employeeForm, setEmployeeForm] = useState({
     firstName: '',
     lastName: '',
@@ -195,6 +197,7 @@ const EmployeesPage = () => {
       hourly_rate: '',
       max_hours_per_week: ''
     });
+    setFieldErrors({});
     setDialogOpen(true);
   };
 
@@ -225,15 +228,48 @@ const EmployeesPage = () => {
     handleMenuClose();
   };
 
-  const handleDeleteEmployee = async (employeeId) => {
+  const handleDeleteEmployee = () => {
+    setDeleteConfirmDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const confirmDeleteEmployee = async () => {
     try {
-      await api.delete(`/api/employees/${employeeId}`);
+      await api.delete(`/api/employees/${selectedEmployee?.id}`);
       setNotification({ type: 'success', message: 'Employee deleted successfully' });
       loadEmployees();
+      setDeleteConfirmDialogOpen(false);
     } catch (error) {
       setNotification({ type: 'error', message: getErrorMessage(error) });
+      setDeleteConfirmDialogOpen(false);
     }
-    handleMenuClose();
+  };
+
+  // Validate individual field and update fieldErrors state
+  const validateField = (fieldName, value) => {
+    let error = '';
+
+    switch (fieldName) {
+      case 'max_hours_per_week':
+        if (value && (parseInt(value) < 1 || parseInt(value) > 168)) {
+          error = 'Max hours must be between 1 and 168';
+        }
+        break;
+      case 'hourly_rate':
+        if (value && (parseFloat(value) < 0 || parseFloat(value) > 1000)) {
+          error = 'Hourly rate must be between 0 and 1000';
+        }
+        break;
+      default:
+        break;
+    }
+
+    setFieldErrors(prev => ({
+      ...prev,
+      [fieldName]: error
+    }));
+
+    return error;
   };
 
   const validateExtendedFields = () => {
@@ -780,7 +816,7 @@ const EmployeesPage = () => {
 
         {/* Destructive Action */}
         {user?.role === 'admin' && (
-          <MenuItem onClick={() => handleDeleteEmployee(selectedEmployee?.id)} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={handleDeleteEmployee} sx={{ color: 'error.main' }}>
             <Delete fontSize="small" sx={{ mr: 1 }} />
             Delete Employee
           </MenuItem>
@@ -916,12 +952,17 @@ const EmployeesPage = () => {
                   label="Max Hours Per Week"
                   type="number"
                   value={employeeForm.max_hours_per_week}
-                  onChange={(e) => setEmployeeForm(prev => ({
-                    ...prev,
-                    max_hours_per_week: e.target.value
-                  }))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEmployeeForm(prev => ({
+                      ...prev,
+                      max_hours_per_week: value
+                    }));
+                    validateField('max_hours_per_week', value);
+                  }}
+                  error={!!fieldErrors.max_hours_per_week}
+                  helperText={fieldErrors.max_hours_per_week || "1-168"}
                   inputProps={{ min: 1, max: 168 }}
-                  helperText="1-168"
                 />
               </Grid>
 
@@ -1087,6 +1128,30 @@ const EmployeesPage = () => {
         employeeId={selectedEmployee?.id}
         employeeName={selectedEmployee ? `${selectedEmployee.firstName || selectedEmployee.first_name} ${selectedEmployee.lastName || selectedEmployee.last_name}` : ''}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmDialogOpen}
+        onClose={() => setDeleteConfirmDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete {selectedEmployee?.first_name} {selectedEmployee?.last_name}?
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={confirmDeleteEmployee} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Notification Snackbar */}
       <Snackbar
